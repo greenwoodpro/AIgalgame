@@ -84,7 +84,7 @@
             maxContext: 20,
             autoGenScene: true,
             corsProxy: false,
-            corsProxyUrl: '',
+            corsProxyUrl: 'https://galai-proxy.greenwood245.workers.dev',
             useProxyKeys: true,
             textApiProvider: 'zhipu',
             textModel: 'glm-4.7-flash',
