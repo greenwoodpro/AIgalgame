@@ -1,0 +1,18 @@
+name = "galai"
+main = "worker.js"
+compatibility_date = "2024-12-01"
+
+[vars]
+
+[[r2_buckets]]
+binding = "SITE_BUCKET"
+bucket_name = "galai-site"
+
+[secrets]
+ZHIPU_API_KEY = ""
+MODELSCOPE_API_KEY = ""
+NVIDIA_API_KEY = ""
+
+[routes]
+pattern = "galai.dpdns.org/*"
+zone_name = "dpdns.org"

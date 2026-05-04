@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>次元邂逅 · AI Galgame</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <div id="title-screen" class="screen active">
+            <canvas id="title-canvas"></canvas>
+            <div class="title-content">
+                <div class="title-logo">
+                    <span class="title-icon">✦</span>
+                    <h1>次元邂逅</h1>
+                    <p class="title-sub">DIMENSION ENCOUNTER</p>
+                    <p class="title-tag">AI-Powered Visual Novel</p>
+                </div>
+                <nav class="title-menu">
+                    <button class="menu-btn primary" data-action="start-ai">
+                        <span class="btn-icon">🤖</span> AI 模式
+                        <small>AI实时生成剧情</small>
+                    </button>
+                    <button class="menu-btn" data-action="start-normal">
+                        <span class="btn-icon">📖</span> 普通模式
+                        <small>预设剧本体验</small>
+                    </button>
+                    <button class="menu-btn" data-action="load">
+                        <span class="btn-icon">📂</span> 继续旅程
+                        <small>读取存档</small>
+                    </button>
+                    <button class="menu-btn" data-action="settings">
+                        <span class="btn-icon">⚙️</span> 设置
+                        <small>API / 主题 / 模型</small>
+                    </button>
+                </nav>
+                <p class="title-footer">© 2026 次元邂逅 · 用热爱与代码构建</p>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div id="scene-layer">
+                <button id="scene-download-btn" data-action="download-scene">💾 下载场景图</button>
+                <div id="scene-bg"></div>
+                <div id="scene-overlay"></div>
+            </div>
+            <div id="character-layer">
+                <div id="character-container">
+                    <img id="character-img" src="" alt="">
+                </div>
+            </div>
+            <div id="game-toolbar">
+                <button class="toolbar-btn" data-action="back-title" title="返回标题">🏠</button>
+                <button class="toolbar-btn" data-action="save" title="存档">💾</button>
+                <button class="toolbar-btn" data-action="load" title="读档">📂</button>
+                <button class="toolbar-btn" data-action="auto" title="自动播放">▶️</button>
+                <button class="toolbar-btn" data-action="skip" title="快进">⏩</button>
+                <button class="toolbar-btn" data-action="history" title="对话记录">📜</button>
+                <button class="toolbar-btn" data-action="gallery" title="图片画廊">🖼️</button>
+                <button class="toolbar-btn" data-action="settings" title="设置">⚙️</button>
+                <div id="api-indicator" class="toolbar-btn" data-action="api-status" title="API状态">
+                    <span class="api-dot"></span>
+                    <span class="api-label">API</span>
+                </div>
+            </div>
+            <div id="choices-box" class="hidden"></div>
+            <div id="dialog-box" class="hidden">
+                <div id="dialog-nameplate">
+                    <span id="dialog-name"></span>
+                </div>
+                <div id="dialog-content">
+                    <span id="dialog-text"></span>
+                    <span id="dialog-cursor" class="cursor-blink">▎</span>
+                </div>
+                <div id="dialog-click-hint">▼</div>
+            </div>
+            <div id="ai-generating" class="hidden">
+                <div class="ai-spinner"></div>
+                <span>AI 正在构思中...</span>
+            </div>
+        </div>
+
+        <div id="settings-modal" class="modal hidden">
+            <div class="modal-backdrop" data-action="close-settings"></div>
+            <div class="modal-content settings-panel">
+                <div class="modal-header">
+                    <h2>⚙️ 设置</h2>
+                    <button class="modal-close" data-action="close-settings">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-tabs">
+                        <button class="tab-btn active" data-tab="api">API 配置</button>
+                        <button class="tab-btn" data-tab="model">模型选择</button>
+                        <button class="tab-btn" data-tab="theme">主题风格</button>
+                        <button class="tab-btn" data-tab="game">游戏设置</button>
+                    </div>
+                    <div class="tab-content active" id="tab-api">
+                        <div class="api-provider">
+                            <h3>🟢 智谱AI (ZhipuAI)</h3>
+                            <div class="form-group">
+                                <label>API Key</label>
+                                <input type="password" id="zhipu-api-key" placeholder="输入智谱AI API Key">
+                                <small>免费: glm-4.7-flash(文本) / cogview-3-flash(生图) / glm-4.6v-flash(视觉)</small>
+                            </div>
+                            <div class="api-quota" id="zhipu-quota">
+                                <span class="quota-label">状态:</span>
+                                <span class="quota-value" id="zhipu-status">未配置</span>
+                            </div>
+                        </div>
+                        <div class="api-provider">
+                            <h3>🔵 魔搭社区 (ModelScope)</h3>
+                            <div class="form-group">
+                                <label>API Token</label>
+                                <input type="password" id="modelscope-api-key" placeholder="输入魔搭 Token">
+                                <small>每日限额: 2000次 / 模型限额: 500次 (仅按次计费模型)</small>
+                            </div>
+                            <div class="api-quota" id="modelscope-quota">
+                                <span class="quota-label">用户额度:</span>
+                                <span class="quota-value" id="ms-user-quota">--</span>
+                                <span class="quota-label">模型额度:</span>
+                                <span class="quota-value" id="ms-model-quota">--</span>
+                            </div>
+                        </div>
+                        <div class="api-provider">
+                            <h3>🟣 NVIDIA NIM</h3>
+                            <div class="form-group">
+                                <label>API Key</label>
+                                <input type="password" id="nvidia-api-key" placeholder="输入 NVIDIA API Key">
+                                <small>免费开源模型: llama-4, mixtral, gpt-oss, qwen 等</small>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="use-proxy-keys" checked>
+                                使用默认密钥（通过代理，密钥不可见）
+                            </label>
+                            <small>开启后通过服务器代理调用API，密钥安全存储在服务端，前端不可提取</small>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="cors-proxy-toggle">
+                                启用 CORS 代理（浏览器跨域时需要）
+                            </label>
+                            <input type="text" id="cors-proxy-url" placeholder="代理地址，如: /api/proxy 或 http://localhost:8787/proxy">
+                            <small>部署到 Cloudflare Workers 后可使用 /api/proxy 路径</small>
+                        </div>
+                    </div>
+                    <div class="tab-content" id="tab-model">
+                        <div class="form-group">
+                            <label>文本生成 API</label>
+                            <select id="text-api-provider">
+                                <option value="zhipu">智谱AI</option>
+                                <option value="modelscope">魔搭社区</option>
+                                <option value="nvidia">NVIDIA</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>文本模型 <span id="model-tags" class="model-tags"></span></label>
+                            <select id="text-model"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>图像生成 API</label>
+                            <select id="image-api-provider">
+                                <option value="zhipu">智谱AI (CogView)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>图像模型</label>
+                            <select id="image-model">
+                                <option value="cogview-3-flash">CogView-3-Flash (免费生图)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>AI 人设提示词</label>
+                            <textarea id="system-prompt" rows="4" placeholder="自定义AI角色的性格和行为..."></textarea>
+                        </div>
+                        <div class="model-legend">
+                            <span class="legend-item"><span class="tag tag-free">免费</span> 免费额度</span>
+                            <span class="legend-item"><span class="tag tag-thinking">思考</span> 深度思考</span>
+                            <span class="legend-item"><span class="tag tag-vision">视觉</span> 多模态</span>
+                            <span class="legend-item"><span class="tag tag-image">生图</span> 图像生成</span>
+                        </div>
+                    </div>
+                    <div class="tab-content" id="tab-theme">
+                        <div class="theme-grid">
+                            <div class="theme-card active" data-theme="dark-star">
+                                <div class="theme-preview dark-star-preview"></div>
+                                <span>暗夜星辰</span>
+                            </div>
+                            <div class="theme-card" data-theme="sakura">
+                                <div class="theme-preview sakura-preview"></div>
+                                <span>樱花物语</span>
+                            </div>
+                            <div class="theme-card" data-theme="cyberpunk">
+                                <div class="theme-preview cyberpunk-preview"></div>
+                                <span>赛博朋克</span>
+                            </div>
+                            <div class="theme-card" data-theme="ink-wash">
+                                <div class="theme-preview ink-wash-preview"></div>
+                                <span>古风水墨</span>
+                            </div>
+                            <div class="theme-card" data-theme="vaporwave">
+                                <div class="theme-preview vaporwave-preview"></div>
+                                <span>蒸汽波</span>
+                            </div>
+                            <div class="theme-card" data-theme="custom">
+                                <div class="theme-preview custom-preview">🎨</div>
+                                <span>自定义</span>
+                            </div>
+                        </div>
+                        <div id="custom-theme-editor" class="hidden">
+                            <div class="form-group">
+                                <label>背景色</label>
+                                <input type="color" id="custom-bg" value="#0a0a1a">
+                            </div>
+                            <div class="form-group">
+                                <label>主色调</label>
+                                <input type="color" id="custom-primary" value="#00d2ff">
+                            </div>
+                            <div class="form-group">
+                                <label>强调色</label>
+                                <input type="color" id="custom-accent" value="#7b2ff7">
+                            </div>
+                            <div class="form-group">
+                                <label>文字色</label>
+                                <input type="color" id="custom-text" value="#ffffff">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-content" id="tab-game">
+                        <div class="form-group">
+                            <label>文字显示速度</label>
+                            <input type="range" id="text-speed" min="10" max="100" value="40">
+                            <span id="text-speed-label">40ms</span>
+                        </div>
+                        <div class="form-group">
+                            <label>自动播放等待时间 (秒)</label>
+                            <input type="range" id="auto-wait" min="1" max="10" value="3">
+                            <span id="auto-wait-label">3s</span>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="save-conversation" checked>
+                                保存AI对话记录（用于上下文记忆）
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>最大上下文轮数</label>
+                            <input type="number" id="max-context" min="2" max="50" value="20">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="auto-gen-scene" checked>
+                                AI模式自动生成场景图
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <button class="action-btn danger" data-action="clear-data">清除所有存档数据</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="save-modal" class="modal hidden">
+            <div class="modal-backdrop" data-action="close-save"></div>
+            <div class="modal-content save-panel">
+                <div class="modal-header">
+                    <h2>💾 存档管理</h2>
+                    <button class="modal-close" data-action="close-save">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div id="save-slots"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="history-modal" class="modal hidden">
+            <div class="modal-backdrop" data-action="close-history"></div>
+            <div class="modal-content history-panel">
+                <div class="modal-header">
+                    <h2>📜 对话记录</h2>
+                    <button class="modal-close" data-action="close-history">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div id="history-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="gallery-modal" class="modal hidden">
+            <div class="modal-backdrop" data-action="close-gallery"></div>
+            <div class="modal-content gallery-panel">
+                <div class="modal-header">
+                    <h2>🖼️ 图片画廊</h2>
+                    <button class="modal-close" data-action="close-gallery">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div id="gallery-grid"></div>
+                    <p id="gallery-empty">还没有生成图片，开始AI模式冒险吧！</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="api-status-modal" class="modal hidden">
+            <div class="modal-backdrop" data-action="close-api-status"></div>
+            <div class="modal-content api-status-panel">
+                <div class="modal-header">
+                    <h2>📊 API 状态</h2>
+                    <button class="modal-close" data-action="close-api-status">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div id="api-status-content"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="toast-container"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
