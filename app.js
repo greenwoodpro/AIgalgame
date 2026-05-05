@@ -71,19 +71,6 @@
                 ],
             },
         },
-        cerebras: {
-            name: 'Cerebras',
-            baseUrl: 'https://api.cerebras.ai/v1',
-            models: {
-                text: [
-                    { id: 'qwen-3-235b-a22b-instruct-2507', name: 'Qwen3-235B-2507', free: true },
-                    { id: 'qwen-3-32b', name: 'Qwen3-32B', free: true },
-                    { id: 'llama3.1-8b', name: 'Llama-3.1-8B', free: true },
-                    { id: 'llama3.3-70b', name: 'Llama-3.3-70B', free: true },
-                    { id: 'llama4-scout-17b-16e-instruct', name: 'Llama-4-Scout', free: true },
-                ],
-            },
-        },
     };
 
     let state = {
@@ -104,7 +91,7 @@
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
-            apiKeys: { zhipu: '', modelscope: '', nvidia: '', cerebras: '' },
+            apiKeys: { zhipu: '', modelscope: '', nvidia: '' },
             customTheme: { bg: '#0a0a1a', primary: '#00d2ff', accent: '#7b2ff7', text: '#ffffff' },
         },
         game: {
@@ -265,7 +252,7 @@
         $('#text-speed').addEventListener('input', e => { state.settings.textSpeed = parseInt(e.target.value); $('#text-speed-label').textContent = e.target.value + 'ms'; saveSettings(); });
         $('#auto-wait').addEventListener('input', e => { state.settings.autoWait = parseInt(e.target.value); $('#auto-wait-label').textContent = e.target.value + 's'; saveSettings(); });
 
-        ['zhipu-api-key', 'modelscope-api-key', 'nvidia-api-key', 'cerebras-api-key'].forEach(id => {
+        ['zhipu-api-key', 'modelscope-api-key', 'nvidia-api-key'].forEach(id => {
             const el = $(`#${id}`);
             if (el) el.addEventListener('change', () => { const p = id.replace('-api-key', ''); state.settings.apiKeys[p] = el.value.trim(); saveSettings(); updateApiIndicator(); });
         });
@@ -353,7 +340,6 @@
         if (s.apiKeys.zhipu) $('#zhipu-api-key').value = s.apiKeys.zhipu;
         if (s.apiKeys.modelscope) $('#modelscope-api-key').value = s.apiKeys.modelscope;
         if (s.apiKeys.nvidia) $('#nvidia-api-key').value = s.apiKeys.nvidia;
-        if (s.apiKeys.cerebras) $('#cerebras-api-key').value = s.apiKeys.cerebras;
         $('#text-api-provider').value = s.textApiProvider;
         updateModelOptions();
         setTimeout(() => { $('#text-model').value = s.textModel; updateModelTags(); }, 50);
@@ -514,10 +500,6 @@
         } else {
             const proxyBase = state.settings.corsProxyUrl || window.location.origin;
             url = `${proxyBase}/api/${provider}/chat/completions`;
-            if (state.settings.corsProxy && state.settings.corsProxyUrl) {
-                url = state.settings.corsProxyUrl + '/api/' + provider + '/chat/completions';
-            }
-            headers['Authorization'] = `Bearer ${apiKey}`;
         }
         const messages = [{ role: 'system', content: state.settings.systemPrompt }];
         const recentContext = state.game.aiContext.slice(-state.settings.maxContext * 2);
@@ -527,7 +509,6 @@
 
         const body = { model: state.settings.textModel, messages, stream: false };
         if (provider === 'nvidia') { body.temperature = 1; body.top_p = 0.9; body.max_tokens = 4096; }
-        if (provider === 'cerebras') { body.temperature = 0.7; body.top_p = 0.9; body.max_tokens = 4096; }
         const currentModel = [...(config.models.text || []), ...(config.models.vision || [])].find(m => m.id === state.settings.textModel);
         if (currentModel?.thinking) { body.stream = true; }
 
@@ -619,10 +600,6 @@
         } else {
             const proxyBase = state.settings.corsProxyUrl || window.location.origin;
             url = `${proxyBase}/api/${provider}/images/generations`;
-            if (state.settings.corsProxy && state.settings.corsProxyUrl) {
-                url = state.settings.corsProxyUrl + '/api/' + provider + '/images/generations';
-            }
-            headers['Authorization'] = `Bearer ${apiKey}`;
         }
 
         const body = { model: state.settings.imageModel, prompt, size: '1024x1024' };
@@ -1022,7 +999,7 @@
     function showApiStatusPanel() {
         const content = $('#api-status-content');
         content.innerHTML = '';
-        ['zhipu', 'modelscope', 'nvidia', 'cerebras'].forEach(p => {
+        ['zhipu', 'modelscope', 'nvidia'].forEach(p => {
             const config = API_CONFIGS[p];
             const hasKey = state.settings.useProxyKeys || !!state.settings.apiKeys[p];
             const card = document.createElement('div');
