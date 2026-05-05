@@ -131,9 +131,8 @@ html, body {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('background.png') center/cover no-repeat;
-    opacity: 0.25;
-    filter: blur(2px);
+    background: url('background.png') center bottom/cover no-repeat;
+    opacity: 0.35;
     z-index: 0;
 }
 
@@ -317,7 +316,7 @@ html, body {
     position: absolute;
     inset: 0;
     background-size: cover;
-    background-position: center;
+    background-position: center bottom;
     background-repeat: no-repeat;
     background-image: url('background.png');
     transition: opacity 1.2s ease;
@@ -331,7 +330,7 @@ html, body {
     position: absolute;
     inset: 0;
     background-size: cover;
-    background-position: center;
+    background-position: center bottom;
     background-repeat: no-repeat;
     opacity: 0;
     transition: opacity 1.2s ease;
