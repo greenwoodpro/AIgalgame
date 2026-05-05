@@ -610,7 +610,40 @@
             url = `${proxyBase}/api/${provider}/images/generations`;
         }
 
-        const body = { model: state.settings.imageModel, prompt, size: '1024x1024' };
+        const body = { model: state.settings.imageModel, prompt };
+
+        if (provider === 'modelscope') {
+            headers['X-ModelScope-Async-Mode'] = 'true';
+            const submitResponse = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+            if (!submitResponse.ok) {
+                const errText = await submitResponse.text();
+                let errMsg = `图像生成提交失败 (${submitResponse.status})`;
+                try { const errJson = JSON.parse(errText); if (errJson.error?.message) errMsg = errJson.error.message; } catch {}
+                throw new Error(errMsg);
+            }
+            const submitData = await submitResponse.json();
+            const taskId = submitData.task_id;
+            if (!taskId) throw new Error('未获取到任务ID');
+
+            const taskUrl = `${config.baseUrl}/tasks/${taskId}`;
+            const taskHeaders = { ...headers };
+            taskHeaders['X-ModelScope-Task-Type'] = 'image_generation';
+            delete taskHeaders['X-ModelScope-Async-Mode'];
+
+            for (let i = 0; i < 60; i++) {
+                await new Promise(r => setTimeout(r, 3000));
+                const taskResp = await fetch(taskUrl, { headers: taskHeaders });
+                const taskData = await taskResp.json();
+                if (taskData.task_status === 'SUCCEED') {
+                    const imgUrl = taskData.output_images?.[0];
+                    if (imgUrl) return { type: 'url', value: imgUrl };
+                    throw new Error('未获取到图像URL');
+                }
+                if (taskData.task_status === 'FAILED') throw new Error('图像生成失败');
+            }
+            throw new Error('图像生成超时');
+        }
+
         const imgAbortController = new AbortController();
         const response = await fetch(url, {
             method: 'POST',
