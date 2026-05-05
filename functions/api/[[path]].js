@@ -2,6 +2,7 @@ const API_BASES = {
     zhipu: 'https://open.bigmodel.cn/api/paas/v4',
     modelscope: 'https://api-inference.modelscope.cn/v1',
     nvidia: 'https://integrate.api.nvidia.com/v1',
+    cerebras: 'https://api.cerebras.ai/v1',
 };
 
 function getApiKey(env, provider) {
@@ -9,6 +10,7 @@ function getApiKey(env, provider) {
         zhipu: env.ZHIPU_API_KEY,
         modelscope: env.MODELSCOPE_API_KEY,
         nvidia: env.NVIDIA_API_KEY,
+        cerebras: env.CEREBRAS_API_KEY,
     };
     return map[provider] || null;
 }
