@@ -83,11 +83,12 @@
             saveConversation: true,
             maxContext: 20,
             autoGenScene: true,
+            enableThinking: false,
             corsProxy: true,
             corsProxyUrl: '',
             useProxyKeys: true,
-            textApiProvider: 'zhipu',
-            textModel: 'glm-4.7-flash',
+            textApiProvider: 'modelscope',
+            textModel: 'deepseek-ai/DeepSeek-V3-0324',
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
@@ -263,6 +264,7 @@
         $('#save-conversation').addEventListener('change', e => { state.settings.saveConversation = e.target.checked; saveSettings(); });
         $('#max-context').addEventListener('change', e => { state.settings.maxContext = parseInt(e.target.value) || 20; saveSettings(); });
         $('#auto-gen-scene').addEventListener('change', e => { state.settings.autoGenScene = e.target.checked; saveSettings(); });
+        $('#enable-thinking').addEventListener('change', e => { state.settings.enableThinking = e.target.checked; saveSettings(); });
         $('#text-model').addEventListener('change', e => { state.settings.textModel = e.target.value; updateModelTags(); saveSettings(); });
         $('#image-model').addEventListener('change', e => { state.settings.imageModel = e.target.value; saveSettings(); });
         $('#system-prompt').addEventListener('change', e => { state.settings.systemPrompt = e.target.value || DEFAULT_SYSTEM_PROMPT; saveSettings(); });
@@ -355,6 +357,7 @@
         if (s.corsProxyUrl) $('#cors-proxy-url').value = s.corsProxyUrl;
         if (s.useProxyKeys !== undefined) $('#use-proxy-keys').checked = s.useProxyKeys;
         if (s.autoGenScene !== undefined) $('#auto-gen-scene').checked = s.autoGenScene;
+        if (s.enableThinking !== undefined) $('#enable-thinking').checked = s.enableThinking;
         $$('.theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === state.theme));
         if (state.theme === 'custom') {
             $('#custom-theme-editor').classList.remove('hidden');
@@ -510,7 +513,7 @@
         const body = { model: state.settings.textModel, messages, stream: false };
         if (provider === 'nvidia') { body.temperature = 1; body.top_p = 0.9; body.max_tokens = 4096; }
         const currentModel = [...(config.models.text || []), ...(config.models.vision || [])].find(m => m.id === state.settings.textModel);
-        if (currentModel?.thinking) { body.stream = true; }
+        if (currentModel?.thinking && state.settings.enableThinking) { body.stream = true; }
 
         const dot = $('.api-dot');
         if (dot) dot.className = 'api-dot loading';
