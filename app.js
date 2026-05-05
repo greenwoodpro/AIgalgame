@@ -66,10 +66,10 @@
             baseUrl: 'https://integrate.api.nvidia.com/v1',
             models: {
                 text: [
-                    { id: 'moonshotai/kimi-k2-instruct', name: 'Kimi-K2' },
                     { id: 'openai/gpt-oss-120b', name: 'GPT-OSS-120B' },
                     { id: 'meta/llama-4-maverick-17b-128e-instruct', name: 'Llama-4-Maverick' },
                     { id: 'mistralai/mistral-nemotron', name: 'Mistral-Nemotron', thinking: true },
+                    { id: 'moonshotai/kimi-k2-instruct', name: 'Kimi-K2' },
                 ],
             },
         },
