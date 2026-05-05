@@ -26,7 +26,9 @@
             models: {
                 text: [
                     { id: 'glm-4-flash-250414', name: 'GLM-4-Flash', free: true },
+                    { id: 'glm-4-flashx-250414', name: 'GLM-4-FlashX' },
                     { id: 'glm-4.7-flash', name: 'GLM-4.7-Flash', free: true, thinking: true },
+                    { id: 'glm-z1-flash', name: 'GLM-Z1-Flash', free: true, thinking: true },
                 ],
                 vision: [
                     { id: 'glm-4.6v-flash', name: 'GLM-4.6V-Flash', free: true, vision: true, thinking: true },
@@ -46,6 +48,10 @@
                     { id: 'Qwen/Qwen3.5-35B-A3B', name: 'Qwen3.5-35B', free: true },
                     { id: 'openai/gpt-oss-120b', name: 'GPT-OSS-120B' },
                     { id: 'MiniMax/MiniMax-M2.5', name: 'MiniMax-M2.5' },
+                ],
+                image: [
+                    { id: 'Z-Image/Z-Image-Turbo', name: 'Z-Image-Turbo', imageGen: true },
+                    { id: 'DiffSynth-Studio/FLUX.1-Kontext-dev-lora-highresfix', name: 'FLUX.1-Kontext', imageGen: true },
                 ],
             },
         },
@@ -590,6 +596,9 @@
         if (useProxy) {
             const proxyBase = state.settings.corsProxyUrl || window.location.origin;
             url = `${proxyBase}/api/${provider}/images/generations`;
+        } else if (provider === 'modelscope') {
+            url = `${config.baseUrl}/images/generations`;
+            headers['Authorization'] = `Bearer ${apiKey}`;
         } else {
             const proxyBase = state.settings.corsProxyUrl || window.location.origin;
             url = `${proxyBase}/api/${provider}/images/generations`;
