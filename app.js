@@ -86,6 +86,8 @@
             maxContext: 20,
             autoGenScene: true,
             enableThinking: false,
+            autoSwitchBg: false,
+            bgSwitchInterval: 120,
             corsProxy: true,
             corsProxyUrl: '',
             useProxyKeys: true,
@@ -267,6 +269,8 @@
         $('#max-context').addEventListener('change', e => { state.settings.maxContext = parseInt(e.target.value) || 20; saveSettings(); });
         $('#auto-gen-scene').addEventListener('change', e => { state.settings.autoGenScene = e.target.checked; saveSettings(); });
         $('#enable-thinking').addEventListener('change', e => { state.settings.enableThinking = e.target.checked; saveSettings(); });
+        $('#auto-switch-bg').addEventListener('change', e => { state.settings.autoSwitchBg = e.target.checked; saveSettings(); if (e.target.checked) startBgAutoSwitch(); else stopBgAutoSwitch(); });
+        $('#bg-switch-interval').addEventListener('change', e => { state.settings.bgSwitchInterval = Math.max(30, parseInt(e.target.value) || 120); saveSettings(); if (state.settings.autoSwitchBg) { stopBgAutoSwitch(); startBgAutoSwitch(); } });
         $('#text-model').addEventListener('change', e => { state.settings.textModel = e.target.value; updateModelTags(); saveSettings(); });
         $('#image-model').addEventListener('change', e => { state.settings.imageModel = e.target.value; saveSettings(); });
         $('#system-prompt').addEventListener('change', e => { state.settings.systemPrompt = e.target.value || DEFAULT_SYSTEM_PROMPT; saveSettings(); });
@@ -360,6 +364,8 @@
         if (s.useProxyKeys !== undefined) $('#use-proxy-keys').checked = s.useProxyKeys;
         if (s.autoGenScene !== undefined) $('#auto-gen-scene').checked = s.autoGenScene;
         if (s.enableThinking !== undefined) $('#enable-thinking').checked = s.enableThinking;
+        if (s.autoSwitchBg !== undefined) $('#auto-switch-bg').checked = s.autoSwitchBg;
+        if (s.bgSwitchInterval !== undefined) $('#bg-switch-interval').value = s.bgSwitchInterval;
         $$('.theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === state.theme));
         if (state.theme === 'custom') {
             $('#custom-theme-editor').classList.remove('hidden');
@@ -751,15 +757,30 @@
 
     function setSceneBackground(imageUrl) {
         const bg = $('#scene-bg');
+        const bgNext = $('#scene-bg-next');
         if (!imageUrl) {
+            bgNext.classList.remove('active');
             bg.style.backgroundImage = 'linear-gradient(135deg, #0a0a2e 0%, #1a1a3e 50%, #0d0d2a 100%)';
             return;
         }
-        const overlay = document.createElement('div');
-        overlay.className = 'scene-transition';
-        $('#game-screen').appendChild(overlay);
-        setTimeout(() => { bg.style.backgroundImage = `url("${CSS.escape(imageUrl)}")`; }, 500);
-        setTimeout(() => { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 1200);
+        const img = new Image();
+        img.onload = () => {
+            bgNext.style.backgroundImage = `url("${CSS.escape(imageUrl)}")`;
+            bgNext.classList.add('active');
+            setTimeout(() => {
+                bg.style.backgroundImage = `url("${CSS.escape(imageUrl)}")`;
+                bgNext.classList.remove('active');
+            }, 1300);
+        };
+        img.onerror = () => {
+            bgNext.style.backgroundImage = `url("${CSS.escape(imageUrl)}")`;
+            bgNext.classList.add('active');
+            setTimeout(() => {
+                bg.style.backgroundImage = `url("${CSS.escape(imageUrl)}")`;
+                bgNext.classList.remove('active');
+            }, 1300);
+        };
+        img.src = imageUrl;
     }
 
     function showCharacter(imageUrl) {
@@ -781,6 +802,27 @@
     let typewriterTimer = null;
     let apiCallInProgress = false;
     let currentAbortController = null;
+    let bgAutoSwitchTimer = null;
+
+    function startBgAutoSwitch() {
+        stopBgAutoSwitch();
+        if (!state.settings.autoSwitchBg || !state.game.aiMode) return;
+        const interval = (state.settings.bgSwitchInterval || 120) * 1000;
+        bgAutoSwitchTimer = setInterval(async () => {
+            if (state.game.aiMode && !apiCallInProgress && state.game.currentScene) {
+                try {
+                    const prompt = `${state.game.currentScene}, cinematic lighting, detailed background, anime style`;
+                    const result = await callImageApi(prompt);
+                    const imageUrl = result.type === 'url' ? result.value : `data:image/png;base64,${result.value}`;
+                    setSceneBackground(imageUrl);
+                } catch {}
+            }
+        }, interval);
+    }
+
+    function stopBgAutoSwitch() {
+        if (bgAutoSwitchTimer) { clearInterval(bgAutoSwitchTimer); bgAutoSwitchTimer = null; }
+    }
 
     function showDialog(name, text) {
         const dialogBox = $('#dialog-box');

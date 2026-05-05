@@ -277,11 +277,26 @@ html, body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    transition: background-image 1s ease, opacity 1s ease;
+    transition: opacity 1.2s ease;
 }
 
 #scene-bg.fade-out {
     opacity: 0;
+}
+
+#scene-bg-next {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+    z-index: 0;
+}
+
+#scene-bg-next.active {
+    opacity: 1;
 }
 
 #scene-overlay {
@@ -416,8 +431,9 @@ html, body {
     right: 0;
     height: 240px;
     background: var(--dialog-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    opacity: 0.75;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-top: 1px solid var(--dialog-border);
     z-index: -1;
 }

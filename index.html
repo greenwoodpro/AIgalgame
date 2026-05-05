@@ -46,7 +46,8 @@
             <div id="scene-layer">
                 <button id="scene-download-btn" data-action="download-scene">💾 下载场景图</button>
                 <div id="scene-bg"></div>
-                <div id="scene-overlay"></div>
+        <div id="scene-bg-next"></div>
+        <div id="scene-overlay"></div>
             </div>
             <div id="character-layer">
                 <div id="character-container">
@@ -265,6 +266,18 @@
                                 启用深度思考模式（更慢但更智能）
                             </label>
                             <small>开启后使用thinking模型进行深度推理，响应时间更长</small>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="auto-switch-bg">
+                                自动切换背景图
+                            </label>
+                            <small>AI模式自动生成新背景图，每隔一段时间或剧情变化时切换</small>
+                        </div>
+                        <div class="form-group">
+                            <label>背景切换间隔（秒）</label>
+                            <input type="number" id="bg-switch-interval" min="30" max="600" value="120" step="10">
+                            <small>自动切换背景的最小间隔时间</small>
                         </div>
                         <div class="form-group">
                             <button class="action-btn danger" data-action="clear-data">清除所有存档数据</button>
