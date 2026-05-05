@@ -123,6 +123,46 @@ html, body {
     align-items: center;
     justify-content: center;
     background: var(--bg);
+    position: relative;
+    overflow: hidden;
+}
+
+#title-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('background.png') center/cover no-repeat;
+    opacity: 0.25;
+    filter: blur(2px);
+    z-index: 0;
+}
+
+#title-screen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 30%, var(--bg) 80%);
+    z-index: 0;
+}
+
+#title-character {
+    position: absolute;
+    right: 5%;
+    bottom: 0;
+    max-height: 80vh;
+    max-width: 40vw;
+    object-fit: contain;
+    object-position: bottom center;
+    z-index: 0;
+    opacity: 0.5;
+    filter: drop-shadow(0 0 40px rgba(0, 0, 0, 0.8)) brightness(0.8);
+    pointer-events: none;
+    animation: titleCharFloat 6s ease-in-out infinite;
+}
+
+@keyframes titleCharFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
 #title-canvas {
@@ -148,6 +188,7 @@ html, body {
 .title-logo {
     text-align: center;
     animation: titleFloat 4s ease-in-out infinite;
+    filter: drop-shadow(0 4px 30px rgba(0, 0, 0, 0.6));
 }
 
 @keyframes titleFloat {
@@ -209,9 +250,9 @@ html, body {
     padding: 1rem 1.5rem;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    background: var(--bg-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(10, 10, 30, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     color: var(--text);
     font-size: 1.05rem;
     font-weight: 600;
@@ -219,6 +260,7 @@ html, body {
     transition: all var(--transition);
     font-family: var(--font-main);
     text-align: left;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .menu-btn .btn-icon {
@@ -277,6 +319,7 @@ html, body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    background-image: url('background.png');
     transition: opacity 1.2s ease;
 }
 
@@ -320,7 +363,7 @@ html, body {
 #character-container {
     max-height: 65vh;
     transition: all 0.5s ease;
-    filter: drop-shadow(0 0 30px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 40px rgba(0, 0, 0, 0.6)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
 }
 
 #character-container.entering {
@@ -356,6 +399,7 @@ html, body {
     display: flex;
     gap: 0.3rem;
     padding: 0.5rem;
+    padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
     opacity: 0.4;
     transition: opacity var(--transition);
 }
@@ -417,6 +461,7 @@ html, body {
     right: 0;
     z-index: 5;
     padding: 0 2rem 1.5rem;
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 #dialog-box.clickable {
@@ -431,11 +476,12 @@ html, body {
     right: 0;
     height: 240px;
     background: var(--dialog-bg);
-    opacity: 0.75;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    opacity: 0.7;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid var(--dialog-border);
     z-index: -1;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
 }
 
 #dialog-nameplate {
@@ -1070,6 +1116,7 @@ html, body {
     .title-content { gap: 1.5rem; padding: 1.5rem; }
     .title-logo h1 { font-size: 2.2rem; }
     .title-sub { font-size: 0.75rem; letter-spacing: 0.3em; }
+    #title-character { max-height: 50vh; max-width: 50vw; opacity: 0.3; right: 0; }
     #dialog-box { padding: 0 1rem 1rem; }
     #dialog-box::before { height: 200px; }
     #dialog-content { font-size: 0.95rem; line-height: 1.7; }
@@ -1094,6 +1141,7 @@ html, body {
 @media (max-width: 480px) {
     .title-content { gap: 1rem; padding: 1rem; }
     .title-logo h1 { font-size: 1.8rem; }
+    #title-character { max-height: 40vh; max-width: 60vw; opacity: 0.25; right: -5%; }
     .menu-btn { padding: 0.8rem 1rem; font-size: 0.95rem; }
     .menu-btn small { display: none; }
     .toolbar-btn { width: 30px; height: 30px; font-size: 0.85rem; }

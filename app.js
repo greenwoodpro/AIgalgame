@@ -120,6 +120,102 @@
     const $ = (sel) => document.querySelector(sel);
     const $$ = (sel) => document.querySelectorAll(sel);
 
+    const IDB = {
+        DB_NAME: 'galgame_img_store',
+        DB_VERSION: 1,
+        STORE_NAME: 'images',
+        _db: null,
+        async open() {
+            if (this._db) return this._db;
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(this.DB_NAME, this.DB_VERSION);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+                        const store = db.createObjectStore(this.STORE_NAME, { keyPath: 'id' });
+                        store.createIndex('timestamp', 'timestamp', { unique: false });
+                    }
+                };
+                req.onsuccess = (e) => { this._db = e.target.result; resolve(this._db); };
+                req.onerror = (e) => reject(e.target.error);
+            });
+        },
+        async saveImage(id, data) {
+            const db = await this.open();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(this.STORE_NAME, 'readwrite');
+                tx.objectStore(this.STORE_NAME).put({ id, data, timestamp: Date.now() });
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e.target.error);
+            });
+        },
+        async getImage(id) {
+            const db = await this.open();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(this.STORE_NAME, 'readonly');
+                const req = tx.objectStore(this.STORE_NAME).get(id);
+                req.onsuccess = () => resolve(req.result?.data || null);
+                req.onerror = (e) => reject(e.target.error);
+            });
+        },
+        async deleteImage(id) {
+            const db = await this.open();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(this.STORE_NAME, 'readwrite');
+                tx.objectStore(this.STORE_NAME).delete(id);
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e.target.error);
+            });
+        },
+        async getAllKeys() {
+            const db = await this.open();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(this.STORE_NAME, 'readonly');
+                const req = tx.objectStore(this.STORE_NAME).getAllKeys();
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = (e) => reject(e.target.error);
+            });
+        },
+        async getStorageEstimate() {
+            if (navigator.storage && navigator.storage.estimate) {
+                const est = await navigator.storage.estimate();
+                return { usage: est.usage || 0, quota: est.quota || 0 };
+            }
+            return { usage: 0, quota: 0 };
+        },
+        async clearOldImages(maxCount) {
+            const db = await this.open();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(this.STORE_NAME, 'readwrite');
+                const store = tx.objectStore(this.STORE_NAME);
+                const idx = store.index('timestamp');
+                const allReq = idx.getAll();
+                allReq.onsuccess = () => {
+                    const all = allReq.result;
+                    if (all.length <= maxCount) { resolve(); return; }
+                    const toDelete = all.slice(0, all.length - maxCount);
+                    toDelete.forEach(item => store.delete(item.id));
+                };
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e.target.error);
+            });
+        },
+        async urlToBase64(url) {
+            try {
+                const resp = await fetch(url, { mode: 'cors' });
+                const blob = await resp.blob();
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch {
+                return null;
+            }
+        }
+    };
+
     function init() {
         loadSettings();
         applyTheme(state.theme);
@@ -253,6 +349,7 @@
         }));
 
         $('#text-api-provider').addEventListener('change', () => { updateModelOptions(); collectSettingsForm(); });
+        $('#image-api-provider').addEventListener('change', () => { updateImageModelOptions(); collectSettingsForm(); });
 
         $('#text-speed').addEventListener('input', e => { state.settings.textSpeed = parseInt(e.target.value); $('#text-speed-label').textContent = e.target.value + 'ms'; saveSettings(); });
         $('#auto-wait').addEventListener('input', e => { state.settings.autoWait = parseInt(e.target.value); $('#auto-wait-label').textContent = e.target.value + 's'; saveSettings(); });
@@ -314,6 +411,7 @@
                     localStorage.removeItem(STORAGE_KEYS.saves);
                     localStorage.removeItem(STORAGE_KEYS.currentGame);
                     localStorage.removeItem(STORAGE_KEYS.gallery);
+                    indexedDB.deleteDatabase('galgame_img_store');
                     showToast('数据已清除', 'success');
                     setTimeout(() => location.reload(), 500);
                 }
@@ -338,6 +436,7 @@
     function collectSettingsForm() {
         state.settings.textApiProvider = $('#text-api-provider').value;
         state.settings.textModel = $('#text-model').value;
+        state.settings.imageApiProvider = $('#image-api-provider').value;
         state.settings.imageModel = $('#image-model').value;
         state.settings.systemPrompt = $('#system-prompt').value || DEFAULT_SYSTEM_PROMPT;
         saveSettings();
@@ -351,7 +450,13 @@
         $('#text-api-provider').value = s.textApiProvider;
         updateModelOptions();
         setTimeout(() => { $('#text-model').value = s.textModel; updateModelTags(); }, 50);
-        $('#image-model').value = s.imageModel;
+        if (s.imageApiProvider) {
+            $('#image-api-provider').value = s.imageApiProvider;
+            updateImageModelOptions();
+            setTimeout(() => { $('#image-model').value = s.imageModel; }, 50);
+        } else {
+            $('#image-model').value = s.imageModel;
+        }
         $('#system-prompt').value = s.systemPrompt;
         $('#text-speed').value = s.textSpeed;
         $('#text-speed-label').textContent = s.textSpeed + 'ms';
@@ -414,6 +519,27 @@
         tagsEl.innerHTML = html;
     }
 
+    function updateImageModelOptions() {
+        const provider = $('#image-api-provider').value;
+        const select = $('#image-model');
+        const config = API_CONFIGS[provider];
+        if (!config || !config.models.image) return;
+        select.innerHTML = '';
+        config.models.image.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            let label = m.name;
+            if (m.free) label += ' ✨';
+            opt.textContent = label;
+            select.appendChild(opt);
+        });
+        if (state.settings.imageApiProvider === provider && state.settings.imageModel) {
+            select.value = state.settings.imageModel;
+        }
+        state.settings.imageApiProvider = provider;
+        saveSettings();
+    }
+
     function updateApiIndicator() {
         const dot = $('.api-dot');
         if (!dot) return;
@@ -424,7 +550,7 @@
     async function startGame(mode) {
         state.mode = mode;
         stopTitleParticles();
-        state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, isSkipping: false, currentSceneUrl: null };
+        state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, isSkipping: false, currentSceneUrl: null, currentScene: '' };
         switchScreen('game-screen');
         if (mode === 'ai') {
             if (!state.settings.useProxyKeys && !state.settings.apiKeys[state.settings.textApiProvider]) {
@@ -432,6 +558,8 @@
                 showModal('settings-modal');
                 return;
             }
+            setSceneBackground('background.png');
+            showCharacter('character.jpg');
             await startAiStory();
         } else {
             startNormalStory();
@@ -447,6 +575,7 @@
             const result = await callAiApi(prompt);
             showAiGenerating(false);
             if (result) processAiResponse(result);
+            if (state.settings.autoSwitchBg) startBgAutoSwitch();
         } catch (e) {
             showAiGenerating(false);
             showToast('AI 调用失败: ' + e.message, 'error');
@@ -457,7 +586,7 @@
     }
 
     function startNormalStory() {
-        setSceneBackground('');
+        setSceneBackground('background.png');
         showCharacter('character.jpg');
         showDialog('旁白', '你睁开眼，发现自己身处一个陌生的房间。窗外的星空与你记忆中的完全不同……');
         setTimeout(() => {
@@ -688,6 +817,7 @@
             const choices = parsed.choices || [];
             showDialog(name, dialog);
             addDialogHistory(name, dialog);
+            if (scene) state.game.currentScene = scene;
             if (scene && state.settings.autoGenScene) generateSceneImage(scene);
             if (choices.length > 0) {
                 setTimeout(() => showChoices(choices.map(c => ({ text: c.text, action: () => handleAiChoice(c.text) }))), 1000);
@@ -728,24 +858,32 @@
             const result = await callImageApi(sceneDescription + ', digital art, detailed background, visual novel style, high quality');
             if (result) {
                 let imageUrl;
-                let galleryUrl;
+                let base64Data = null;
                 if (result.type === 'url') {
                     imageUrl = result.value;
-                    galleryUrl = result.value;
+                    base64Data = await IDB.urlToBase64(result.value);
                 } else if (result.type === 'base64') {
                     imageUrl = `data:image/png;base64,${result.value}`;
-                    galleryUrl = null;
+                    base64Data = imageUrl;
                 }
                 if (imageUrl) {
                     setSceneBackground(imageUrl);
                     state.game.currentSceneUrl = imageUrl;
-                    if (galleryUrl) {
-                        state.gallery.push({ url: galleryUrl, prompt: sceneDescription, timestamp: Date.now() });
+                    const imgId = `scene_${Date.now()}`;
+                    if (base64Data) {
+                        try {
+                            await IDB.saveImage(imgId, { base64: base64Data, prompt: sceneDescription, url: result.type === 'url' ? result.value : null });
+                            state.gallery.push({ id: imgId, prompt: sceneDescription, timestamp: Date.now(), persisted: true });
+                        } catch (e) {
+                            console.warn('IndexedDB保存失败:', e);
+                            state.gallery.push({ url: result.type === 'url' ? result.value : null, prompt: sceneDescription, timestamp: Date.now(), note: '图片可能无法持久保存' });
+                        }
                     } else {
-                        state.gallery.push({ prompt: sceneDescription, timestamp: Date.now(), note: 'base64图片仅当次可用' });
+                        state.gallery.push({ url: result.type === 'url' ? result.value : null, prompt: sceneDescription, timestamp: Date.now(), note: '图片可能无法持久保存' });
                     }
                     if (state.gallery.length > 30) state.gallery = state.gallery.slice(-30);
-                    try { saveGallery(); } catch (e) { console.warn('画廊保存失败(可能存储已满):', e); }
+                    try { saveGallery(); } catch (e) { console.warn('画廊保存失败:', e); }
+                    try { await IDB.clearOldImages(30); } catch {}
                     showToast('场景图生成完成！', 'success');
                 }
             }
@@ -760,7 +898,7 @@
         const bgNext = $('#scene-bg-next');
         if (!imageUrl) {
             bgNext.classList.remove('active');
-            bg.style.backgroundImage = 'linear-gradient(135deg, #0a0a2e 0%, #1a1a3e 50%, #0d0d2a 100%)';
+            bg.style.backgroundImage = "url('background.png')";
             return;
         }
         const img = new Image();
@@ -806,15 +944,22 @@
 
     function startBgAutoSwitch() {
         stopBgAutoSwitch();
-        if (!state.settings.autoSwitchBg || !state.game.aiMode) return;
+        if (!state.settings.autoSwitchBg || state.mode !== 'ai') return;
         const interval = (state.settings.bgSwitchInterval || 120) * 1000;
         bgAutoSwitchTimer = setInterval(async () => {
-            if (state.game.aiMode && !apiCallInProgress && state.game.currentScene) {
+            if (state.mode === 'ai' && !apiCallInProgress && state.game.currentScene) {
                 try {
                     const prompt = `${state.game.currentScene}, cinematic lighting, detailed background, anime style`;
                     const result = await callImageApi(prompt);
                     const imageUrl = result.type === 'url' ? result.value : `data:image/png;base64,${result.value}`;
                     setSceneBackground(imageUrl);
+                    const imgId = `bg_${Date.now()}`;
+                    let base64Data = null;
+                    if (result.type === 'url') base64Data = await IDB.urlToBase64(result.value);
+                    else if (result.type === 'base64') base64Data = `data:image/png;base64,${result.value}`;
+                    if (base64Data) {
+                        try { await IDB.saveImage(imgId, { base64: base64Data, prompt, autoSwitch: true }); } catch {}
+                    }
                 } catch {}
             }
         }, interval);
@@ -908,30 +1053,39 @@
         showModal('history-modal');
     }
 
-    function openGallery() {
+    async function openGallery() {
         const grid = $('#gallery-grid');
         const empty = $('#gallery-empty');
         grid.innerHTML = '';
         if (state.gallery.length === 0) { empty.classList.remove('hidden'); }
         else {
             empty.classList.add('hidden');
-            state.gallery.forEach((item, i) => {
-                if (!item.url) return;
+            for (let i = 0; i < state.gallery.length; i++) {
+                const item = state.gallery[i];
+                let imgSrc = item.url || null;
+                if (item.persisted && item.id) {
+                    try {
+                        const cached = await IDB.getImage(item.id);
+                        if (cached?.base64) imgSrc = cached.base64;
+                    } catch {}
+                }
+                if (!imgSrc) continue;
                 const div = document.createElement('div');
                 div.className = 'gallery-item';
                 const img = document.createElement('img');
-                img.src = item.url;
+                img.src = imgSrc;
                 img.alt = item.prompt || '';
+                img.loading = 'lazy';
                 const overlay = document.createElement('div');
                 overlay.className = 'gallery-overlay';
                 const dlBtn = document.createElement('button');
                 dlBtn.textContent = '💾 下载';
-                dlBtn.addEventListener('click', (e) => { e.stopPropagation(); downloadImage(item.url, `scene_${i}.png`); });
+                dlBtn.addEventListener('click', (e) => { e.stopPropagation(); downloadImage(imgSrc, `scene_${i}.png`); });
                 overlay.appendChild(dlBtn);
                 div.appendChild(img);
                 div.appendChild(overlay);
                 grid.appendChild(div);
-            });
+            }
         }
         showModal('gallery-modal');
     }
@@ -983,6 +1137,7 @@
         if (currentAbortController) { try { currentAbortController.abort(); } catch {} currentAbortController = null; }
         apiCallInProgress = false;
         state.game.isTyping = false;
+        stopBgAutoSwitch();
         if (state.game.dialogHistory.length > 0) saveCurrentGame();
         switchScreen('title-screen');
         state.game.isAutoPlay = false; state.game.isSkipping = false;
@@ -1079,7 +1234,7 @@
         if (mq) mq.textContent = `${q.modelRemaining ?? '--'}/${q.modelLimit ?? '--'}`;
     }
 
-    function showApiStatusPanel() {
+    async function showApiStatusPanel() {
         const content = $('#api-status-content');
         content.innerHTML = '';
         ['zhipu', 'modelscope', 'nvidia'].forEach(p => {
@@ -1116,6 +1271,40 @@
             });
             content.appendChild(card);
         });
+        const storageCard = document.createElement('div');
+        storageCard.className = 'api-status-card';
+        const storageH3 = document.createElement('h3');
+        storageH3.textContent = '📦 图片存储';
+        storageCard.appendChild(storageH3);
+        try {
+            const est = await IDB.getStorageEstimate();
+            const usageMB = (est.usage / 1024 / 1024).toFixed(1);
+            const quotaMB = (est.quota / 1024 / 1024).toFixed(0);
+            const keys = await IDB.getAllKeys();
+            const storageRows = [
+                ['已缓存图片', `${keys.length} 张`, ''],
+                ['存储使用量', `${usageMB} MB / ${quotaMB} MB`, ''],
+            ];
+            storageRows.forEach(([label, value, cls]) => {
+                const row = document.createElement('div');
+                row.className = 'status-row';
+                const lSpan = document.createElement('span');
+                lSpan.className = 'status-label';
+                lSpan.textContent = label;
+                const vSpan = document.createElement('span');
+                vSpan.className = 'status-value' + (cls ? ' ' + cls : '');
+                vSpan.textContent = value;
+                row.appendChild(lSpan);
+                row.appendChild(vSpan);
+                storageCard.appendChild(row);
+            });
+        } catch {
+            const row = document.createElement('div');
+            row.className = 'status-row';
+            row.innerHTML = '<span class="status-label">状态</span><span class="status-value">无法获取存储信息</span>';
+            storageCard.appendChild(row);
+        }
+        content.appendChild(storageCard);
         showModal('api-status-modal');
     }
 
