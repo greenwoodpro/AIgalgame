@@ -25,9 +25,8 @@
             baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
             models: {
                 text: [
-                    { id: 'glm-4-flash-250414', name: 'GLM-4-Flash', free: true },
-                    { id: 'glm-4-flashx-250414', name: 'GLM-4-FlashX' },
                     { id: 'glm-4.7-flash', name: 'GLM-4.7-Flash', free: true, thinking: true },
+                    { id: 'glm-4-flash-250414', name: 'GLM-4-Flash', free: true },
                     { id: 'glm-z1-flash', name: 'GLM-Z1-Flash', free: true, thinking: true },
                 ],
                 vision: [
