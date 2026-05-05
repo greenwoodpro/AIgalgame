@@ -84,11 +84,14 @@
 
 html, body {
     width: 100%;
-    height: 100%;
+    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     font-family: var(--font-main);
     background: var(--bg);
     color: var(--text);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
 }
 
 #app {
@@ -1048,25 +1051,48 @@ html, body {
 
 /* ==================== 响应式 ==================== */
 @media (max-width: 768px) {
-    .title-content { gap: 1.5rem; }
+    .title-content { gap: 1.5rem; padding: 1.5rem; }
     .title-logo h1 { font-size: 2.2rem; }
     .title-sub { font-size: 0.75rem; letter-spacing: 0.3em; }
     #dialog-box { padding: 0 1rem 1rem; }
     #dialog-box::before { height: 200px; }
-    #dialog-content { font-size: 0.95rem; }
-    #choices-box { bottom: 220px; }
+    #dialog-content { font-size: 0.95rem; line-height: 1.7; }
+    #choices-box { bottom: 220px; max-width: 95%; }
+    .choice-btn { padding: 0.8rem 1.2rem; font-size: 0.9rem; }
     .modal-content { width: 95%; max-height: 90vh; }
     .theme-grid { grid-template-columns: repeat(2, 1fr); }
     .settings-tabs { flex-wrap: wrap; }
     #character-layer { padding-bottom: 180px; }
     #character-img { max-height: 50vh; max-width: 70vw; }
+    #dialog-nameplate { padding: 0.3rem 1rem; }
+    #dialog-name { font-size: 0.8rem; }
+    .form-group input[type="text"],
+    .form-group input[type="password"],
+    .form-group input[type="number"],
+    .form-group select,
+    .form-group textarea { font-size: 16px; }
+    #scene-download-btn { padding: 0.4rem 0.8rem; font-size: 0.75rem; }
+    #gallery-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 }
 
 @media (max-width: 480px) {
+    .title-content { gap: 1rem; padding: 1rem; }
+    .title-logo h1 { font-size: 1.8rem; }
     .menu-btn { padding: 0.8rem 1rem; font-size: 0.95rem; }
     .menu-btn small { display: none; }
     .toolbar-btn { width: 30px; height: 30px; font-size: 0.85rem; }
     #game-toolbar { gap: 0.15rem; padding: 0.3rem; }
+    #dialog-content { font-size: 0.88rem; min-height: 60px; }
+    #dialog-box::before { height: 170px; }
+    #choices-box { bottom: 190px; }
+    .choice-btn { padding: 0.7rem 1rem; font-size: 0.85rem; }
+    .modal-body { padding: 1rem; }
+    .modal-header { padding: 1rem; }
+    .modal-header h2 { font-size: 1rem; }
+    #character-layer { padding-bottom: 160px; }
+    #character-img { max-height: 45vh; max-width: 80vw; }
+    .api-provider h3 { font-size: 0.85rem; }
+    #gallery-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 }
 
 /* ==================== 滚动条 ==================== */

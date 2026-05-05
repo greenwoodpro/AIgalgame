@@ -2,7 +2,10 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>次元邂逅 · AI Galgame</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -139,11 +142,11 @@
                         </div>
                         <div class="form-group">
                             <label>
-                                <input type="checkbox" id="cors-proxy-toggle">
-                                启用 CORS 代理（浏览器跨域时需要）
+                                <input type="checkbox" id="cors-proxy-toggle" checked>
+                                启用 API 代理（推荐开启）
                             </label>
-                            <input type="text" id="cors-proxy-url" placeholder="代理地址，如: /api/proxy 或 http://localhost:8787/proxy">
-                            <small>部署到 Cloudflare Workers 后可使用 /api/proxy 路径</small>
+                            <input type="text" id="cors-proxy-url" placeholder="留空则使用同域代理（推荐）">
+                            <small>默认通过同域 Pages Function 代理调用API，魔搭社区支持浏览器直连</small>
                         </div>
                     </div>
                     <div class="tab-content" id="tab-model">

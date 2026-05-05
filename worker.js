@@ -80,6 +80,24 @@ async function proxyApi(request, env, provider, apiPath) {
         });
 
         const response = await fetch(proxyRequest);
+
+        const isStream = response.headers.get('content-type')?.includes('text/event-stream');
+
+        if (isStream) {
+            const { readable, writable } = new TransformStream();
+            response.body.pipeTo(writable).catch(() => {});
+            return new Response(readable, {
+                status: response.status,
+                statusText: response.statusText,
+                headers: {
+                    'Content-Type': 'text/event-stream;charset=UTF-8',
+                    'Cache-Control': 'no-cache',
+                    'Connection': 'keep-alive',
+                    ...corsHeaders,
+                },
+            });
+        }
+
         const newHeaders = new Headers(response.headers);
         Object.entries(corsHeaders).forEach(([k, v]) => newHeaders.set(k, v));
 

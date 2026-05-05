@@ -83,8 +83,8 @@
             saveConversation: true,
             maxContext: 20,
             autoGenScene: true,
-            corsProxy: false,
-            corsProxyUrl: 'https://galai-proxy.greenwood245.workers.dev',
+            corsProxy: true,
+            corsProxyUrl: '',
             useProxyKeys: true,
             textApiProvider: 'zhipu',
             textModel: 'glm-4.7-flash',
@@ -494,10 +494,14 @@
         if (useProxy) {
             const proxyBase = state.settings.corsProxyUrl || window.location.origin;
             url = `${proxyBase}/api/${provider}/chat/completions`;
-        } else {
+        } else if (provider === 'modelscope') {
             url = `${config.baseUrl}/chat/completions`;
+            headers['Authorization'] = `Bearer ${apiKey}`;
+        } else {
+            const proxyBase = state.settings.corsProxyUrl || window.location.origin;
+            url = `${proxyBase}/api/${provider}/chat/completions`;
             if (state.settings.corsProxy && state.settings.corsProxyUrl) {
-                url = state.settings.corsProxyUrl + '?url=' + encodeURIComponent(url);
+                url = state.settings.corsProxyUrl + '/api/' + provider + '/chat/completions';
             }
             headers['Authorization'] = `Bearer ${apiKey}`;
         }
@@ -515,11 +519,17 @@
         const dot = $('.api-dot');
         if (dot) dot.className = 'api-dot loading';
 
+        if (currentAbortController) {
+            try { currentAbortController.abort(); } catch {}
+        }
+        currentAbortController = new AbortController();
+
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify(body),
+                signal: currentAbortController.signal,
             });
 
             if (!response.ok) {
@@ -592,18 +602,21 @@
             const proxyBase = state.settings.corsProxyUrl || window.location.origin;
             url = `${proxyBase}/api/${provider}/images/generations`;
         } else {
-            url = `${config.baseUrl}/images/generations`;
+            const proxyBase = state.settings.corsProxyUrl || window.location.origin;
+            url = `${proxyBase}/api/${provider}/images/generations`;
             if (state.settings.corsProxy && state.settings.corsProxyUrl) {
-                url = state.settings.corsProxyUrl + '?url=' + encodeURIComponent(url);
+                url = state.settings.corsProxyUrl + '/api/' + provider + '/images/generations';
             }
             headers['Authorization'] = `Bearer ${apiKey}`;
         }
 
         const body = { model: state.settings.imageModel, prompt, size: '1024x1024' };
+        const imgAbortController = new AbortController();
         const response = await fetch(url, {
             method: 'POST',
             headers,
             body: JSON.stringify(body),
+            signal: imgAbortController.signal,
         });
 
         if (!response.ok) {
@@ -712,7 +725,7 @@
         const overlay = document.createElement('div');
         overlay.className = 'scene-transition';
         $('#game-screen').appendChild(overlay);
-        setTimeout(() => { bg.style.backgroundImage = `url("${imageUrl.replace(/"/g, '\\"')}")`; }, 500);
+        setTimeout(() => { bg.style.backgroundImage = `url("${CSS.escape(imageUrl)}")`; }, 500);
         setTimeout(() => { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 1200);
     }
 
@@ -734,6 +747,7 @@
 
     let typewriterTimer = null;
     let apiCallInProgress = false;
+    let currentAbortController = null;
 
     function showDialog(name, text) {
         const dialogBox = $('#dialog-box');
@@ -891,6 +905,8 @@
 
     function backToTitle() {
         if (typewriterTimer) { clearInterval(typewriterTimer); typewriterTimer = null; }
+        if (currentAbortController) { try { currentAbortController.abort(); } catch {} currentAbortController = null; }
+        apiCallInProgress = false;
         state.game.isTyping = false;
         if (state.game.dialogHistory.length > 0) saveCurrentGame();
         switchScreen('title-screen');
