@@ -144,26 +144,6 @@ html, body {
     z-index: 0;
 }
 
-#title-character {
-    position: absolute;
-    right: 5%;
-    bottom: 0;
-    max-height: 80vh;
-    max-width: 40vw;
-    object-fit: contain;
-    object-position: bottom center;
-    z-index: 0;
-    opacity: 0.5;
-    filter: drop-shadow(0 0 40px rgba(0, 0, 0, 0.8)) brightness(0.8);
-    pointer-events: none;
-    animation: titleCharFloat 6s ease-in-out infinite;
-}
-
-@keyframes titleCharFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
 #title-canvas {
     position: absolute;
     inset: 0;
@@ -1115,7 +1095,6 @@ html, body {
     .title-content { gap: 1.5rem; padding: 1.5rem; }
     .title-logo h1 { font-size: 2.2rem; }
     .title-sub { font-size: 0.75rem; letter-spacing: 0.3em; }
-    #title-character { max-height: 50vh; max-width: 50vw; opacity: 0.3; right: 0; }
     #dialog-box { padding: 0 1rem 1rem; }
     #dialog-box::before { height: 200px; }
     #dialog-content { font-size: 0.95rem; line-height: 1.7; }
@@ -1140,7 +1119,6 @@ html, body {
 @media (max-width: 480px) {
     .title-content { gap: 1rem; padding: 1rem; }
     .title-logo h1 { font-size: 1.8rem; }
-    #title-character { max-height: 40vh; max-width: 60vw; opacity: 0.25; right: -5%; }
     .menu-btn { padding: 0.8rem 1rem; font-size: 0.95rem; }
     .menu-btn small { display: none; }
     .toolbar-btn { width: 30px; height: 30px; font-size: 0.85rem; }

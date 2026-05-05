@@ -559,7 +559,6 @@
                 return;
             }
             setSceneBackground('background.png');
-            showCharacter('character.jpg');
             await startAiStory();
         } else {
             startNormalStory();
@@ -587,7 +586,6 @@
 
     function startNormalStory() {
         setSceneBackground('background.png');
-        showCharacter('character.jpg');
         showDialog('旁白', '你睁开眼，发现自己身处一个陌生的房间。窗外的星空与你记忆中的完全不同……');
         setTimeout(() => {
             showChoices([
