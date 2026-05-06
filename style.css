@@ -1101,6 +1101,37 @@ html, body {
     background: rgba(255, 0, 64, 0.1);
 }
 
+.action-btn.primary {
+    background: var(--primary);
+    color: #000;
+    border-color: var(--primary);
+    font-weight: 600;
+}
+
+.action-btn.primary:hover {
+    filter: brightness(1.15);
+}
+
+.action-btn.secondary {
+    background: transparent;
+    color: var(--text-muted);
+    border-color: var(--border);
+}
+
+.action-btn.secondary:hover {
+    color: var(--text);
+    border-color: var(--text-muted);
+}
+
+.settings-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.2);
+}
+
 /* ==================== 响应式 ==================== */
 @media (max-width: 768px) {
     .title-content { gap: 1.5rem; padding: 1.5rem; }
@@ -1113,7 +1144,8 @@ html, body {
     .choice-btn { padding: 0.8rem 1.2rem; font-size: 0.9rem; }
     .modal-content { width: 95%; max-height: 90vh; }
     .theme-grid { grid-template-columns: repeat(2, 1fr); }
-    .settings-tabs { flex-wrap: wrap; }
+    .settings-tabs { flex-wrap: wrap; gap: 0.3rem; }
+    .settings-tabs .tab-btn { flex: 1; min-width: 0; padding: 0.5rem 0.4rem; font-size: 0.78rem; }
     #character-layer { padding-bottom: 180px; }
     #character-img { max-height: 50vh; max-width: 70vw; }
     #dialog-nameplate { padding: 0.3rem 1rem; }
@@ -1125,6 +1157,8 @@ html, body {
     .form-group textarea { font-size: 16px; }
     #scene-download-btn { padding: 0.4rem 0.8rem; font-size: 0.75rem; }
     #gallery-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .settings-footer { padding: 0.8rem 1rem; }
+    .settings-footer .action-btn { flex: 1; padding: 0.7rem; }
 }
 
 @media (max-width: 480px) {

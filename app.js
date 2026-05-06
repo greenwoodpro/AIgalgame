@@ -389,7 +389,8 @@
             case 'start-normal': startGame('normal'); break;
             case 'load': openSaveModal('load'); break;
             case 'settings': showModal('settings-modal'); break;
-            case 'close-settings': hideModal('settings-modal'); collectSettingsForm(); break;
+            case 'close-settings': hideModal('settings-modal'); break;
+            case 'save-settings': collectSettingsForm(); hideModal('settings-modal'); showToast('设置已保存', 'success'); break;
             case 'close-save': hideModal('save-modal'); break;
             case 'close-history': hideModal('history-modal'); break;
             case 'close-gallery': hideModal('gallery-modal'); break;
