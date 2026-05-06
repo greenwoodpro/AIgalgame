@@ -248,6 +248,14 @@
                             <span id="text-speed-label">40ms</span>
                         </div>
                         <div class="form-group">
+                            <label for="text-effect">文字显示效果</label>
+                            <select id="text-effect">
+                                <option value="typewriter-fade">逐字淡出（默认）</option>
+                                <option value="typewriter">逐字显示</option>
+                                <option value="instant">直接显示</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label for="auto-wait">自动播放等待时间 (秒)</label>
                             <input type="range" id="auto-wait" min="1" max="10" value="3">
                             <span id="auto-wait-label">3s</span>

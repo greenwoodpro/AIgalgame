@@ -167,6 +167,7 @@
         theme: 'dark-star',
         settings: {
             textSpeed: 40,
+            textEffect: 'typewriter-fade',
             autoWait: 3,
             saveConversation: true,
             maxContext: 20,
@@ -439,6 +440,7 @@
         $('#image-api-provider').addEventListener('change', () => { updateImageModelOptions(); collectSettingsForm(); });
 
         $('#text-speed').addEventListener('input', e => { state.settings.textSpeed = parseInt(e.target.value); $('#text-speed-label').textContent = e.target.value + 'ms'; saveSettings(); });
+        $('#text-effect').addEventListener('change', e => { state.settings.textEffect = e.target.value; saveSettings(); });
         $('#auto-wait').addEventListener('input', e => { state.settings.autoWait = parseInt(e.target.value); $('#auto-wait-label').textContent = e.target.value + 's'; saveSettings(); });
 
         ['zhipu-api-key', 'modelscope-api-key', 'nvidia-api-key'].forEach(id => {
@@ -530,7 +532,24 @@
     }
 
     function handleDialogClick() {
-        if (state.game.isTyping) { clearInterval(typewriterTimer); typewriterTimer = null; state.game.isTyping = false; const textEl = $('#dialog-text'); textEl.textContent = textEl.textContent; $('#dialog-cursor').style.display = 'none'; $('#dialog-click-hint').style.display = 'block'; return; }
+        if (state.game.isTyping) {
+            clearInterval(typewriterTimer); typewriterTimer = null;
+            state.game.isTyping = false;
+            const textEl = $('#dialog-text');
+            const name = state.game.characterName;
+            const dialogBox = $('#dialog-box');
+            const nameEl = $('#dialog-name');
+            const cursor = $('#dialog-cursor');
+            const hint = $('#dialog-click-hint');
+            const lastDialog = state.game.dialogHistory.filter(d => d.name === name).pop();
+            if (lastDialog) {
+                textEl.textContent = lastDialog.text;
+            }
+            textEl.style.opacity = '1'; textEl.style.transition = '';
+            cursor.style.display = 'none'; hint.style.display = 'block';
+            triggerAutoPlay();
+            return;
+        }
         if (!$('#choices-box').classList.contains('hidden')) return;
     }
 
@@ -561,6 +580,7 @@
         $('#system-prompt').value = s.systemPrompt;
         $('#text-speed').value = s.textSpeed;
         $('#text-speed-label').textContent = s.textSpeed + 'ms';
+        if (s.textEffect) $('#text-effect').value = s.textEffect;
         $('#auto-wait').value = s.autoWait;
         $('#auto-wait-label').textContent = s.autoWait + 's';
         $('#save-conversation').checked = s.saveConversation;
@@ -1142,36 +1162,68 @@
         nameEl.textContent = name;
         state.game.characterName = name;
         hint.style.display = 'none';
-        cursor.style.display = 'inline';
 
         if (typewriterTimer) { clearInterval(typewriterTimer); typewriterTimer = null; }
 
+        const effect = state.settings.textEffect || 'typewriter-fade';
+
+        if (effect === 'instant') {
+            textEl.textContent = text;
+            textEl.style.opacity = '0';
+            textEl.offsetHeight;
+            textEl.style.transition = 'opacity 0.5s ease';
+            textEl.style.opacity = '1';
+            state.game.isTyping = false;
+            cursor.style.display = 'none'; hint.style.display = 'block';
+            triggerAutoPlay();
+            return;
+        }
+
+        cursor.style.display = 'inline';
         state.game.isTyping = true;
         let index = 0;
         textEl.textContent = '';
+        textEl.style.opacity = '1';
+        textEl.style.transition = '';
+
+        const useFade = effect === 'typewriter-fade';
 
         typewriterTimer = setInterval(() => {
             if (index < text.length) {
-                textEl.textContent += text[index]; index++;
+                const span = document.createElement('span');
+                span.textContent = text[index];
+                if (useFade) {
+                    span.style.opacity = '0';
+                    span.style.transition = 'opacity 0.3s ease';
+                    textEl.appendChild(span);
+                    requestAnimationFrame(() => { span.style.opacity = '1'; });
+                } else {
+                    textEl.appendChild(span);
+                }
+                index++;
             } else {
                 clearInterval(typewriterTimer); typewriterTimer = null;
                 state.game.isTyping = false;
                 cursor.style.display = 'none'; hint.style.display = 'block';
-                if (state.game.isAutoPlay && state.mode === 'ai') {
-                    setTimeout(() => {
-                        if (state.game.isAutoPlay && !state.game.isTyping) {
-                            const choicesBox = $('#choices-box');
-                            if (!choicesBox.classList.contains('hidden')) {
-                                const firstBtn = choicesBox.querySelector('.choice-btn:not(.custom-choice-btn)');
-                                if (firstBtn) firstBtn.click();
-                            } else {
-                                handleDialogClick();
-                            }
-                        }
-                    }, (state.settings.autoWait || 3) * 1000);
-                }
+                triggerAutoPlay();
             }
         }, state.settings.textSpeed);
+    }
+
+    function triggerAutoPlay() {
+        if (state.game.isAutoPlay && state.mode === 'ai') {
+            setTimeout(() => {
+                if (state.game.isAutoPlay && !state.game.isTyping) {
+                    const choicesBox = $('#choices-box');
+                    if (!choicesBox.classList.contains('hidden')) {
+                        const firstBtn = choicesBox.querySelector('.choice-btn:not(.custom-choice-btn)');
+                        if (firstBtn) firstBtn.click();
+                    } else {
+                        handleDialogClick();
+                    }
+                }
+            }, (state.settings.autoWait || 3) * 1000);
+        }
     }
 
     function showChoices(choices) {

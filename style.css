@@ -1291,6 +1291,10 @@ html, body {
     #gallery-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
     .settings-footer { padding: 0.8rem 1rem; }
     .settings-footer .action-btn { flex: 1; padding: 0.7rem; }
+    #custom-input { font-size: 16px; }
+    #custom-input-box { bottom: 220px; width: 94%; }
+    .btn-row { flex-direction: column; }
+    .storage-bar-wrap { flex-wrap: wrap; }
 }
 
 @media (max-width: 480px) {
@@ -1309,6 +1313,8 @@ html, body {
     .modal-header h2 { font-size: 1rem; }
     .api-provider h3 { font-size: 0.85rem; }
     #gallery-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    #custom-input-box { bottom: 190px; }
+    #info-badge { top: 8px; right: 8px; font-size: 0.9rem; }
 }
 
 /* ==================== 滚动条 ==================== */
