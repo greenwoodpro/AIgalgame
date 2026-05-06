@@ -378,11 +378,20 @@
         });
 
         $('#dialog-box').addEventListener('click', handleDialogClick);
+        $('#custom-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); sendCustomInput(); }
+        });
     }
 
     function handleGlobalClick(e) {
         const actionEl = e.target.closest('[data-action]');
-        if (!actionEl) return;
+        if (!actionEl) {
+            const badge = $('#info-badge');
+            if (badge && badge.classList.contains('active') && !badge.contains(e.target)) {
+                badge.classList.remove('active');
+            }
+            return;
+        }
         const act = actionEl.dataset.action;
         switch (act) {
             case 'start-ai': startGame('ai'); break;
@@ -391,6 +400,8 @@
             case 'settings': showModal('settings-modal'); break;
             case 'close-settings': hideModal('settings-modal'); break;
             case 'save-settings': collectSettingsForm(); hideModal('settings-modal'); showToast('设置已保存', 'success'); break;
+            case 'send-custom-input': sendCustomInput(); break;
+            case 'toggle-info': toggleInfoBadge(); break;
             case 'close-save': hideModal('save-modal'); break;
             case 'close-history': hideModal('history-modal'); break;
             case 'close-gallery': hideModal('gallery-modal'); break;
@@ -546,6 +557,30 @@
         if (!dot) return;
         const hasKey = state.settings.useProxyKeys || !!state.settings.apiKeys[state.settings.textApiProvider];
         dot.className = 'api-dot ' + (hasKey ? 'connected' : 'error');
+    }
+
+    function toggleInfoBadge() {
+        const badge = $('#info-badge');
+        badge.classList.toggle('active');
+        if (badge.classList.contains('active')) updateInfoBadge();
+    }
+
+    function updateInfoBadge() {
+        const textConfig = API_CONFIGS[state.settings.textApiProvider];
+        const imageConfig = API_CONFIGS[state.settings.imageApiProvider];
+        const textModel = textConfig?.models.text.find(m => m.id === state.settings.textModel);
+        const imageModel = imageConfig?.models.image?.find(m => m.id === state.settings.imageModel);
+        const textEl = $('#info-text-model');
+        const imageEl = $('#info-image-model');
+        const connEl = $('#info-connection');
+        const turnsEl = $('#info-turns');
+        if (textEl) textEl.textContent = textModel ? textModel.name : state.settings.textModel;
+        if (imageEl) imageEl.textContent = imageModel ? imageModel.name : (state.settings.imageModel || '未配置');
+        if (connEl) {
+            const isProxy = state.settings.useProxyKeys || state.settings.corsProxy;
+            connEl.textContent = isProxy ? '代理' : '直连';
+        }
+        if (turnsEl) turnsEl.textContent = Math.floor(state.game.aiContext.length / 2);
     }
 
     async function startGame(mode) {
@@ -745,6 +780,7 @@
             return await processApiResponse(response, body, provider);
         } finally {
             updateApiIndicator();
+            updateInfoBadge();
         }
     }
 
@@ -1074,9 +1110,50 @@
             });
             box.appendChild(btn);
         });
+        const customBtn = document.createElement('button');
+        customBtn.className = 'choice-btn custom-choice-btn';
+        customBtn.textContent = '✏️ 自定义输入';
+        customBtn.style.animationDelay = (choices.length * 0.1 + 0.1) + 's';
+        customBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            box.classList.add('hidden');
+            showCustomInput();
+        });
+        box.appendChild(customBtn);
     }
 
     function hideChoices() { $('#choices-box').classList.add('hidden'); }
+
+    function showCustomInput() {
+        const inputBox = $('#custom-input-box');
+        const input = $('#custom-input');
+        inputBox.classList.remove('hidden');
+        input.value = '';
+        input.focus();
+    }
+
+    function hideCustomInput() {
+        $('#custom-input-box').classList.add('hidden');
+    }
+
+    function sendCustomInput() {
+        const input = $('#custom-input');
+        const text = input.value.trim();
+        if (!text) return;
+        hideCustomInput();
+        if (state.mode === 'ai') {
+            handleAiChoice(text);
+        } else {
+            addDialogHistory('玩家', text);
+            showDialog('星酱', '你说了：「' + text + '」\n\n普通模式下无法回应自定义输入，请切换到AI模式体验自由对话！');
+            setTimeout(() => {
+                showChoices([
+                    { text: '继续', action: () => normalNext('shout') },
+                    { text: '切换AI模式', action: () => startGame('ai') },
+                ]);
+            }, 800);
+        }
+    }
 
     function showAiGenerating(show) {
         const el = $('#ai-generating');

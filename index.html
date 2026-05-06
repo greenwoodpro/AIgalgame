@@ -70,7 +70,19 @@
                     <span class="api-label">API</span>
                 </div>
             </div>
+            <div id="info-badge" data-action="toggle-info">❓
+                <div id="info-tooltip">
+                    <div class="info-row"><span class="info-label">文本模型</span><span id="info-text-model" class="info-value">--</span></div>
+                    <div class="info-row"><span class="info-label">图像模型</span><span id="info-image-model" class="info-value">--</span></div>
+                    <div class="info-row"><span class="info-label">连接方式</span><span id="info-connection" class="info-value">--</span></div>
+                    <div class="info-row"><span class="info-label">对话轮数</span><span id="info-turns" class="info-value">--</span></div>
+                </div>
+            </div>
             <div id="choices-box" class="hidden"></div>
+            <div id="custom-input-box" class="hidden">
+                <input type="text" id="custom-input" placeholder="输入你想说的话..." maxlength="200">
+                <button id="custom-input-send" data-action="send-custom-input">发送</button>
+            </div>
             <div id="dialog-box" class="hidden">
                 <div id="dialog-nameplate">
                     <span id="dialog-name"></span>
