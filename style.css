@@ -613,7 +613,7 @@ html, body {
 
 #choices-box {
     position: absolute;
-    bottom: 260px;
+    bottom: 220px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 15;
@@ -623,6 +623,8 @@ html, body {
     width: 90%;
     max-width: 600px;
     pointer-events: auto;
+    max-height: 40vh;
+    overflow-y: auto;
 }
 
 .choice-btn {
@@ -1277,7 +1279,7 @@ html, body {
     #dialog-box { padding: 0 1rem 1rem; }
     #dialog-box::before { height: 200px; }
     #dialog-content { font-size: 0.95rem; line-height: 1.7; }
-    #choices-box { bottom: 220px; max-width: 95%; }
+    #choices-box { bottom: 200px; max-width: 95%; }
     .choice-btn { padding: 0.8rem 1.2rem; font-size: 0.9rem; }
     .modal-content { width: 95%; max-height: 90vh; }
     .theme-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1309,7 +1311,7 @@ html, body {
     #game-toolbar { gap: 0.15rem; padding: 0.3rem; }
     #dialog-content { font-size: 0.88rem; min-height: 60px; }
     #dialog-box::before { height: 170px; }
-    #choices-box { bottom: 190px; }
+    #choices-box { bottom: 170px; }
     .choice-btn { padding: 0.7rem 1rem; font-size: 0.85rem; }
     .modal-body { padding: 1rem; }
     .modal-header { padding: 1rem; }

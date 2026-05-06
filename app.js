@@ -341,6 +341,14 @@
     }
 
     function saveCurrentGame() {
+        const maxDialogs = 60;
+        if (state.game.dialogHistory.length > maxDialogs) {
+            state.game.dialogHistory = state.game.dialogHistory.slice(-maxDialogs);
+        }
+        const maxContext = (state.settings.maxContext || 20) * 2;
+        if (state.game.aiContext.length > maxContext) {
+            state.game.aiContext = state.game.aiContext.slice(-maxContext);
+        }
         Storage.set(STORAGE_KEYS.currentGame, state.game);
     }
 
@@ -369,8 +377,26 @@
     function switchScreen(screenId) {
         $$('.screen').forEach(s => s.classList.remove('active'));
         const target = $(`#${screenId}`);
-        if (target) { target.classList.add('active'); state.currentScreen = screenId.replace('-screen', ''); }
+        if (target) {
+            target.classList.add('active');
+            state.currentScreen = screenId.replace('-screen', '');
+            const hash = state.currentScreen === 'title' ? '' : state.currentScreen;
+            if (location.hash !== '#' + hash) history.pushState(null, '', '#' + hash);
+        }
     }
+
+    function handleHashChange() {
+        const hash = location.hash.slice(1);
+        if (hash === 'game' || hash === 'ai') {
+            if (state.currentScreen === 'title') {
+                switchScreen('game-screen');
+            }
+        } else if (!hash || hash === 'title') {
+            switchScreen('title-screen');
+        }
+    }
+
+    window.addEventListener('popstate', handleHashChange);
 
     function showToast(message, type = 'info') {
         const container = $('#toast-container');
@@ -455,7 +481,7 @@
         $('#use-proxy-keys').addEventListener('change', e => { state.settings.useProxyKeys = e.target.checked; saveSettings(); updateApiIndicator(); });
         $('#save-conversation').addEventListener('change', e => { state.settings.saveConversation = e.target.checked; saveSettings(); });
         $('#max-context').addEventListener('change', e => { state.settings.maxContext = parseInt(e.target.value) || 20; saveSettings(); });
-        $('#max-response-length').addEventListener('change', e => { state.settings.maxResponseLength = Math.max(100, parseInt(e.target.value) || 500); saveSettings(); });
+        $('#max-response-length').addEventListener('change', e => { state.settings.maxResponseLength = Math.max(50, parseInt(e.target.value) || 500); saveSettings(); });
         $('#auto-gen-scene').addEventListener('change', e => { state.settings.autoGenScene = e.target.checked; saveSettings(); });
         $('#enable-thinking').addEventListener('change', e => { state.settings.enableThinking = e.target.checked; saveSettings(); });
         $('#auto-switch-bg').addEventListener('change', e => { state.settings.autoSwitchBg = e.target.checked; saveSettings(); if (e.target.checked) startBgAutoSwitch(); else stopBgAutoSwitch(); });
@@ -734,7 +760,6 @@
     async function startGame(mode) {
         state.mode = mode;
         stopTitleParticles();
-        state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, currentSceneUrl: null, currentScene: '' };
         switchScreen('game-screen');
         if (mode === 'ai') {
             if (!state.settings.useProxyKeys && !state.settings.apiKeys[state.settings.textApiProvider]) {
@@ -742,9 +767,22 @@
                 showModal('settings-modal');
                 return;
             }
+            const savedGame = Storage.get(STORAGE_KEYS.currentGame);
+            if (savedGame && savedGame.mode === 'ai' && savedGame.aiContext && savedGame.aiContext.length > 0) {
+                if (confirm('检测到上次的AI对话记录，是否继续？\n\n确定 = 继续上次对话\n取消 = 开始新对话')) {
+                    state.game = { ...savedGame, isTyping: false, isAutoPlay: false };
+                    const lastDialog = state.game.dialogHistory[state.game.dialogHistory.length - 1];
+                    if (lastDialog) showDialog(lastDialog.name, lastDialog.text);
+                    if (state.game.currentSceneUrl) setSceneBackground(state.game.currentSceneUrl);
+                    showToast('已恢复上次对话', 'success');
+                    return;
+                }
+            }
+            state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, currentSceneUrl: null, currentScene: '' };
             setSceneBackground('background.png');
             await startAiStory();
         } else {
+            state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, currentSceneUrl: null, currentScene: '' };
             startNormalStory();
         }
     }
