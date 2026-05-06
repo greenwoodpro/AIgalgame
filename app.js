@@ -618,6 +618,52 @@
         }
     }
 
+    async function processApiResponse(response, body, provider) {
+        if (provider === 'modelscope') {
+            const h = (n) => response.headers.get(n);
+            const ur = h('modelscope-ratelimit-requests-remaining');
+            const mr = h('modelscope-ratelimit-model-requests-remaining');
+            if (ur !== null) {
+                state.apiQuota.modelscope = { userLimit: h('modelscope-ratelimit-requests-limit'), userRemaining: ur, modelLimit: h('modelscope-ratelimit-model-requests-limit'), modelRemaining: mr };
+                updateQuotaDisplay();
+            }
+        }
+
+        let content = '';
+        if (body.stream) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop();
+                for (const line of lines) {
+                    if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                        try {
+                            const chunk = JSON.parse(line.slice(6));
+                            const delta = chunk.choices?.[0]?.delta;
+                            if (delta?.content) content += delta.content;
+                        } catch {}
+                    }
+                }
+            }
+        } else {
+            const data = await response.json();
+            if (data.choices?.length > 0) content = data.choices[0].message?.content || '';
+        }
+
+        if (content) {
+            state.game.aiContext.push({ role: 'assistant', content });
+            if (state.game.aiContext.length > state.settings.maxContext * 2 + 2) {
+                state.game.aiContext = state.game.aiContext.slice(-state.settings.maxContext * 2);
+            }
+        }
+        return content;
+    }
+
     async function callAiApi(userMessage) {
         const provider = state.settings.textApiProvider;
         const config = API_CONFIGS[provider];
@@ -664,6 +710,25 @@
                 signal: currentAbortController.signal,
             });
 
+            if (response.status === 429) {
+                const retryAfter = parseInt(response.headers.get('Retry-After') || '5', 10);
+                showToast(`API请求限流，${retryAfter}秒后重试...`, 'info');
+                await new Promise(r => setTimeout(r, retryAfter * 1000));
+                const retryResp = await fetch(url, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(body),
+                    signal: currentAbortController.signal,
+                });
+                if (!retryResp.ok) {
+                    const errText = await retryResp.text();
+                    let errMsg = `API错误 (${retryResp.status})`;
+                    try { const errJson = JSON.parse(errText); if (errJson.error?.message) errMsg = errJson.error.message; } catch {}
+                    throw new Error(errMsg);
+                }
+                return await processApiResponse(retryResp, body, provider);
+            }
+
             if (!response.ok) {
                 const errText = await response.text();
                 let errMsg = `API错误 (${response.status})`;
@@ -676,51 +741,7 @@
                 throw new Error(errMsg);
             }
 
-            if (provider === 'modelscope') {
-                const h = (n) => response.headers.get(n);
-                const ur = h('modelscope-ratelimit-requests-remaining');
-                const mr = h('modelscope-ratelimit-model-requests-remaining');
-                if (ur !== null) {
-                    state.apiQuota.modelscope = { userLimit: h('modelscope-ratelimit-requests-limit'), userRemaining: ur, modelLimit: h('modelscope-ratelimit-model-requests-limit'), modelRemaining: mr };
-                    updateQuotaDisplay();
-                }
-            }
-
-            let content = '';
-            let reasoningContent = '';
-            if (body.stream) {
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop();
-                    for (const line of lines) {
-                        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                            try {
-                                const chunk = JSON.parse(line.slice(6));
-                                const delta = chunk.choices?.[0]?.delta;
-                                if (delta?.content) content += delta.content;
-                                if (delta?.reasoning_content) reasoningContent += delta.reasoning_content;
-                            } catch {}
-                        }
-                    }
-                }
-            } else {
-                const data = await response.json();
-                if (data.choices?.length > 0) content = data.choices[0].message?.content || '';
-            }
-
-            if (content) {
-                state.game.aiContext.push({ role: 'assistant', content });
-                if (state.game.aiContext.length > state.settings.maxContext * 2 + 2) {
-                    state.game.aiContext = state.game.aiContext.slice(-state.settings.maxContext * 2);
-                }
-            }
-            return content;
+            return await processApiResponse(response, body, provider);
         } finally {
             updateApiIndicator();
         }
@@ -787,6 +808,26 @@
             headers,
             body: JSON.stringify(body),
         });
+
+        if (response.status === 429) {
+            const retryAfter = parseInt(response.headers.get('Retry-After') || '10', 10);
+            showToast(`生图请求限流，${retryAfter}秒后重试...`, 'info');
+            await new Promise(r => setTimeout(r, retryAfter * 1000));
+            const retryResponse = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+            if (!retryResponse.ok) {
+                const errText = await retryResponse.text();
+                let errMsg = `图像生成失败 (${retryResponse.status})`;
+                try { const errJson = JSON.parse(errText); if (errJson.error?.message) errMsg = errJson.error.message; } catch {}
+                throw new Error(errMsg);
+            }
+            const retryData = await retryResponse.json();
+            if (retryData.data?.length > 0) {
+                const img = retryData.data[0];
+                if (img.url) return { type: 'url', value: img.url };
+                if (img.b64_json) return { type: 'base64', value: img.b64_json };
+            }
+            throw new Error('未获取到图像数据');
+        }
 
         if (!response.ok) {
             const errText = await response.text();
@@ -855,6 +896,9 @@
     async function generateSceneImage(sceneDescription) {
         const hasKey = state.settings.useProxyKeys || !!state.settings.apiKeys[state.settings.imageApiProvider];
         if (!hasKey) return;
+        const now = Date.now();
+        if (now - lastImageGenTime < IMAGE_GEN_COOLDOWN) return;
+        lastImageGenTime = now;
         try {
             showToast('正在生成场景图...', 'info');
             const result = await callImageApi(sceneDescription + ', digital art, detailed background, visual novel style, high quality');
@@ -947,6 +991,8 @@
     let apiCallInProgress = false;
     let currentAbortController = null;
     let bgAutoSwitchTimer = null;
+    let lastImageGenTime = 0;
+    const IMAGE_GEN_COOLDOWN = 30000;
 
     function startBgAutoSwitch() {
         stopBgAutoSwitch();
