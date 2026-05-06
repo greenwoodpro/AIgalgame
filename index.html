@@ -294,6 +294,21 @@
                             <small>自动切换背景的最小间隔时间</small>
                         </div>
                         <div class="form-group">
+                            <label>存储空间</label>
+                            <div class="storage-bar-wrap">
+                                <div class="storage-bar"><div id="storage-bar-fill" class="storage-bar-fill"></div></div>
+                                <span id="storage-usage">0 KB</span>
+                            </div>
+                            <small>浏览器本地存储约5MB上限</small>
+                        </div>
+                        <div class="form-group">
+                            <div class="btn-row">
+                                <button class="action-btn" data-action="export-data">📤 导出备份</button>
+                                <button class="action-btn" data-action="import-data">📥 导入备份</button>
+                            </div>
+                            <small>导出所有存档和设置到JSON文件，可随时导入恢复</small>
+                        </div>
+                        <div class="form-group">
                             <button class="action-btn danger" data-action="clear-data">清除所有存档数据</button>
                         </div>
                     </div>

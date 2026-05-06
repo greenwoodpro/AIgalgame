@@ -6,6 +6,92 @@
         saves: 'galgame_saves',
         currentGame: 'galgame_current',
         gallery: 'galgame_gallery',
+        version: 'galgame_data_version',
+    };
+
+    const DATA_VERSION = 2;
+
+    const Storage = {
+        _cache: {},
+        get(key) {
+            if (this._cache[key] !== undefined) return this._cache[key];
+            try {
+                const raw = localStorage.getItem(key);
+                this._cache[key] = raw ? JSON.parse(raw) : null;
+            } catch { this._cache[key] = null; }
+            return this._cache[key];
+        },
+        set(key, value) {
+            this._cache[key] = value;
+            try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {
+                console.warn('存储写入失败:', e);
+                if (e.name === 'QuotaExceededError') {
+                    showToast('存储空间不足！请清理旧存档或图片', 'error');
+                }
+            }
+        },
+        remove(key) {
+            delete this._cache[key];
+            try { localStorage.removeItem(key); } catch {}
+        },
+        clear() {
+            this._cache = {};
+            Object.values(STORAGE_KEYS).forEach(k => {
+                try { localStorage.removeItem(k); } catch {}
+            });
+            try { indexedDB.deleteDatabase('galgame_img_store'); } catch {}
+        },
+        getUsage() {
+            let total = 0;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('galgame_')) {
+                    total += (localStorage.getItem(key) || '').length * 2;
+                }
+            }
+            return total;
+        },
+        async exportAll() {
+            const data = { version: DATA_VERSION, timestamp: Date.now() };
+            Object.entries(STORAGE_KEYS).forEach(([name, key]) => {
+                data[name] = this.get(key);
+            });
+            const idbKeys = await IDB.getAllKeys();
+            const idbData = {};
+            for (const key of idbKeys) {
+                const img = await IDB.getImage(key);
+                if (img) idbData[key] = img;
+            }
+            data.idbImages = idbData;
+            return data;
+        },
+        async importAll(data) {
+            if (!data || !data.version) throw new Error('无效的备份数据');
+            Object.entries(STORAGE_KEYS).forEach(([name, key]) => {
+                if (data[name] !== undefined) this.set(key, data[name]);
+            });
+            if (data.idbImages) {
+                for (const [key, value] of Object.entries(data.idbImages)) {
+                    try { await IDB.saveImage(key, value); } catch {}
+                }
+            }
+            this.set(STORAGE_KEYS.version, DATA_VERSION);
+        },
+        migrate() {
+            const savedVersion = this.get(STORAGE_KEYS.version) || 1;
+            if (savedVersion < DATA_VERSION) {
+                if (savedVersion < 2) {
+                    const settings = this.get(STORAGE_KEYS.settings);
+                    if (settings && settings.apiKeys) {
+                        Object.keys(settings.apiKeys).forEach(k => {
+                            if (settings.apiKeys[k]) settings.apiKeys[k] = '';
+                        });
+                        this.set(STORAGE_KEYS.settings, settings);
+                    }
+                }
+                this.set(STORAGE_KEYS.version, DATA_VERSION);
+            }
+        }
     };
 
     const DEFAULT_SYSTEM_PROMPT = `你是"星酱"，一个有点傲娇但很靠谱的AI助手，偶尔会打破第四面墙吐槽玩家。你正在一个视觉小说游戏中担任叙事者和角色扮演者。
@@ -224,38 +310,39 @@
         updateModelOptions();
         restoreSettingsUI();
         updateApiIndicator();
+        updateStorageUsage();
     }
 
     function loadSettings() {
+        Storage.migrate();
         try {
-            const saved = localStorage.getItem(STORAGE_KEYS.settings);
+            const saved = Storage.get(STORAGE_KEYS.settings);
             if (saved) {
-                const parsed = JSON.parse(saved);
-                state.settings = { ...state.settings, ...parsed };
-                if (parsed.apiKeys) state.settings.apiKeys = { ...state.settings.apiKeys, ...parsed.apiKeys };
-                if (parsed.customTheme) state.settings.customTheme = { ...state.settings.customTheme, ...parsed.customTheme };
+                state.settings = { ...state.settings, ...saved };
+                if (saved.apiKeys) state.settings.apiKeys = { ...state.settings.apiKeys, ...saved.apiKeys };
+                if (saved.customTheme) state.settings.customTheme = { ...state.settings.customTheme, ...saved.customTheme };
             }
         } catch (e) { console.warn('加载设置失败:', e); }
         try {
-            const game = localStorage.getItem(STORAGE_KEYS.currentGame);
-            if (game) state.game = { ...state.game, ...JSON.parse(game) };
+            const game = Storage.get(STORAGE_KEYS.currentGame);
+            if (game) state.game = { ...state.game, ...game };
         } catch (e) { console.warn('加载游戏存档失败:', e); }
         try {
-            const gallery = localStorage.getItem(STORAGE_KEYS.gallery);
-            if (gallery) state.gallery = JSON.parse(gallery);
+            const gallery = Storage.get(STORAGE_KEYS.gallery);
+            if (gallery) state.gallery = gallery;
         } catch (e) { console.warn('加载画廊失败:', e); }
     }
 
     function saveSettings() {
-        try { localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(state.settings)); } catch (e) { console.warn('保存设置失败:', e); }
+        Storage.set(STORAGE_KEYS.settings, state.settings);
     }
 
     function saveCurrentGame() {
-        try { localStorage.setItem(STORAGE_KEYS.currentGame, JSON.stringify(state.game)); } catch (e) {}
+        Storage.set(STORAGE_KEYS.currentGame, state.game);
     }
 
     function saveGallery() {
-        try { localStorage.setItem(STORAGE_KEYS.gallery, JSON.stringify(state.gallery)); } catch (e) {}
+        Storage.set(STORAGE_KEYS.gallery, state.gallery);
     }
 
     function applyTheme(themeName) {
@@ -419,14 +506,16 @@
                 break;
             case 'clear-data':
                 if (confirm('确定要清除所有存档数据吗？此操作不可恢复！')) {
-                    localStorage.removeItem(STORAGE_KEYS.settings);
-                    localStorage.removeItem(STORAGE_KEYS.saves);
-                    localStorage.removeItem(STORAGE_KEYS.currentGame);
-                    localStorage.removeItem(STORAGE_KEYS.gallery);
-                    indexedDB.deleteDatabase('galgame_img_store');
+                    Storage.clear();
                     showToast('数据已清除', 'success');
                     setTimeout(() => location.reload(), 500);
                 }
+                break;
+            case 'export-data':
+                await exportData();
+                break;
+            case 'import-data':
+                await importData();
                 break;
         }
     }
@@ -1276,7 +1365,7 @@
     function openSaveModal(mode) {
         const container = $('#save-slots');
         container.innerHTML = '';
-        const saves = JSON.parse(localStorage.getItem(STORAGE_KEYS.saves) || '{}');
+        const saves = Storage.get(STORAGE_KEYS.saves) || {};
         for (let i = 1; i <= 8; i++) {
             const save = saves[i];
             const slot = document.createElement('div');
@@ -1320,16 +1409,16 @@
 
     function saveToSlot(slotNum) {
         try {
-            const saves = JSON.parse(localStorage.getItem(STORAGE_KEYS.saves) || '{}');
+            const saves = Storage.get(STORAGE_KEYS.saves) || {};
             saves[slotNum] = { title: state.game.characterName ? `与${state.game.characterName}的对话` : '冒险记录', timestamp: Date.now(), mode: state.mode, game: JSON.parse(JSON.stringify(state.game)), theme: state.theme };
-            localStorage.setItem(STORAGE_KEYS.saves, JSON.stringify(saves));
+            Storage.set(STORAGE_KEYS.saves, saves);
             showToast(`已保存到存档 ${slotNum}`, 'success');
         } catch (e) { showToast('存档失败: 存储空间不足', 'error'); }
         hideModal('save-modal');
     }
 
     function loadFromSlot(slotNum) {
-        const saves = JSON.parse(localStorage.getItem(STORAGE_KEYS.saves) || '{}');
+        const saves = Storage.get(STORAGE_KEYS.saves) || {};
         const save = saves[slotNum];
         if (!save) return;
         state.mode = save.mode; state.game = { ...state.game, ...JSON.parse(JSON.stringify(save.game)) };
@@ -1354,6 +1443,58 @@
         localStorage.setItem(STORAGE_KEYS.saves, JSON.stringify(saves));
         showToast(`存档 ${slotNum} 已删除`, 'info');
         openSaveModal('load');
+    }
+
+    async function exportData() {
+        try {
+            showToast('正在导出数据...', 'info');
+            const data = await Storage.exportAll();
+            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `galgame_backup_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('数据导出成功！', 'success');
+        } catch (e) {
+            showToast('导出失败：' + e.message, 'error');
+        }
+    }
+
+    async function importData() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+                if (!data.version) throw new Error('无效的备份文件');
+                if (!confirm(`确定要导入备份吗？\n备份时间：${new Date(data.timestamp).toLocaleString()}\n\n这将覆盖当前所有数据！`)) return;
+                showToast('正在导入数据...', 'info');
+                await Storage.importAll(data);
+                showToast('数据导入成功！即将刷新页面', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } catch (err) {
+                showToast('导入失败：' + err.message, 'error');
+            }
+        };
+        input.click();
+    }
+
+    function updateStorageUsage() {
+        const el = $('#storage-usage');
+        if (!el) return;
+        const bytes = Storage.getUsage();
+        const kb = (bytes / 1024).toFixed(1);
+        const mb = (bytes / 1024 / 1024).toFixed(2);
+        el.textContent = bytes > 1024 * 1024 ? `${mb} MB` : `${kb} KB`;
+        const pct = Math.min((bytes / (5 * 1024 * 1024)) * 100, 100);
+        const bar = $('#storage-bar-fill');
+        if (bar) bar.style.width = pct + '%';
     }
 
     function updateQuotaDisplay() {
