@@ -91,7 +91,8 @@ TESTS = [
 
 def run_test(test, idx, total):
     if test.get("skip"):
-        print(f"\n{gray(f'[{idx}/{total}] {test[\"name\"]} - 跳过（无API Key）')}")
+        name = test["name"]
+        print(f"\n{gray(f'[{idx}/{total}] {name} - 跳过（无API Key）')}")
         return None
 
     print(f"\n{'─' * 60}")
