@@ -853,7 +853,8 @@
     }
 
     async function generateSceneImage(sceneDescription) {
-        if (!state.settings.useProxyKeys && !state.settings.apiKeys[state.settings.imageApiProvider]) return;
+        const hasKey = state.settings.useProxyKeys || !!state.settings.apiKeys[state.settings.imageApiProvider];
+        if (!hasKey) return;
         try {
             showToast('正在生成场景图...', 'info');
             const result = await callImageApi(sceneDescription + ', digital art, detailed background, visual novel style, high quality');
@@ -894,6 +895,10 @@
         }
     }
 
+    function setBgStyle(el, imageUrl) {
+        el.style.backgroundImage = `url("${imageUrl}")`;
+    }
+
     function setSceneBackground(imageUrl) {
         const bg = $('#scene-bg');
         const bgNext = $('#scene-bg-next');
@@ -904,18 +909,18 @@
         }
         const img = new Image();
         img.onload = () => {
-            bgNext.style.backgroundImage = `url("${CSS.escape(imageUrl)}")`;
+            setBgStyle(bgNext, imageUrl);
             bgNext.classList.add('active');
             setTimeout(() => {
-                bg.style.backgroundImage = `url("${CSS.escape(imageUrl)}")`;
+                setBgStyle(bg, imageUrl);
                 bgNext.classList.remove('active');
             }, 1300);
         };
         img.onerror = () => {
-            bgNext.style.backgroundImage = `url("${CSS.escape(imageUrl)}")`;
+            setBgStyle(bgNext, imageUrl);
             bgNext.classList.add('active');
             setTimeout(() => {
-                bg.style.backgroundImage = `url("${CSS.escape(imageUrl)}")`;
+                setBgStyle(bg, imageUrl);
                 bgNext.classList.remove('active');
             }, 1300);
         };
