@@ -174,6 +174,7 @@
             enableThinking: false,
             autoSwitchBg: false,
             bgSwitchInterval: 120,
+            imageCooldown: 30,
             corsProxy: true,
             corsProxyUrl: '',
             useProxyKeys: true,
@@ -194,7 +195,6 @@
             variables: {},
             isTyping: false,
             isAutoPlay: false,
-            isSkipping: false,
             currentSceneUrl: null,
         },
         apiQuota: {
@@ -455,6 +455,7 @@
         $('#enable-thinking').addEventListener('change', e => { state.settings.enableThinking = e.target.checked; saveSettings(); });
         $('#auto-switch-bg').addEventListener('change', e => { state.settings.autoSwitchBg = e.target.checked; saveSettings(); if (e.target.checked) startBgAutoSwitch(); else stopBgAutoSwitch(); });
         $('#bg-switch-interval').addEventListener('change', e => { state.settings.bgSwitchInterval = Math.max(30, parseInt(e.target.value) || 120); saveSettings(); if (state.settings.autoSwitchBg) { stopBgAutoSwitch(); startBgAutoSwitch(); } });
+        $('#image-cooldown').addEventListener('change', e => { state.settings.imageCooldown = parseInt(e.target.value) || 30; saveSettings(); });
         $('#text-model').addEventListener('change', e => { state.settings.textModel = e.target.value; updateModelTags(); saveSettings(); });
         $('#image-model').addEventListener('change', e => { state.settings.imageModel = e.target.value; saveSettings(); });
         $('#system-prompt').addEventListener('change', e => { state.settings.systemPrompt = e.target.value || DEFAULT_SYSTEM_PROMPT; saveSettings(); });
@@ -496,7 +497,6 @@
             case 'back-title': backToTitle(); break;
             case 'save': openSaveModal('save'); break;
             case 'auto': toggleAutoPlay(); break;
-            case 'skip': toggleSkip(); break;
             case 'history': openHistory(); break;
             case 'gallery': openGallery(); break;
             case 'api-status': showApiStatusPanel(); break;
@@ -530,7 +530,7 @@
     }
 
     function handleDialogClick() {
-        if (state.game.isTyping) { state.game.isSkipping = true; return; }
+        if (state.game.isTyping) { clearInterval(typewriterTimer); typewriterTimer = null; state.game.isTyping = false; const textEl = $('#dialog-text'); textEl.textContent = textEl.textContent; $('#dialog-cursor').style.display = 'none'; $('#dialog-click-hint').style.display = 'block'; return; }
         if (!$('#choices-box').classList.contains('hidden')) return;
     }
 
@@ -572,6 +572,7 @@
         if (s.enableThinking !== undefined) $('#enable-thinking').checked = s.enableThinking;
         if (s.autoSwitchBg !== undefined) $('#auto-switch-bg').checked = s.autoSwitchBg;
         if (s.bgSwitchInterval !== undefined) $('#bg-switch-interval').value = s.bgSwitchInterval;
+        if (s.imageCooldown !== undefined) $('#image-cooldown').value = s.imageCooldown;
         $$('.theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === state.theme));
         if (state.theme === 'custom') {
             $('#custom-theme-editor').classList.remove('hidden');
@@ -675,7 +676,7 @@
     async function startGame(mode) {
         state.mode = mode;
         stopTitleParticles();
-        state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, isSkipping: false, currentSceneUrl: null, currentScene: '' };
+        state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, currentSceneUrl: null, currentScene: '' };
         switchScreen('game-screen');
         if (mode === 'ai') {
             if (!state.settings.useProxyKeys && !state.settings.apiKeys[state.settings.textApiProvider]) {
@@ -1023,7 +1024,7 @@
         const hasKey = state.settings.useProxyKeys || !!state.settings.apiKeys[state.settings.imageApiProvider];
         if (!hasKey) return;
         const now = Date.now();
-        if (now - lastImageGenTime < IMAGE_GEN_COOLDOWN) return;
+        if (now - lastImageGenTime < getImageCooldown()) return;
         lastImageGenTime = now;
         try {
             showToast('正在生成场景图...', 'info');
@@ -1087,30 +1088,9 @@
             }, 1300);
         };
         img.onerror = () => {
-            setBgStyle(bgNext, imageUrl);
-            bgNext.classList.add('active');
-            setTimeout(() => {
-                setBgStyle(bg, imageUrl);
-                bgNext.classList.remove('active');
-            }, 1300);
+            console.warn('背景图加载失败:', imageUrl);
         };
         img.src = imageUrl;
-    }
-
-    function showCharacter(imageUrl) {
-        const container = $('#character-container');
-        const img = $('#character-img');
-        container.classList.remove('entering', 'leaving');
-        container.classList.add('entering');
-        img.src = imageUrl;
-        img.style.display = 'block';
-        img.onerror = () => { img.style.display = 'none'; };
-    }
-
-    function hideCharacter() {
-        const container = $('#character-container');
-        container.classList.add('leaving');
-        setTimeout(() => { $('#character-img').style.display = 'none'; }, 400);
     }
 
     let typewriterTimer = null;
@@ -1118,7 +1098,10 @@
     let currentAbortController = null;
     let bgAutoSwitchTimer = null;
     let lastImageGenTime = 0;
-    const IMAGE_GEN_COOLDOWN = 30000;
+
+    function getImageCooldown() {
+        return (state.settings.imageCooldown || 30) * 1000;
+    }
 
     function startBgAutoSwitch() {
         stopBgAutoSwitch();
@@ -1164,18 +1147,29 @@
         if (typewriterTimer) { clearInterval(typewriterTimer); typewriterTimer = null; }
 
         state.game.isTyping = true;
-        state.game.isSkipping = false;
         let index = 0;
         textEl.textContent = '';
 
         typewriterTimer = setInterval(() => {
             if (index < text.length) {
-                if (state.game.isSkipping) { textEl.textContent = text; index = text.length; }
-                else { textEl.textContent += text[index]; index++; }
+                textEl.textContent += text[index]; index++;
             } else {
                 clearInterval(typewriterTimer); typewriterTimer = null;
-                state.game.isTyping = false; state.game.isSkipping = false;
+                state.game.isTyping = false;
                 cursor.style.display = 'none'; hint.style.display = 'block';
+                if (state.game.isAutoPlay && state.mode === 'ai') {
+                    setTimeout(() => {
+                        if (state.game.isAutoPlay && !state.game.isTyping) {
+                            const choicesBox = $('#choices-box');
+                            if (!choicesBox.classList.contains('hidden')) {
+                                const firstBtn = choicesBox.querySelector('.choice-btn:not(.custom-choice-btn)');
+                                if (firstBtn) firstBtn.click();
+                            } else {
+                                handleDialogClick();
+                            }
+                        }
+                    }, (state.settings.autoWait || 3) * 1000);
+                }
             }
         }, state.settings.textSpeed);
     }
@@ -1346,11 +1340,6 @@
         showToast(state.game.isAutoPlay ? '自动播放已开启' : '自动播放已关闭', 'info');
     }
 
-    function toggleSkip() {
-        state.game.isSkipping = !state.game.isSkipping;
-        showToast(state.game.isSkipping ? '快进模式' : '正常模式', 'info');
-    }
-
     function backToTitle() {
         if (typewriterTimer) { clearInterval(typewriterTimer); typewriterTimer = null; }
         if (currentAbortController) { try { currentAbortController.abort(); } catch {} currentAbortController = null; }
@@ -1359,7 +1348,7 @@
         stopBgAutoSwitch();
         if (state.game.dialogHistory.length > 0) saveCurrentGame();
         switchScreen('title-screen');
-        state.game.isAutoPlay = false; state.game.isSkipping = false;
+        state.game.isAutoPlay = false;
     }
 
     function openSaveModal(mode) {

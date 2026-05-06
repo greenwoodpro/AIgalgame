@@ -51,17 +51,11 @@
         <div id="scene-bg-next"></div>
         <div id="scene-overlay"></div>
             </div>
-            <div id="character-layer">
-                <div id="character-container">
-                    <img id="character-img" src="" alt="">
-                </div>
-            </div>
             <div id="game-toolbar">
                 <button class="toolbar-btn" data-action="back-title" title="返回标题">🏠</button>
                 <button class="toolbar-btn" data-action="save" title="存档">💾</button>
                 <button class="toolbar-btn" data-action="load" title="读档">📂</button>
                 <button class="toolbar-btn" data-action="auto" title="自动播放">▶️</button>
-                <button class="toolbar-btn" data-action="skip" title="快进">⏩</button>
                 <button class="toolbar-btn" data-action="history" title="对话记录">📜</button>
                 <button class="toolbar-btn" data-action="gallery" title="图片画廊">🖼️</button>
                 <button class="toolbar-btn" data-action="settings" title="设置">⚙️</button>
@@ -292,6 +286,17 @@
                             <label for="bg-switch-interval">背景切换间隔（秒）</label>
                             <input type="number" id="bg-switch-interval" min="30" max="600" value="120" step="10">
                             <small>自动切换背景的最小间隔时间</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="image-cooldown">生图冷却间隔</label>
+                            <select id="image-cooldown">
+                                <option value="30">30秒</option>
+                                <option value="45">45秒</option>
+                                <option value="60">60秒</option>
+                                <option value="90">90秒</option>
+                                <option value="120">120秒</option>
+                            </select>
+                            <small>两次AI生图之间的最小间隔，避免频繁调用触发限流</small>
                         </div>
                         <div class="form-group">
                             <label>存储空间</label>
