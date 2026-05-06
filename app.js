@@ -625,14 +625,12 @@
 
         const useProxy = state.settings.useProxyKeys;
         const apiKey = state.settings.apiKeys[provider];
-        if (!useProxy && !apiKey) throw new Error(`请先配置 ${config.name} 的 API Key，或开启"使用默认密钥"`);
+        const canDirectConnect = provider === 'modelscope' && apiKey;
+        if (!useProxy && !canDirectConnect && !apiKey) throw new Error(`请先配置 ${config.name} 的 API Key，或开启"使用默认密钥"`);
 
         let url;
         let headers = { 'Content-Type': 'application/json' };
-        if (useProxy) {
-            const proxyBase = state.settings.corsProxyUrl || window.location.origin;
-            url = `${proxyBase}/api/${provider}/chat/completions`;
-        } else if (provider === 'modelscope') {
+        if (canDirectConnect && !useProxy) {
             url = `${config.baseUrl}/chat/completions`;
             headers['Authorization'] = `Bearer ${apiKey}`;
         } else {
@@ -733,10 +731,11 @@
         const config = API_CONFIGS[provider];
         const useProxy = state.settings.useProxyKeys;
         const apiKey = state.settings.apiKeys[provider];
-        if (!useProxy && !apiKey) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
+        const canDirectConnect = provider === 'modelscope' && apiKey;
+        if (!useProxy && !canDirectConnect && !apiKey) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
 
         const proxyBase = state.settings.corsProxyUrl || window.location.origin;
-        const useProxyUrl = useProxy || provider !== 'modelscope';
+        const useProxyUrl = useProxy || !canDirectConnect;
 
         let url;
         let headers = { 'Content-Type': 'application/json' };
