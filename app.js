@@ -103,7 +103,8 @@
 {"name":"角色名","dialog":"对话内容","emotion":"happy/sad/angry/surprised/shy/neutral","scene":"scene description in English for AI image generation","choices":[{"text":"选项1"},{"text":"选项2"},{"text":"选项3"}]}
 4. scene字段用英文描述场景，用于AI生图
 5. emotion表示角色表情
-6. choices提供2-3个选项供玩家选择`;
+6. choices提供2-3个选项供玩家选择
+7. dialog内容控制在100-300字左右，简洁生动，不要过长`;
 
     const API_CONFIGS = {
         zhipu: {
@@ -176,6 +177,7 @@
             autoSwitchBg: false,
             bgSwitchInterval: 120,
             imageCooldown: 30,
+            maxResponseLength: 500,
             corsProxy: true,
             corsProxyUrl: '',
             useProxyKeys: true,
@@ -453,6 +455,7 @@
         $('#use-proxy-keys').addEventListener('change', e => { state.settings.useProxyKeys = e.target.checked; saveSettings(); updateApiIndicator(); });
         $('#save-conversation').addEventListener('change', e => { state.settings.saveConversation = e.target.checked; saveSettings(); });
         $('#max-context').addEventListener('change', e => { state.settings.maxContext = parseInt(e.target.value) || 20; saveSettings(); });
+        $('#max-response-length').addEventListener('change', e => { state.settings.maxResponseLength = Math.max(100, parseInt(e.target.value) || 500); saveSettings(); });
         $('#auto-gen-scene').addEventListener('change', e => { state.settings.autoGenScene = e.target.checked; saveSettings(); });
         $('#enable-thinking').addEventListener('change', e => { state.settings.enableThinking = e.target.checked; saveSettings(); });
         $('#auto-switch-bg').addEventListener('change', e => { state.settings.autoSwitchBg = e.target.checked; saveSettings(); if (e.target.checked) startBgAutoSwitch(); else stopBgAutoSwitch(); });
@@ -490,6 +493,7 @@
             case 'settings': showModal('settings-modal'); break;
             case 'close-settings': hideModal('settings-modal'); break;
             case 'save-settings': collectSettingsForm(); hideModal('settings-modal'); showToast('设置已保存', 'success'); break;
+            case 'reset-defaults': resetToDefaults(); break;
             case 'send-custom-input': sendCustomInput(); break;
             case 'toggle-info': toggleInfoBadge(); break;
             case 'close-save': hideModal('save-modal'); break;
@@ -559,7 +563,40 @@
         state.settings.imageApiProvider = $('#image-api-provider').value;
         state.settings.imageModel = $('#image-model').value;
         state.settings.systemPrompt = $('#system-prompt').value || DEFAULT_SYSTEM_PROMPT;
+        state.settings.maxResponseLength = parseInt($('#max-response-length').value) || 500;
         saveSettings();
+    }
+
+    function resetToDefaults() {
+        if (!confirm('确定要恢复所有设置为默认值吗？API密钥不会被清除。')) return;
+        const keys = state.settings.apiKeys;
+        state.settings = {
+            textSpeed: 40,
+            textEffect: 'typewriter-fade',
+            autoWait: 3,
+            saveConversation: true,
+            maxContext: 20,
+            autoGenScene: true,
+            enableThinking: false,
+            autoSwitchBg: false,
+            bgSwitchInterval: 120,
+            imageCooldown: 30,
+            maxResponseLength: 500,
+            corsProxy: true,
+            corsProxyUrl: '',
+            useProxyKeys: true,
+            apiKeys: keys,
+            systemPrompt: DEFAULT_SYSTEM_PROMPT,
+            textApiProvider: 'zhipu',
+            textModel: 'glm-4-flash-250414',
+            imageApiProvider: 'zhipu',
+            imageModel: 'cogview-3-flash',
+            customTheme: { bg: '#0a0a1a', primary: '#00d2ff', accent: '#7b2ff7', text: '#ffffff' },
+        };
+        saveSettings();
+        restoreSettingsUI();
+        applyTheme('dark-star');
+        showToast('已恢复默认设置', 'success');
     }
 
     function restoreSettingsUI() {
@@ -585,6 +622,7 @@
         $('#auto-wait-label').textContent = s.autoWait + 's';
         $('#save-conversation').checked = s.saveConversation;
         $('#max-context').value = s.maxContext;
+        if (s.maxResponseLength) $('#max-response-length').value = s.maxResponseLength;
         $('#cors-proxy-toggle').checked = s.corsProxy;
         if (s.corsProxyUrl) $('#cors-proxy-url').value = s.corsProxyUrl;
         if (s.useProxyKeys !== undefined) $('#use-proxy-keys').checked = s.useProxyKeys;
@@ -810,6 +848,28 @@
         return content;
     }
 
+    function tryFallbackProvider(currentProvider) {
+        const order = ['zhipu', 'modelscope', 'nvidia'];
+        for (const p of order) {
+            if (p === currentProvider) continue;
+            const hasKey = state.settings.useProxyKeys || !!state.settings.apiKeys[p];
+            if (hasKey && API_CONFIGS[p]?.models.text?.length) return p;
+        }
+        return null;
+    }
+
+    function restoreFallbackProvider() {
+        if (state.settings._fallbackFrom) {
+            const original = state.settings._fallbackFrom;
+            delete state.settings._fallbackFrom;
+            state.settings.textApiProvider = original;
+            state.settings.textModel = API_CONFIGS[original].models.text[0]?.id || state.settings.textModel;
+            updateModelOptions();
+            restoreSettingsUI();
+            showToast(`已恢复使用${API_CONFIGS[original].name}`, 'info');
+        }
+    }
+
     async function callAiApi(userMessage) {
         const provider = state.settings.textApiProvider;
         const config = API_CONFIGS[provider];
@@ -835,8 +895,8 @@
         messages.push({ role: 'user', content: userMessage });
         state.game.aiContext.push({ role: 'user', content: userMessage });
 
-        const body = { model: state.settings.textModel, messages, stream: false };
-        if (provider === 'nvidia') { body.temperature = 1; body.top_p = 0.9; body.max_tokens = 4096; }
+        const body = { model: state.settings.textModel, messages, stream: false, max_tokens: state.settings.maxResponseLength || 500 };
+        if (provider === 'nvidia') { body.temperature = 1; body.top_p = 0.9; }
         const currentModel = [...(config.models.text || []), ...(config.models.vision || [])].find(m => m.id === state.settings.textModel);
         if (currentModel?.thinking && state.settings.enableThinking) { body.stream = true; }
 
@@ -857,6 +917,16 @@
             });
 
             if (response.status === 429) {
+                const fallback = tryFallbackProvider(provider);
+                if (fallback) {
+                    showToast(`${API_CONFIGS[provider].name}限流，临时切换到${API_CONFIGS[fallback].name}`, 'info');
+                    state.settings._fallbackFrom = provider;
+                    state.settings.textApiProvider = fallback;
+                    state.settings.textModel = API_CONFIGS[fallback].models.text[0]?.id || state.settings.textModel;
+                    updateModelOptions();
+                    restoreSettingsUI();
+                    return await callAiApi(userMessage);
+                }
                 const retryAfter = parseInt(response.headers.get('Retry-After') || '5', 10);
                 showToast(`API请求限流，${retryAfter}秒后重试...`, 'info');
                 await new Promise(r => setTimeout(r, retryAfter * 1000));
@@ -992,6 +1062,7 @@
     }
 
     function processAiResponse(rawContent) {
+        restoreFallbackProvider();
         let parsed = null;
         try {
             const cleaned = rawContent.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();

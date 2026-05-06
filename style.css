@@ -517,10 +517,13 @@ html, body {
 #dialog-content {
     padding: 0.8rem 0;
     min-height: 80px;
+    max-height: 30vh;
+    overflow-y: auto;
     font-size: 1.05rem;
     line-height: 1.8;
     color: var(--text);
     letter-spacing: 0.03em;
+    -webkit-overflow-scrolling: touch;
 }
 
 .cursor-blink {

@@ -271,6 +271,11 @@
                             <input type="number" id="max-context" min="2" max="50" value="20">
                         </div>
                         <div class="form-group">
+                            <label for="max-response-length">AI最大回复字数</label>
+                            <input type="number" id="max-response-length" min="100" max="4096" value="500" step="50">
+                            <small>控制AI每次回复的最大token数，值越小回复越短</small>
+                        </div>
+                        <div class="form-group">
                             <label>
                                 <input type="checkbox" id="auto-gen-scene" checked>
                                 AI模式自动生成场景图
@@ -327,6 +332,7 @@
                     </div>
                 </div>
                 <div class="settings-footer">
+                    <button class="action-btn" data-action="reset-defaults">🔄 恢复默认</button>
                     <button class="action-btn secondary" data-action="close-settings">取消</button>
                     <button class="action-btn primary" data-action="save-settings">💾 保存设置</button>
                 </div>
