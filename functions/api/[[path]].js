@@ -31,7 +31,7 @@ async function proxyApi(request, env, provider, apiPath) {
     const apiKey = getApiKey(env, provider);
     const baseUrl = API_BASES[provider];
     if (!apiKey || !baseUrl) {
-        return errorResponse(`Provider ${provider} not configured`);
+        return errorResponse(`Provider ${provider} not configured: ${!apiKey ? 'API key missing' : 'base URL missing'}. Please set environment variables in Cloudflare Dashboard.`, 500);
     }
 
     const targetUrl = `${baseUrl}/${apiPath}`;
@@ -41,9 +41,17 @@ async function proxyApi(request, env, provider, apiPath) {
         body = await request.arrayBuffer();
     }
 
-    const proxyHeaders = new Headers(request.headers);
+    const proxyHeaders = new Headers();
     proxyHeaders.set('Authorization', `Bearer ${apiKey}`);
-    proxyHeaders.delete('host');
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+        proxyHeaders.set('Content-Type', request.headers.get('Content-Type') || 'application/json');
+    }
+    if (provider === 'modelscope') {
+        const asyncMode = request.headers.get('X-ModelScope-Async-Mode');
+        const taskType = request.headers.get('X-ModelScope-Task-Type');
+        if (asyncMode) proxyHeaders.set('X-ModelScope-Async-Mode', asyncMode);
+        if (taskType) proxyHeaders.set('X-ModelScope-Task-Type', taskType);
+    }
 
     try {
         const proxyRequest = new Request(targetUrl, {
@@ -71,10 +79,13 @@ async function proxyApi(request, env, provider, apiPath) {
             });
         }
 
-        const newHeaders = new Headers(response.headers);
+        const respBody = await response.text();
+
+        const newHeaders = new Headers();
+        newHeaders.set('Content-Type', response.headers.get('Content-Type') || 'application/json');
         Object.entries(CORS_HEADERS).forEach(([k, v]) => newHeaders.set(k, v));
 
-        return new Response(response.body, {
+        return new Response(respBody, {
             status: response.status,
             statusText: response.statusText,
             headers: newHeaders,

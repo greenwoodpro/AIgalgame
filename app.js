@@ -669,7 +669,12 @@
             if (!response.ok) {
                 const errText = await response.text();
                 let errMsg = `API错误 (${response.status})`;
-                try { const errJson = JSON.parse(errText); if (errJson.error?.message) errMsg = errJson.error.message; } catch {}
+                try {
+                    const errJson = JSON.parse(errText);
+                    if (errJson.error?.message) errMsg = errJson.error.message;
+                    else if (errJson.message) errMsg = errJson.message;
+                    else if (errJson.msg) errMsg = errJson.msg;
+                } catch {}
                 throw new Error(errMsg);
             }
 
@@ -730,17 +735,16 @@
         const apiKey = state.settings.apiKeys[provider];
         if (!useProxy && !apiKey) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
 
+        const proxyBase = state.settings.corsProxyUrl || window.location.origin;
+        const useProxyUrl = useProxy || provider !== 'modelscope';
+
         let url;
         let headers = { 'Content-Type': 'application/json' };
-        if (useProxy) {
-            const proxyBase = state.settings.corsProxyUrl || window.location.origin;
+        if (useProxyUrl) {
             url = `${proxyBase}/api/${provider}/images/generations`;
-        } else if (provider === 'modelscope') {
+        } else {
             url = `${config.baseUrl}/images/generations`;
             headers['Authorization'] = `Bearer ${apiKey}`;
-        } else {
-            const proxyBase = state.settings.corsProxyUrl || window.location.origin;
-            url = `${proxyBase}/api/${provider}/images/generations`;
         }
 
         const body = { model: state.settings.imageModel, prompt };
@@ -758,7 +762,9 @@
             const taskId = submitData.task_id;
             if (!taskId) throw new Error('未获取到任务ID');
 
-            const taskUrl = `${config.baseUrl}/tasks/${taskId}`;
+            const taskUrl = useProxyUrl
+                ? `${proxyBase}/api/modelscope/tasks/${taskId}`
+                : `${config.baseUrl}/tasks/${taskId}`;
             const taskHeaders = { ...headers };
             taskHeaders['X-ModelScope-Task-Type'] = 'image_generation';
             delete taskHeaders['X-ModelScope-Async-Mode'];
@@ -777,12 +783,10 @@
             throw new Error('图像生成超时');
         }
 
-        const imgAbortController = new AbortController();
         const response = await fetch(url, {
             method: 'POST',
             headers,
             body: JSON.stringify(body),
-            signal: imgAbortController.signal,
         });
 
         if (!response.ok) {
