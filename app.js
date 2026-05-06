@@ -112,12 +112,9 @@
             baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
             models: {
                 text: [
-                    { id: 'glm-4-flash-250414', name: 'GLM-4-Flash', free: true },
+                    { id: 'glm-4-flash-250414', name: 'GLM-4-Flash（推荐）', free: true },
                     { id: 'glm-4.7-flash', name: 'GLM-4.7-Flash', free: true, thinking: true },
-                    { id: 'glm-z1-flash', name: 'GLM-Z1-Flash', free: true, thinking: true },
-                ],
-                vision: [
-                    { id: 'glm-4.6v-flash', name: 'GLM-4.6V-Flash', free: true, vision: true, thinking: true },
+                    { id: 'glm-4.1v-thinking-flash', name: 'GLM-4.1V-Thinking', free: true, thinking: true },
                 ],
                 image: [
                     { id: 'cogview-3-flash', name: 'CogView-3-Flash', free: true, imageGen: true },
@@ -129,16 +126,10 @@
             baseUrl: 'https://api-inference.modelscope.cn/v1',
             models: {
                 text: [
+                    { id: 'Qwen/Qwen3-8B', name: 'Qwen3-8B（免费）', free: true },
                     { id: 'deepseek-ai/DeepSeek-V4-Flash', name: 'DeepSeek-V4-Flash', free: true },
-                    { id: 'deepseek-ai/DeepSeek-V3.2', name: 'DeepSeek-V3.2' },
-                    { id: 'deepseek-ai/DeepSeek-R1-0528', name: 'DeepSeek-R1', thinking: true },
                     { id: 'Qwen/Qwen3.5-35B-A3B', name: 'Qwen3.5-35B', free: true },
-                    { id: 'Qwen/Qwen3-235B-A22B', name: 'Qwen3-235B' },
-                    { id: 'Qwen/Qwen3-30B-A3B', name: 'Qwen3-30B' },
-                    { id: 'MiniMax/MiniMax-M2.5', name: 'MiniMax-M2.5' },
-                    { id: 'MiniMax/MiniMax-M2.7', name: 'MiniMax-M2.7' },
-                    { id: 'moonshotai/Kimi-K2.5', name: 'Kimi-K2.5' },
-                    { id: 'stepfun-ai/Step-3.5-Flash', name: 'Step-3.5-Flash' },
+                    { id: 'deepseek-ai/DeepSeek-R1-0528', name: 'DeepSeek-R1', thinking: true },
                     { id: 'ZhipuAI/GLM-4.7-Flash', name: 'GLM-4.7-Flash' },
                     { id: 'ZhipuAI/GLM-5', name: 'GLM-5' },
                 ],
@@ -153,9 +144,10 @@
             baseUrl: 'https://integrate.api.nvidia.com/v1',
             models: {
                 text: [
-                    { id: 'openai/gpt-oss-120b', name: 'GPT-OSS-120B' },
-                    { id: 'meta/llama-4-maverick-17b-128e-instruct', name: 'Llama-4-Maverick' },
-                    { id: 'mistralai/mistral-nemotron', name: 'Mistral-Nemotron', thinking: true },
+                    { id: 'deepseek-ai/deepseek-v4-flash', name: 'DeepSeek-V4-Flash' },
+                    { id: 'meta/llama-3.1-8b-instruct', name: 'Llama-3.1-8B' },
+                    { id: 'meta/llama-3.1-70b-instruct', name: 'Llama-3.1-70B' },
+                    { id: 'qwen/qwen2.5-coder-32b-instruct', name: 'Qwen2.5-Coder-32B' },
                     { id: 'moonshotai/kimi-k2-instruct', name: 'Kimi-K2' },
                 ],
             },

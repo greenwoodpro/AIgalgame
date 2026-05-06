@@ -1,0 +1,115 @@
+[
+  {
+    "name": "GLM-4-Flash（免费）",
+    "provider": "智谱AI",
+    "id": "glm-4-flash-250414",
+    "status": "ok",
+    "time": 2.523812100000214,
+    "chars": 69,
+    "json": true,
+    "content": "{\"name\":\"星酱\",\"dialog\":\"哼，谁、谁想跟你打招呼啊，别烦我！\",\"choices\":[{\"text\":\"选项1\"}]}"
+  },
+  {
+    "name": "GLM-4.7-Flash（免费）",
+    "provider": "智谱AI",
+    "id": "glm-4.7-flash",
+    "status": "ok",
+    "time": 7.446698800000377,
+    "chars": 0,
+    "json": false,
+    "content": ""
+  },
+  {
+    "name": "GLM-4.1V-Thinking-Flash（免费视觉）",
+    "provider": "智谱AI",
+    "id": "glm-4.1v-thinking-flash",
+    "status": "ok",
+    "time": 5.84522349999861,
+    "chars": 640,
+    "json": false,
+    "content": "<think>用户现在需要回复“你好呀！”并按JSON格式，包含name、dialog和choices。首先构造对话内容，然后设置选项（这里可以简单设一个选项）。所以结构应该是：\n\n{\"name\":\"星酱\",\"dialog\":\"你好呀！\",\"choices\":[{\"text\":\"回应一下\"}]} （或者更自然点，比如“你好呀～有什么想聊的吗？” 但用户说一句话回复“你好呀！”，所以dialog写“你好呀！” 然后choices可以是互动的）\n\n现在整理：\n\n{\"name\":\"星酱\",\"dialog\":\"你好呀！\",\"choices\":[{\"text\":\"打招呼回应\"},{\"text\":\"继续聊天\"}]} ？不过要简洁，可能用户希望对话是友好打招呼后的回应？不，用户需求是“用一句话回复玩家：你好呀！ JSON格式”，所以dialog就是“你好呀！”？不对，等下，用户说“你是星酱，一个傲娇AI。用一句话回复玩家：你好呀！” 所以回复的话可能是傲娇的“你好呀～” 或者类似，但JSON里的dialog是要作为回复的一句话？哦，对，“用一句话回复玩家：你好呀！” 所以dialog内容是“你好呀～”（带语气）或者直接“你好呀！”。然后choices可以设计成互动选项。\n\n所以最终：\n\n{\"name\":\"星酱\",\"dialog\":\"你好呀～\",\"choices\":[{\"text\":\"问问题\"},{\"text\":\"聊聊爱好\"}]} ？或者更简洁的dialog：“你好呀！” 然"
+  },
+  {
+    "name": "DeepSeek-V3",
+    "provider": "魔搭社区",
+    "id": "deepseek-ai/DeepSeek-V3-0324",
+    "status": "error",
+    "time": 1.582132499999716,
+    "chars": 0,
+    "json": false,
+    "content": "",
+    "error": "HTTP 400"
+  },
+  {
+    "name": "Qwen2.5-7B",
+    "provider": "魔搭社区",
+    "id": "Qwen/Qwen2.5-7B-Instruct",
+    "status": "error",
+    "time": 5.670266200000697,
+    "chars": 0,
+    "json": false,
+    "content": "",
+    "error": "HTTP 400"
+  },
+  {
+    "name": "Qwen3-8B",
+    "provider": "魔搭社区",
+    "id": "Qwen/Qwen3-8B",
+    "status": "ok",
+    "time": 1.8741567000015493,
+    "chars": 0,
+    "json": false,
+    "content": ""
+  },
+  {
+    "name": "DeepSeek-V4-Flash",
+    "provider": "NVIDIA NIM",
+    "id": "deepseek-ai/deepseek-v4-flash",
+    "status": "ok",
+    "time": 8.805549400000018,
+    "chars": 126,
+    "json": true,
+    "content": "{\"name\":\"星酱\",\"dialog\":\"哼，谁、谁要理你啦！不过既然你问了，我就勉为其难回你一句好了……你好啦！\",\"choices\":[{\"text\":\"夸夸星酱可爱\"},{\"text\":\"戳穿她的傲娇\"},{\"text\":\"继续打招呼\"}]}"
+  },
+  {
+    "name": "Llama-3.1-8B",
+    "provider": "NVIDIA NIM",
+    "id": "meta/llama-3.1-8b-instruct",
+    "status": "ok",
+    "time": 7.443680200000017,
+    "chars": 160,
+    "json": true,
+    "content": "{\"name\":\"星酱\",\"dialog\":\"哼，当然好！如不是来膜拜我的美丽语句，别人都不知道你来找我干嘛？\",\"choices\":[{\"text\":\"说教\",\"next\":{\"dialog\":\"来吧，不客气，听我一说\"}},{\"text\":\"认输\",\"next\":{\"dialog\":\"才怪呢，别想取悦我！\"}}]}"
+  },
+  {
+    "name": "Qwen2.5-Coder-32B",
+    "provider": "NVIDIA NIM",
+    "id": "qwen/qwen2.5-coder-32b-instruct",
+    "status": "timeout",
+    "time": 61.19666909999978,
+    "chars": 0,
+    "json": false,
+    "content": ""
+  },
+  {
+    "name": "Kimi-K2",
+    "provider": "NVIDIA NIM",
+    "id": "moonshotai/kimi-k2-instruct",
+    "status": "timeout",
+    "time": 61.5293743000002,
+    "chars": 0,
+    "json": false,
+    "content": ""
+  },
+  {
+    "name": "Nemotron-Super-49B",
+    "provider": "NVIDIA NIM",
+    "id": "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+    "status": "error",
+    "time": 40.13734400000067,
+    "chars": 0,
+    "json": false,
+    "content": "",
+    "error": "'NoneType' object is not subscriptable"
+  }
+]
