@@ -470,7 +470,7 @@
         });
     }
 
-    function handleGlobalClick(e) {
+    async function handleGlobalClick(e) {
         const actionEl = e.target.closest('[data-action]');
         if (!actionEl) {
             const badge = $('#info-badge');

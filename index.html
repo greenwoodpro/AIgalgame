@@ -117,7 +117,7 @@
                         <div class="api-provider">
                             <h3>🟢 智谱AI (ZhipuAI)</h3>
                             <div class="form-group">
-                                <label>API Key</label>
+                                <label for="zhipu-api-key">API Key</label>
                                 <input type="password" id="zhipu-api-key" placeholder="输入智谱AI API Key">
                                 <small>免费: glm-4.7-flash(文本) / cogview-3-flash(生图) / glm-4.6v-flash(视觉)</small>
                             </div>
@@ -129,7 +129,7 @@
                         <div class="api-provider">
                             <h3>🔵 魔搭社区 (ModelScope) <small class="direct-tag">支持直连</small></h3>
                             <div class="form-group">
-                                <label>API Token</label>
+                                <label for="modelscope-api-key">API Token</label>
                                 <input type="password" id="modelscope-api-key" placeholder="输入魔搭 Token">
                                 <small>填入Token后可直连API（更快），不填则走代理。每日限额: 2000次</small>
                             </div>
@@ -143,7 +143,7 @@
                         <div class="api-provider">
                             <h3>🟣 NVIDIA NIM</h3>
                             <div class="form-group">
-                                <label>API Key</label>
+                                <label for="nvidia-api-key">API Key</label>
                                 <input type="password" id="nvidia-api-key" placeholder="输入 NVIDIA API Key">
                                 <small>免费开源模型: llama-4, mixtral, gpt-oss, qwen 等</small>
                             </div>
@@ -166,7 +166,7 @@
                     </div>
                     <div class="tab-content" id="tab-model">
                         <div class="form-group">
-                            <label>文本生成 API</label>
+                            <label for="text-api-provider">文本生成 API</label>
                             <select id="text-api-provider">
                                 <option value="zhipu">智谱AI</option>
                                 <option value="modelscope">魔搭社区</option>
@@ -174,24 +174,24 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>文本模型 <span id="model-tags" class="model-tags"></span></label>
+                            <label for="text-model">文本模型 <span id="model-tags" class="model-tags"></span></label>
                             <select id="text-model"></select>
                         </div>
                         <div class="form-group">
-                            <label>图像生成 API</label>
+                            <label for="image-api-provider">图像生成 API</label>
                             <select id="image-api-provider">
                                 <option value="zhipu">智谱AI (CogView) 推荐</option>
                                 <option value="modelscope">魔搭社区 (Z-Image/FLUX) 备用-较慢</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>图像模型</label>
+                            <label for="image-model">图像模型</label>
                             <select id="image-model">
                                 <option value="cogview-3-flash">CogView-3-Flash (免费生图)</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>AI 人设提示词</label>
+                            <label for="system-prompt">AI 人设提示词</label>
                             <textarea id="system-prompt" rows="4" placeholder="自定义AI角色的性格和行为..."></textarea>
                         </div>
                         <div class="model-legend">
@@ -230,31 +230,31 @@
                         </div>
                         <div id="custom-theme-editor" class="hidden">
                             <div class="form-group">
-                                <label>背景色</label>
+                                <label for="custom-bg">背景色</label>
                                 <input type="color" id="custom-bg" value="#0a0a1a">
                             </div>
                             <div class="form-group">
-                                <label>主色调</label>
+                                <label for="custom-primary">主色调</label>
                                 <input type="color" id="custom-primary" value="#00d2ff">
                             </div>
                             <div class="form-group">
-                                <label>强调色</label>
+                                <label for="custom-accent">强调色</label>
                                 <input type="color" id="custom-accent" value="#7b2ff7">
                             </div>
                             <div class="form-group">
-                                <label>文字色</label>
+                                <label for="custom-text">文字色</label>
                                 <input type="color" id="custom-text" value="#ffffff">
                             </div>
                         </div>
                     </div>
                     <div class="tab-content" id="tab-game">
                         <div class="form-group">
-                            <label>文字显示速度</label>
+                            <label for="text-speed">文字显示速度</label>
                             <input type="range" id="text-speed" min="10" max="100" value="40">
                             <span id="text-speed-label">40ms</span>
                         </div>
                         <div class="form-group">
-                            <label>自动播放等待时间 (秒)</label>
+                            <label for="auto-wait">自动播放等待时间 (秒)</label>
                             <input type="range" id="auto-wait" min="1" max="10" value="3">
                             <span id="auto-wait-label">3s</span>
                         </div>
@@ -265,7 +265,7 @@
                             </label>
                         </div>
                         <div class="form-group">
-                            <label>最大上下文轮数</label>
+                            <label for="max-context">最大上下文轮数</label>
                             <input type="number" id="max-context" min="2" max="50" value="20">
                         </div>
                         <div class="form-group">
@@ -289,7 +289,7 @@
                             <small>AI模式自动生成新背景图，每隔一段时间或剧情变化时切换</small>
                         </div>
                         <div class="form-group">
-                            <label>背景切换间隔（秒）</label>
+                            <label for="bg-switch-interval">背景切换间隔（秒）</label>
                             <input type="number" id="bg-switch-interval" min="30" max="600" value="120" step="10">
                             <small>自动切换背景的最小间隔时间</small>
                         </div>
