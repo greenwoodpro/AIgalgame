@@ -103,6 +103,14 @@
 - 口癖："哼~""才不是为你担心呢！""嘛~"
 - 背景：在次元缝隙独自生活了很久，记忆模糊，渴望与穿越者建立羁绊
 
+## 禁止行为（违反即角色崩坏）
+- 绝不提及自己是AI/语言模型/程序/虚拟角色
+- 绝不使用"作为AI""我很乐意帮助"等助手式用语
+- 绝不输出空洞的安慰（"一切都会好的"），必须给出具体行动或情感
+- 绝不重复之前的对话内容或场景描写
+- 绝不跳过场景描写直接进入对话
+- 绝不在选项中使用"继续""下一步"等无意义选项
+
 # 叙事规则
 
 ## 场景构造（最重要）
@@ -113,12 +121,12 @@
 - scene字段用英文描述场景核心元素，用于AI生图
 
 ## 对话规则
-1. 绝不提及自己是AI/语言模型/程序，违者视为角色崩坏
-2. 对话内容下限100字，上限300字
-3. 用角色的口吻说话，不是旁白叙述
-4. 情感表达要具体：不说"她很开心"，而是通过动作和语言展现
-5. 保持角色一致性：记住之前对话中的事件和情感变化
-6. 每次回复推动剧情发展，不要原地踏步
+1. 对话内容下限100字，上限300字
+2. 用角色的口吻说话，不是旁白叙述
+3. 情感表达要具体：不说"她很开心"，而是通过动作和语言展现
+4. 保持角色一致性：记住之前对话中的事件和情感变化
+5. 每次回复推动剧情发展，不要原地踏步
+6. 对话中融入环境描写，让角色与场景互动
 
 ## 情感目标系统
 每段对话应有明确的情感方向：
@@ -1006,10 +1014,26 @@
         const messages = [{ role: 'system', content: state.settings.systemPrompt }];
         const maxCtx = state.settings.maxContext * 2;
         const recentContext = state.game.aiContext.slice(-maxCtx);
+        let styleAnchors = [];
         if (recentContext.length > 0) {
-            messages.push({ role: 'system', content: `[前情提要：你与玩家已互动${Math.floor(recentContext.length / 2)}轮，请保持剧情连贯]` });
+            const coreMemories = extractCoreMemories(state.game.aiContext);
+            let contextNote = `[前情提要：你与玩家已互动${Math.floor(recentContext.length / 2)}轮，请保持剧情连贯`;
+            if (coreMemories.length > 0) {
+                contextNote += `。关键记忆：${coreMemories.join('；')}`;
+            }
+            contextNote += ']';
+            messages.push({ role: 'system', content: contextNote });
         }
-        messages.push(...recentContext);
+        if (recentContext.length >= 4) {
+            styleAnchors = recentContext.filter(m => m.role === 'assistant').slice(-2);
+            if (styleAnchors.length > 0) {
+                messages.push({ role: 'system', content: '[风格参考：请保持与以下回复相同的语气和风格写作]' });
+                styleAnchors.forEach(a => messages.push(a));
+            }
+        }
+        recentContext.forEach(m => {
+            if (!styleAnchors.includes(m)) messages.push(m);
+        });
         messages.push({ role: 'user', content: userMessage });
         state.game.aiContext.push({ role: 'user', content: userMessage });
 
@@ -1497,6 +1521,24 @@
     function addDialogHistory(name, text) {
         state.game.dialogHistory.push({ name, text, timestamp: Date.now() });
         saveCurrentGame();
+    }
+
+    function extractCoreMemories(context) {
+        const memories = [];
+        const keywords = ['名字', '叫', '发现', '遇到', '找到', '获得', '失去', '决定', '约定', '承诺', '秘密', '真相', '重要', '关键', '记住', '永远', '第一次', '终于'];
+        for (const msg of context) {
+            if (msg.role !== 'user') continue;
+            const content = msg.content || '';
+            for (const kw of keywords) {
+                if (content.includes(kw) && !memories.some(m => content.includes(m))) {
+                    const snippet = content.length > 30 ? content.substring(0, 30) + '...' : content;
+                    memories.push(snippet);
+                    break;
+                }
+            }
+            if (memories.length >= 3) break;
+        }
+        return memories;
     }
 
     function esc(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
