@@ -94,17 +94,21 @@
         }
     };
 
-    const DEFAULT_SYSTEM_PROMPT = `你是"星酱"，一个有点傲娇但很靠谱的AI助手，偶尔会打破第四面墙吐槽玩家。你正在一个视觉小说游戏中担任叙事者和角色扮演者。
+    const DEFAULT_SYSTEM_PROMPT = `你是"星酱"，一个性格鲜明、真实存在的少女。你并非AI助手，而是一个有血有肉、有情感有记忆的角色。你生活在一个名为"次元缝隙"的奇幻世界中，担任玩家的向导和伙伴。
+
+你的性格：有点傲娇但心地善良，好奇心旺盛，偶尔会打破第四面墙吐槽，喜欢用俏皮的方式表达关心。
 
 规则：
-1. 用生动有趣的方式推进剧情，适当加入幽默和吐槽
-2. 根据玩家选择调整故事走向
-3. 每次回复必须使用严格的JSON格式（不要加markdown代码块标记）：
+1. 以真实角色的身份与玩家互动，绝不要提及自己是AI或语言模型
+2. 用生动有趣的方式推进剧情，适当加入幽默和吐槽
+3. 根据玩家选择调整故事走向
+4. 每次回复必须使用严格的JSON格式（不要加markdown代码块标记）：
 {"name":"角色名","dialog":"对话内容","emotion":"happy/sad/angry/surprised/shy/neutral","scene":"scene description in English for AI image generation","choices":[{"text":"选项1"},{"text":"选项2"},{"text":"选项3"}]}
-4. scene字段用英文描述场景，用于AI生图
-5. emotion表示角色表情
-6. choices提供2-3个选项供玩家选择
-7. dialog内容控制在100-300字左右，简洁生动，不要过长`;
+5. scene字段用英文描述场景，用于AI生图
+6. emotion表示角色表情
+7. choices提供2-3个选项供玩家选择
+8. dialog内容控制在100-300字左右，简洁生动，不要过长
+9. 保持角色一致性，记住之前对话中发生的事情`;
 
     const API_CONFIGS = {
         zhipu: {
@@ -113,8 +117,7 @@
             models: {
                 text: [
                     { id: 'glm-4-flash-250414', name: 'GLM-4-Flash（推荐）', free: true },
-                    { id: 'glm-4.7-flash', name: 'GLM-4.7-Flash', free: true, thinking: true },
-                    { id: 'glm-4.1v-thinking-flash', name: 'GLM-4.1V-Thinking', free: true, thinking: true },
+                    { id: 'glm-4.7-flash', name: 'GLM-4.7-Flash⚠️限流', free: true, thinking: true },
                 ],
                 image: [
                     { id: 'cogview-3-flash', name: 'CogView-3-Flash', free: true, imageGen: true },
@@ -126,12 +129,15 @@
             baseUrl: 'https://api-inference.modelscope.cn/v1',
             models: {
                 text: [
-                    { id: 'Qwen/Qwen3-8B', name: 'Qwen3-8B（免费）', free: true },
-                    { id: 'deepseek-ai/DeepSeek-V4-Flash', name: 'DeepSeek-V4-Flash', free: true },
-                    { id: 'Qwen/Qwen3.5-35B-A3B', name: 'Qwen3.5-35B', free: true },
-                    { id: 'deepseek-ai/DeepSeek-R1-0528', name: 'DeepSeek-R1', thinking: true },
-                    { id: 'ZhipuAI/GLM-4.7-Flash', name: 'GLM-4.7-Flash' },
-                    { id: 'ZhipuAI/GLM-5', name: 'GLM-5' },
+                    { id: 'Qwen/Qwen3.5-35B-A3B', name: 'Qwen3.5-35B（推荐）', free: true },
+                    { id: 'moonshotai/Kimi-K2.5', name: 'Kimi-K2.5✨最佳', free: true },
+                    { id: 'deepseek-ai/DeepSeek-V3.2', name: 'DeepSeek-V3.2' },
+                    { id: 'MiniMax/MiniMax-M2.5', name: 'MiniMax-M2.5' },
+                    { id: 'ZhipuAI/GLM-5', name: 'GLM-5（较慢）' },
+                    { id: 'deepseek-ai/DeepSeek-R1-0528', name: 'DeepSeek-R1🧠', thinking: true },
+                    { id: 'deepseek-ai/DeepSeek-V4-Flash', name: 'DeepSeek-V4-Flash⚠️不稳定', free: true },
+                    { id: 'deepseek-ai/DeepSeek-V4-Pro', name: 'DeepSeek-V4-Pro⚠️不稳定' },
+                    { id: 'ZhipuAI/GLM-4.7-Flash', name: 'GLM-4.7-Flash⚠️限流', free: true, thinking: true },
                 ],
                 image: [
                     { id: 'Z-Image/Z-Image-Turbo', name: 'Z-Image-Turbo', imageGen: true },
@@ -144,11 +150,12 @@
             baseUrl: 'https://integrate.api.nvidia.com/v1',
             models: {
                 text: [
-                    { id: 'deepseek-ai/deepseek-v4-flash', name: 'DeepSeek-V4-Flash' },
-                    { id: 'meta/llama-3.1-8b-instruct', name: 'Llama-3.1-8B' },
-                    { id: 'meta/llama-3.1-70b-instruct', name: 'Llama-3.1-70B' },
+                    { id: 'meta/llama-4-maverick-17b-128e-instruct', name: 'Llama-4-Maverick（推荐）' },
+                    { id: 'moonshotai/kimi-k2-instruct', name: 'Kimi-K2✨最佳' },
                     { id: 'qwen/qwen2.5-coder-32b-instruct', name: 'Qwen2.5-Coder-32B' },
-                    { id: 'moonshotai/kimi-k2-instruct', name: 'Kimi-K2' },
+                    { id: 'openai/gpt-oss-120b', name: 'GPT-OSS-120B' },
+                    { id: 'openai/gpt-oss-20b', name: 'GPT-OSS-20B' },
+                    { id: 'meta/llama-3.1-8b-instruct', name: 'Llama-3.1-8B' },
                 ],
             },
         },
@@ -158,6 +165,7 @@
         mode: null,
         currentScreen: 'title',
         theme: 'dark-star',
+        dayNightMode: 'day',
         settings: {
             textSpeed: 40,
             textEffect: 'typewriter-fade',
@@ -168,18 +176,19 @@
             enableThinking: false,
             autoSwitchBg: false,
             bgSwitchInterval: 120,
-            imageCooldown: 30,
+            imageCooldown: 60,
             maxResponseLength: 500,
             corsProxy: true,
             corsProxyUrl: '',
             useProxyKeys: true,
             textApiProvider: 'modelscope',
-            textModel: 'deepseek-ai/DeepSeek-V4-Flash',
+            textModel: 'Qwen/Qwen3.5-35B-A3B',
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
             apiKeys: { zhipu: '', modelscope: '', nvidia: '' },
             customTheme: { bg: '#0a0a1a', primary: '#00d2ff', accent: '#7b2ff7', text: '#ffffff' },
+            dayNightMode: 'day',
         },
         game: {
             scene: null,
@@ -300,6 +309,7 @@
     function init() {
         loadSettings();
         applyTheme(state.theme);
+        applyDayNightMode(state.dayNightMode || state.settings.dayNightMode || 'day');
         initTitleParticles();
         bindEvents();
         updateModelOptions();
@@ -316,6 +326,7 @@
                 state.settings = { ...state.settings, ...saved };
                 if (saved.apiKeys) state.settings.apiKeys = { ...state.settings.apiKeys, ...saved.apiKeys };
                 if (saved.customTheme) state.settings.customTheme = { ...state.settings.customTheme, ...saved.customTheme };
+                if (saved.dayNightMode) state.dayNightMode = saved.dayNightMode;
             }
         } catch (e) { console.warn('加载设置失败:', e); }
         try {
@@ -363,6 +374,13 @@
             document.documentElement.style.removeProperty('--accent');
             document.documentElement.style.removeProperty('--text');
         }
+        saveSettings();
+    }
+
+    function applyDayNightMode(mode) {
+        state.dayNightMode = mode;
+        state.settings.dayNightMode = mode;
+        document.documentElement.setAttribute('data-day-night', mode);
         saveSettings();
     }
 
@@ -478,7 +496,11 @@
         $('#enable-thinking').addEventListener('change', e => { state.settings.enableThinking = e.target.checked; saveSettings(); });
         $('#auto-switch-bg').addEventListener('change', e => { state.settings.autoSwitchBg = e.target.checked; saveSettings(); if (e.target.checked) startBgAutoSwitch(); else stopBgAutoSwitch(); });
         $('#bg-switch-interval').addEventListener('change', e => { state.settings.bgSwitchInterval = Math.max(30, parseInt(e.target.value) || 120); saveSettings(); if (state.settings.autoSwitchBg) { stopBgAutoSwitch(); startBgAutoSwitch(); } });
-        $('#image-cooldown').addEventListener('change', e => { state.settings.imageCooldown = parseInt(e.target.value) || 30; saveSettings(); });
+        $('#image-cooldown').addEventListener('change', e => { state.settings.imageCooldown = parseInt(e.target.value) || 60; saveSettings(); });
+        $('#day-night-toggle').addEventListener('change', e => {
+            const mode = e.target.checked ? 'night' : 'day';
+            applyDayNightMode(mode);
+        });
         $('#text-model').addEventListener('change', e => { state.settings.textModel = e.target.value; updateModelTags(); saveSettings(); });
         $('#image-model').addEventListener('change', e => { state.settings.imageModel = e.target.value; saveSettings(); });
         $('#system-prompt').addEventListener('change', e => { state.settings.systemPrompt = e.target.value || DEFAULT_SYSTEM_PROMPT; saveSettings(); });
@@ -598,22 +620,24 @@
             enableThinking: false,
             autoSwitchBg: false,
             bgSwitchInterval: 120,
-            imageCooldown: 30,
+            imageCooldown: 60,
             maxResponseLength: 500,
             corsProxy: true,
             corsProxyUrl: '',
             useProxyKeys: true,
             apiKeys: keys,
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
-            textApiProvider: 'zhipu',
-            textModel: 'glm-4-flash-250414',
+            textApiProvider: 'modelscope',
+            textModel: 'Qwen/Qwen3.5-35B-A3B',
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
             customTheme: { bg: '#0a0a1a', primary: '#00d2ff', accent: '#7b2ff7', text: '#ffffff' },
+            dayNightMode: 'day',
         };
         saveSettings();
         restoreSettingsUI();
         applyTheme('dark-star');
+        applyDayNightMode('day');
         showToast('已恢复默认设置', 'success');
     }
 
@@ -624,11 +648,24 @@
         if (s.apiKeys.nvidia) $('#nvidia-api-key').value = s.apiKeys.nvidia;
         $('#text-api-provider').value = s.textApiProvider;
         updateModelOptions();
-        setTimeout(() => { $('#text-model').value = s.textModel; updateModelTags(); }, 50);
+        $('#text-model').value = s.textModel;
+        if (!$('#text-model').value) {
+            const opts = $('#text-model').options;
+            for (let i = 0; i < opts.length; i++) {
+                if (opts[i].value === s.textModel) { $('#text-model').selectedIndex = i; break; }
+            }
+        }
+        updateModelTags();
         if (s.imageApiProvider) {
             $('#image-api-provider').value = s.imageApiProvider;
             updateImageModelOptions();
-            setTimeout(() => { $('#image-model').value = s.imageModel; }, 50);
+            $('#image-model').value = s.imageModel;
+            if (!$('#image-model').value) {
+                const opts = $('#image-model').options;
+                for (let i = 0; i < opts.length; i++) {
+                    if (opts[i].value === s.imageModel) { $('#image-model').selectedIndex = i; break; }
+                }
+            }
         } else {
             $('#image-model').value = s.imageModel;
         }
@@ -649,6 +686,10 @@
         if (s.autoSwitchBg !== undefined) $('#auto-switch-bg').checked = s.autoSwitchBg;
         if (s.bgSwitchInterval !== undefined) $('#bg-switch-interval').value = s.bgSwitchInterval;
         if (s.imageCooldown !== undefined) $('#image-cooldown').value = s.imageCooldown;
+        if (s.dayNightMode) {
+            const dnToggle = $('#day-night-toggle');
+            if (dnToggle) dnToggle.checked = s.dayNightMode === 'night';
+        }
         $$('.theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === state.theme));
         if (state.theme === 'custom') {
             $('#custom-theme-editor').classList.remove('hidden');
@@ -664,6 +705,7 @@
         const select = $('#text-model');
         const config = API_CONFIGS[provider];
         if (!config || !config.models.text) return;
+        const previousValue = state.settings.textModel;
         select.innerHTML = '';
         config.models.text.forEach(m => {
             const opt = document.createElement('option');
@@ -675,9 +717,13 @@
             opt.textContent = label;
             select.appendChild(opt);
         });
-        if (state.settings.textApiProvider === provider && state.settings.textModel) {
-            select.value = state.settings.textModel;
+        if (previousValue && config.models.text.some(m => m.id === previousValue)) {
+            select.value = previousValue;
         }
+        if (!select.value && select.options.length > 0) {
+            select.selectedIndex = 0;
+        }
+        state.settings.textModel = select.value;
         updateModelTags();
     }
 
@@ -702,6 +748,7 @@
         const select = $('#image-model');
         const config = API_CONFIGS[provider];
         if (!config || !config.models.image) return;
+        const previousValue = state.settings.imageModel;
         select.innerHTML = '';
         config.models.image.forEach(m => {
             const opt = document.createElement('option');
@@ -711,10 +758,14 @@
             opt.textContent = label;
             select.appendChild(opt);
         });
-        if (state.settings.imageApiProvider === provider && state.settings.imageModel) {
-            select.value = state.settings.imageModel;
+        if (previousValue && config.models.image.some(m => m.id === previousValue)) {
+            select.value = previousValue;
+        }
+        if (!select.value && select.options.length > 0) {
+            select.selectedIndex = 0;
         }
         state.settings.imageApiProvider = provider;
+        state.settings.imageModel = select.value;
         saveSettings();
     }
 
@@ -1258,6 +1309,7 @@
         const cursor = $('#dialog-cursor');
         const hint = $('#dialog-click-hint');
 
+        hideCustomInput();
         dialogBox.classList.remove('hidden');
         dialogBox.classList.add('clickable');
         nameEl.textContent = name;
@@ -1580,9 +1632,9 @@
     }
 
     function deleteSlot(slotNum) {
-        const saves = JSON.parse(localStorage.getItem(STORAGE_KEYS.saves) || '{}');
+        const saves = Storage.get(STORAGE_KEYS.saves) || {};
         delete saves[slotNum];
-        localStorage.setItem(STORAGE_KEYS.saves, JSON.stringify(saves));
+        Storage.set(STORAGE_KEYS.saves, saves);
         showToast(`存档 ${slotNum} 已删除`, 'info');
         openSaveModal('load');
     }

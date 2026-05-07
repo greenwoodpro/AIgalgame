@@ -1542,3 +1542,23 @@ html, body {
     font-size: 0.7rem;
     color: var(--text-muted);
 }
+
+[data-day-night="night"] {
+    filter: brightness(0.7) saturate(0.85);
+}
+
+[data-day-night="night"] #scene-overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.1) 70%, rgba(0,0,0,0.4) 100%);
+}
+
+[data-day-night="night"] #dialog-box::before {
+    opacity: 0.85;
+}
+
+[data-day-night="night"] .menu-btn {
+    background: rgba(5, 5, 15, 0.8);
+}
+
+[data-day-night="night"] #title-screen::before {
+    opacity: 0.2;
+}

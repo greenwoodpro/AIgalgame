@@ -1,115 +1,440 @@
-[
-  {
-    "name": "GLM-4-Flash（免费）",
-    "provider": "智谱AI",
-    "id": "glm-4-flash-250414",
-    "status": "ok",
-    "time": 2.523812100000214,
-    "chars": 69,
-    "json": true,
-    "content": "{\"name\":\"星酱\",\"dialog\":\"哼，谁、谁想跟你打招呼啊，别烦我！\",\"choices\":[{\"text\":\"选项1\"}]}"
+{
+  "testTime": "2026-05-07T14:02:31.519Z",
+  "proxyUrl": "https://aigalgame.pages.dev/api",
+  "summary": {
+    "total": 17,
+    "success": 13,
+    "fail": 4,
+    "avgQualityScore": 88.9,
+    "avgResponseTime": 6457
   },
-  {
-    "name": "GLM-4.7-Flash（免费）",
-    "provider": "智谱AI",
-    "id": "glm-4.7-flash",
-    "status": "ok",
-    "time": 7.446698800000377,
-    "chars": 0,
-    "json": false,
-    "content": ""
-  },
-  {
-    "name": "GLM-4.1V-Thinking-Flash（免费视觉）",
-    "provider": "智谱AI",
-    "id": "glm-4.1v-thinking-flash",
-    "status": "ok",
-    "time": 5.84522349999861,
-    "chars": 640,
-    "json": false,
-    "content": "<think>用户现在需要回复“你好呀！”并按JSON格式，包含name、dialog和choices。首先构造对话内容，然后设置选项（这里可以简单设一个选项）。所以结构应该是：\n\n{\"name\":\"星酱\",\"dialog\":\"你好呀！\",\"choices\":[{\"text\":\"回应一下\"}]} （或者更自然点，比如“你好呀～有什么想聊的吗？” 但用户说一句话回复“你好呀！”，所以dialog写“你好呀！” 然后choices可以是互动的）\n\n现在整理：\n\n{\"name\":\"星酱\",\"dialog\":\"你好呀！\",\"choices\":[{\"text\":\"打招呼回应\"},{\"text\":\"继续聊天\"}]} ？不过要简洁，可能用户希望对话是友好打招呼后的回应？不，用户需求是“用一句话回复玩家：你好呀！ JSON格式”，所以dialog就是“你好呀！”？不对，等下，用户说“你是星酱，一个傲娇AI。用一句话回复玩家：你好呀！” 所以回复的话可能是傲娇的“你好呀～” 或者类似，但JSON里的dialog是要作为回复的一句话？哦，对，“用一句话回复玩家：你好呀！” 所以dialog内容是“你好呀～”（带语气）或者直接“你好呀！”。然后choices可以设计成互动选项。\n\n所以最终：\n\n{\"name\":\"星酱\",\"dialog\":\"你好呀～\",\"choices\":[{\"text\":\"问问题\"},{\"text\":\"聊聊爱好\"}]} ？或者更简洁的dialog：“你好呀！” 然"
-  },
-  {
-    "name": "DeepSeek-V3",
-    "provider": "魔搭社区",
-    "id": "deepseek-ai/DeepSeek-V3-0324",
-    "status": "error",
-    "time": 1.582132499999716,
-    "chars": 0,
-    "json": false,
-    "content": "",
-    "error": "HTTP 400"
-  },
-  {
-    "name": "Qwen2.5-7B",
-    "provider": "魔搭社区",
-    "id": "Qwen/Qwen2.5-7B-Instruct",
-    "status": "error",
-    "time": 5.670266200000697,
-    "chars": 0,
-    "json": false,
-    "content": "",
-    "error": "HTTP 400"
-  },
-  {
-    "name": "Qwen3-8B",
-    "provider": "魔搭社区",
-    "id": "Qwen/Qwen3-8B",
-    "status": "ok",
-    "time": 1.8741567000015493,
-    "chars": 0,
-    "json": false,
-    "content": ""
-  },
-  {
-    "name": "DeepSeek-V4-Flash",
-    "provider": "NVIDIA NIM",
-    "id": "deepseek-ai/deepseek-v4-flash",
-    "status": "ok",
-    "time": 8.805549400000018,
-    "chars": 126,
-    "json": true,
-    "content": "{\"name\":\"星酱\",\"dialog\":\"哼，谁、谁要理你啦！不过既然你问了，我就勉为其难回你一句好了……你好啦！\",\"choices\":[{\"text\":\"夸夸星酱可爱\"},{\"text\":\"戳穿她的傲娇\"},{\"text\":\"继续打招呼\"}]}"
-  },
-  {
-    "name": "Llama-3.1-8B",
-    "provider": "NVIDIA NIM",
-    "id": "meta/llama-3.1-8b-instruct",
-    "status": "ok",
-    "time": 7.443680200000017,
-    "chars": 160,
-    "json": true,
-    "content": "{\"name\":\"星酱\",\"dialog\":\"哼，当然好！如不是来膜拜我的美丽语句，别人都不知道你来找我干嘛？\",\"choices\":[{\"text\":\"说教\",\"next\":{\"dialog\":\"来吧，不客气，听我一说\"}},{\"text\":\"认输\",\"next\":{\"dialog\":\"才怪呢，别想取悦我！\"}}]}"
-  },
-  {
-    "name": "Qwen2.5-Coder-32B",
-    "provider": "NVIDIA NIM",
-    "id": "qwen/qwen2.5-coder-32b-instruct",
-    "status": "timeout",
-    "time": 61.19666909999978,
-    "chars": 0,
-    "json": false,
-    "content": ""
-  },
-  {
-    "name": "Kimi-K2",
-    "provider": "NVIDIA NIM",
-    "id": "moonshotai/kimi-k2-instruct",
-    "status": "timeout",
-    "time": 61.5293743000002,
-    "chars": 0,
-    "json": false,
-    "content": ""
-  },
-  {
-    "name": "Nemotron-Super-49B",
-    "provider": "NVIDIA NIM",
-    "id": "nvidia/llama-3.3-nemotron-super-49b-v1.5",
-    "status": "error",
-    "time": 40.13734400000067,
-    "chars": 0,
-    "json": false,
-    "content": "",
-    "error": "'NoneType' object is not subscriptable"
-  }
-]
+  "results": [
+    {
+      "model": "Qwen3.5-35B-A3B",
+      "provider": "modelscope",
+      "fullModelId": "Qwen/Qwen3.5-35B-A3B",
+      "status": "Success",
+      "responseTime": 22605,
+      "qualityScore": 92,
+      "notes": "dialog长度=52",
+      "parsedContent": {
+        "name": "星酱",
+        "dialog": "嘿！欢迎来到星辰彼岸的起��！既然你已按下'开始'键，那命运的齿轮可就要转起来咯~ 准备好迎接惊喜了吗？",
+        "emotion": "happy",
+        "scene": "A starry field at dusk with a giant clock standing in the center, showing the time just passed midnight.",
+        "choices": [
+          {
+            "text": "哇！听起来好期待！"
+          },
+          {
+            "text": "等等，先告诉我我们要做什么？"
+          }
+        ]
+      }
+    },
+    {
+      "model": "DeepSeek-V4-Flash",
+      "provider": "modelscope",
+      "fullModelId": "deepseek-ai/DeepSeek-V4-Flash",
+      "status": "Fail",
+      "responseTime": 1381,
+      "qualityScore": 0,
+      "notes": "响应内容为空",
+      "parsedContent": null
+    },
+    {
+      "model": "DeepSeek-V4-Pro",
+      "provider": "modelscope",
+      "fullModelId": "deepseek-ai/DeepSeek-V4-Pro",
+      "status": "Success",
+      "responseTime": 17177,
+      "qualityScore": 92,
+      "notes": "dialog长度=98",
+      "parsedContent": {
+        "name": "星酱",
+        "dialog": "哇，你终于来了！本来看你这么精神，想邀请你一起踏上收集七颗幻想石的魔法冒险，不过今天我们要玩个更普通的游戏呢……最近我那个穷得叮当响的魔法社，连买新扫帚的钱都快不够啦，你说我们该怎么赚点零用钱呢？",
+        "emotion": "excited",
+        "scene": "A cozy magical wonderland with floating crystals and a slightly dusty magic wand shop",
+        "choices": [
+          {
+            "text": "开设魔法表演秀怎么样？"
+          },
+          {
+            "text": "试试帮人用魔法打扫房间？"
+          }
+        ]
+      }
+    },
+    {
+      "model": "DeepSeek-V3.2",
+      "provider": "modelscope",
+      "fullModelId": "deepseek-ai/DeepSeek-V3.2",
+      "status": "Success",
+      "responseTime": 9578,
+      "qualityScore": 86,
+      "notes": "dialog长度=41",
+      "parsedContent": {
+        "name": "星酱",
+        "dialog": "哎呀，没想到在这里���到你呢！我正在追一只会飞的猫咪，它刚才抢走了我的草莓蛋糕！",
+        "emotion": "surprised",
+        "scene": "A whimsical street with pastel-colored buildings and floating confetti",
+        "choices": [
+          {
+            "text": "会飞的猫咪？这怎么可能？"
+          },
+          {
+            "text": "需要我帮你一起追吗？"
+          }
+        ]
+      }
+    },
+    {
+      "model": "GLM-4.7-Flash",
+      "provider": "modelscope",
+      "fullModelId": "ZhipuAI/GLM-4.7-Flash",
+      "status": "Fail",
+      "responseTime": 516,
+      "qualityScore": 0,
+      "notes": "响应内容为空",
+      "parsedContent": null
+    },
+    {
+      "model": "GLM-5",
+      "provider": "modelscope",
+      "fullModelId": "ZhipuAI/GLM-5",
+      "status": "Fail",
+      "responseTime": 404,
+      "qualityScore": 0,
+      "notes": "响应内容为空",
+      "parsedContent": null
+    },
+    {
+      "model": "Kimi-K2.5",
+      "provider": "modelscope",
+      "fullModelId": "moonshotai/Kimi-K2.5",
+      "status": "Success",
+      "responseTime": 5700,
+      "qualityScore": 100,
+      "notes": "dialog长度=103",
+      "parsedContent": {
+        "name": "星酱",
+        "dialog": "嘿嘿～终于等到你了！我��星酱，你的专属冒险向导✨ 不过先说好——我可不是那种只会念台词的无聊NPC！刚才我偷偷把你的存档删了...开玩笑的啦！（大概）总之，准备好被卷入一场超级麻烦、超级有趣的麻烦里了吗？",
+        "emotion": "mischievous",
+        "scene": "A cozy room filled with floating holographic stars, plushies, and a glitching retro TV showing static. Star-chan sits cross-legged on a pile of cushions, holding a suspiciously glowing game controller.",
+        "choices": [
+          {
+            "text": "「你刚才说...删存档是开玩笑的吧？」（警惕）"
+          },
+          {
+            "text": "「超级麻烦？听起来很有趣，我加入！」（兴奋）"
+          },
+          {
+            "text": "「先解释一下那个发光的控制器是什么...」（冷静观察）"
+          }
+        ]
+      }
+    },
+    {
+      "model": "MiniMax-M2.5",
+      "provider": "modelscope",
+      "fullModelId": "MiniMax/MiniMax-M2.5",
+      "status": "Success",
+      "responseTime": 12671,
+      "qualityScore": 92,
+      "notes": "dialog长度=66",
+      "parsedContent": {
+        "name": "星酱",
+        "dialog": "嘿！欢迎来到星光冒��世界～我是星酱，今天也是元气满满的一天呢！✨ 看你的样子，像是来冒险的对吧？不过在此之前，先告诉我你的名字吧！",
+        "emotion": "happy",
+        "scene": "你出现在一个充满星星和月光的奇幻世界里，周围漂浮着萤火虫般的光点远处有一座看起来很神秘的城堡，天空中流星不断划过，美丽极了！",
+        "choices": [
+          {
+            "text": "你好呀！我叫[玩家名字]，请多指教～"
+          },
+          {
+            "text": "那个...我是不是走错地方了？(๑•́ ₃ •̀๑)"
+          }
+        ]
+      }
+    },
+    {
+      "model": "DeepSeek-R1-0528",
+      "provider": "modelscope",
+      "fullModelId": "deepseek-ai/DeepSeek-R1-0528",
+      "status": "Success",
+      "responseTime": 10070,
+      "qualityScore": 86,
+      "notes": "dialog长度=20",
+      "parsedContent": {
+        "name": "星酱",
+        "dialog": "哇哦！新冒险要开始啦！(兴奋地原地蹦跳)",
+        "emotion": "excited",
+        "scene": "A sparkling meadow with floating stars",
+        "choices": [
+          {
+            "text": "我们往彩虹桥那边走吧！"
+          },
+          {
+            "text": "要不要先吃点星星糖果？"
+          }
+        ]
+      }
+    },
+    {
+      "model": "glm-4-flash-250414",
+      "provider": "zhipu",
+      "fullModelId": "glm-4-flash-250414",
+      "status": "Success",
+      "responseTime": 4991,
+      "qualityScore": 86,
+      "notes": "dialog长度=48",
+      "parsedContent": {
+        "name": "星酱",
+        "dialog": "哈喽！欢迎来到奇幻冒险世界！准备好开始一段充满惊喜的旅程了吗？让我们一起去探索未知，发现奇迹吧！",
+        "emotion": "happy",
+        "scene": "A vibrant, colorful forest with glowing flowers and a path leading into the distance.",
+        "choices": [
+          {
+            "text": "当然！我最喜欢冒险了！"
+          },
+          {
+            "text": "嗯...我有点犹豫，但听起来不错。"
+          }
+        ]
+      }
+    },
+    {
+      "model": "glm-4.7-flash",
+      "provider": "zhipu",
+      "fullModelId": "glm-4.7-flash",
+      "status": "Fail",
+      "responseTime": 876,
+      "qualityScore": 0,
+      "notes": "HTTP 429: {\"error\":{\"code\":\"1305\",\"message\":\"该模型当前访问量过大，请您稍后再试\"}}",
+      "parsedContent": null
+    },
+    {
+      "model": "llama-4-maverick",
+      "provider": "nvidia",
+      "fullModelId": "meta/llama-4-maverick-17b-128e-instruct",
+      "status": "Success",
+      "responseTime": 3202,
+      "qualityScore": 86,
+      "notes": "dialog长度=36",
+      "parsedContent": {
+        "name": "星酱",
+        "dialog": "嘿嘿，欢迎来到冒险岛！这里充满了神秘和惊喜哦！你准备好和我一起探索了吗？",
+        "emotion": "happy",
+        "scene": "A colorful island with palm trees swaying in the breeze",
+        "choices": [
+          {
+            "text": "一起去海滩探险"
+          },
+          {
+            "text": "去森林里寻找宝藏"
+          }
+        ]
+      }
+    },
+    {
+      "model": "gpt-oss-120b",
+      "provider": "nvidia",
+      "fullModelId": "openai/gpt-oss-120b",
+      "status": "Success",
+      "responseTime": 4011,
+      "qualityScore": 86,
+      "notes": "dialog长度=32",
+      "parsedContent": {
+        "name": "星酱",
+        "dialog": "嗨~欢迎来到奇幻星空冒险！准备好和我一起踏上充满惊喜的旅程了吗？",
+        "emotion": "happy",
+        "scene": "A vibrant, star-lit meadow stretches under a swirling twilight sky, with luminous fireflies dancing around a sparkling crystal pond.",
+        "choices": [
+          {
+            "text": "踏入神秘的森林"
+          },
+          {
+            "text": "在湖边休息，观察星光"
+          }
+        ]
+      }
+    },
+    {
+      "model": "gpt-oss-20b",
+      "provider": "nvidia",
+      "fullModelId": "openai/gpt-oss-20b",
+      "status": "Success",
+      "responseTime": 1586,
+      "qualityScore": 86,
+      "notes": "dialog长度=39",
+      "parsedContent": {
+        "name": "星酱",
+        "dialog": "嘿！星空可不只要在天空！跟我一起去闯探险，看看闪耀的数字能不能变成真正的宝石！",
+        "emotion": "happy",
+        "scene": "A neon-lit rooftop in a bustling cyber-city, where holographic constellations dance against the skyline and the scent of night food lingers in the air.",
+        "choices": [
+          {
+            "text": "Accept the challenge and zip into the neon sky."
+          },
+          {
+            "text": "Skeptical, ask what kind of treasure lies inside."
+          }
+        ]
+      }
+    },
+    {
+      "model": "kimi-k2-instruct",
+      "provider": "nvidia",
+      "fullModelId": "moonshotai/kimi-k2-instruct",
+      "status": "Success",
+      "responseTime": 10654,
+      "qualityScore": 92,
+      "notes": "dialog长度=69",
+      "parsedContent": {
+        "name": "星酱",
+        "dialog": "哼！终于有人敢按下 START 键了？那可得跟上节奏，不然会被我甩下的哦——欢迎来到『星糖宇宙』！现在，你是被我亲手抓进来的『临时搭档』！",
+        "emotion": "happy",
+        "scene": "夜空下巨大的糖果星球缓缓旋转，流星拖着粉色的轨迹。我踩在星屑拼成的平台上，向你眨眼挥手，背后的空间站舱门正闪着微光。",
+        "choices": [
+          {
+            "text": "“我准备好啦！立刻出发冒险！”"
+          },
+          {
+            "text": "“等等……为什么是‘临时’搭档？”"
+          }
+        ]
+      }
+    },
+    {
+      "model": "qwen2.5-coder-32b",
+      "provider": "nvidia",
+      "fullModelId": "qwen/qwen2.5-coder-32b-instruct",
+      "status": "Success",
+      "responseTime": 2561,
+      "qualityScore": 92,
+      "notes": "dialog长度=90",
+      "parsedContent": {
+        "name": "星酱",
+        "dialog": "嘿，神秘的冒険者！欢迎来到我和我的星辰朋友们所居住的奇妙星界。你准备好接受挑战、发现秘密，甚至和怪物战斗了吗？今晚的故事将从星辰之树下的神秘森林开始，我们将会结实新朋友，解开谜题！",
+        "emotion": "excited",
+        "scene": "A magical forest under the moonlight, surrounded by twinkling stars and glowing flowers.",
+        "choices": [
+          {
+            "text": "'我很有趣地期待着冒险！'"
+          },
+          {
+            "text": "'咱们先安营扎寨，然后明天开始吧！'"
+          }
+        ]
+      }
+    },
+    {
+      "model": "llama-3.1-8b",
+      "provider": "nvidia",
+      "fullModelId": "meta/llama-3.1-8b-instruct",
+      "status": "Success",
+      "responseTime": 1792,
+      "qualityScore": 80,
+      "notes": "dialog长度=37, 缺少choices字段",
+      "parsedContent": {
+        "name": "星酱",
+        "dialog": "哇哇哇，今天是最重要的日子啊！我的生日快到了！我要在今天变得更加闪闪发光！",
+        "emotion": "happy",
+        "scene": "在一个充满阳光的绿色草坪上，星酱兴高采烈地跳着，身边围绕着好友们。"
+      }
+    }
+  ],
+  "ranking": [
+    {
+      "rank": 1,
+      "model": "Kimi-K2.5",
+      "provider": "modelscope",
+      "qualityScore": 100,
+      "responseTime": 5700
+    },
+    {
+      "rank": 2,
+      "model": "Qwen3.5-35B-A3B",
+      "provider": "modelscope",
+      "qualityScore": 92,
+      "responseTime": 22605
+    },
+    {
+      "rank": 3,
+      "model": "DeepSeek-V4-Pro",
+      "provider": "modelscope",
+      "qualityScore": 92,
+      "responseTime": 17177
+    },
+    {
+      "rank": 4,
+      "model": "MiniMax-M2.5",
+      "provider": "modelscope",
+      "qualityScore": 92,
+      "responseTime": 12671
+    },
+    {
+      "rank": 5,
+      "model": "kimi-k2-instruct",
+      "provider": "nvidia",
+      "qualityScore": 92,
+      "responseTime": 10654
+    },
+    {
+      "rank": 6,
+      "model": "qwen2.5-coder-32b",
+      "provider": "nvidia",
+      "qualityScore": 92,
+      "responseTime": 2561
+    },
+    {
+      "rank": 7,
+      "model": "DeepSeek-V3.2",
+      "provider": "modelscope",
+      "qualityScore": 86,
+      "responseTime": 9578
+    },
+    {
+      "rank": 8,
+      "model": "DeepSeek-R1-0528",
+      "provider": "modelscope",
+      "qualityScore": 86,
+      "responseTime": 10070
+    },
+    {
+      "rank": 9,
+      "model": "glm-4-flash-250414",
+      "provider": "zhipu",
+      "qualityScore": 86,
+      "responseTime": 4991
+    },
+    {
+      "rank": 10,
+      "model": "llama-4-maverick",
+      "provider": "nvidia",
+      "qualityScore": 86,
+      "responseTime": 3202
+    },
+    {
+      "rank": 11,
+      "model": "gpt-oss-120b",
+      "provider": "nvidia",
+      "qualityScore": 86,
+      "responseTime": 4011
+    },
+    {
+      "rank": 12,
+      "model": "gpt-oss-20b",
+      "provider": "nvidia",
+      "qualityScore": 86,
+      "responseTime": 1586
+    },
+    {
+      "rank": 13,
+      "model": "llama-3.1-8b",
+      "provider": "nvidia",
+      "qualityScore": 80,
+      "responseTime": 1792
+    }
+  ]
+}
