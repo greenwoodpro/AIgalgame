@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>多平台模型基准测试报告</title>
+<style>
+/* ===== 基础重置 ===== */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080d1a;
+  --bg2:#0d1526;
+  --panel:#111c30;
+  --panel2:#162038;
+  --border:#1e2e4a;
+  --text:#dce8ff;
+  --muted:#7a96c2;
+  --accent:#4f9eff;
+  --accent2:#7c5cfc;
+  --good:#34d399;
+  --warn:#fbbf24;
+  --bad:#f87171;
+  --nav-h:58px;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  min-height:100vh;
+}
+
+/* ===== 导航栏 ===== */
+#nav{
+  position:fixed;top:0;left:0;right:0;
+  height:var(--nav-h);
+  background:rgba(8,13,26,.95);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 20px;
+  z-index:999;
+  gap:4px;
+}
+#nav .logo{
+  font-weight:800;font-size:15px;
+  color:#fff;margin-right:16px;
+  white-space:nowrap;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.nav-btn{
+  padding:7px 14px;
+  border-radius:8px;
+  border:none;
+  background:transparent;
+  color:var(--muted);
+  cursor:pointer;
+  font-size:13px;
+  font-weight:500;
+  transition:all .18s;
+  white-space:nowrap;
+}
+.nav-btn:hover{background:var(--panel2);color:var(--text)}
+.nav-btn.active{
+  background:linear-gradient(135deg,rgba(79,158,255,.18),rgba(124,92,252,.18));
+  color:#fff;
+  border:1px solid rgba(79,158,255,.3);
+}
+
+/* ===== 页面切换 ===== */
+.page{
+  display:none;
+  padding-top:calc(var(--nav-h) + 28px);
+  min-height:100vh;
+  animation:fadeIn .25s ease;
+}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 80px}
+
+/* ===== 通用卡片 ===== */
+h1{font-size:32px;color:#fff;margin-bottom:8px;line-height:1.25}
+h2{
+  font-size:22px;color:#fff;
+  margin:36px 0 14px;
+  padding-left:14px;
+  border-left:3px solid var(--accent);
+}
+h3{font-size:17px;color:#cfe0ff;margin:24px 0 10px}
+p{color:var(--text);margin-bottom:10px}
+ul,ol{padding-left:20px;color:var(--text)}
+li{margin-bottom:5px}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:20px 22px;
+  margin:16px 0;
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:700px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
+
+/* ===== 指标块 ===== */
+.metric{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:16px 18px;
+}
+.metric .k{color:var(--muted);font-size:12px;margin-bottom:6px}
+.metric .v{font-size:26px;font-weight:800}
+.good{color:var(--good)}
+.warn{color:var(--warn)}
+.bad{color:var(--bad)}
+.blue{color:var(--accent)}
+.purple{color:var(--accent2)}
+
+/* ===== 表格 ===== */
+.tbl-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{padding:10px 13px;text-align:left;font-size:13px;border-bottom:1px solid var(--border)}
+th{background:#162038;color:#b8d0ff;font-weight:600;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.018)}
+td code{background:rgba(79,158,255,.12);color:#8ec8ff;padding:1px 6px;border-radius:5px;font-family:Consolas,monospace;font-size:12px}
+
+/* ===== 标签 ===== */
+.pill{
+  display:inline-block;padding:3px 10px;border-radius:999px;
+  font-size:12px;font-weight:600;margin:2px;
+  border:1px solid transparent;
+}
+.pg{background:rgba(52,211,153,.1);color:var(--good);border-color:rgba(52,211,153,.25)}
+.pw{background:rgba(251,191,36,.1);color:var(--warn);border-color:rgba(251,191,36,.25)}
+.pb{background:rgba(248,113,113,.1);color:var(--bad);border-color:rgba(248,113,113,.25)}
+.pp{background:rgba(79,158,255,.1);color:var(--accent);border-color:rgba(79,158,255,.25)}
+.pv{background:rgba(124,92,252,.1);color:var(--accent2);border-color:rgba(124,92,252,.25)}
+
+/* ===== 提示框 ===== */
+.note{
+  background:rgba(79,158,255,.07);
+  border:1px solid rgba(79,158,255,.2);
+  border-radius:12px;padding:13px 16px;
+  color:#d0e6ff;margin:12px 0;
+}
+.note-good{background:rgba(52,211,153,.07);border-color:rgba(52,211,153,.2);color:#c5f5e3}
+.note-warn{background:rgba(251,191,36,.07);border-color:rgba(251,191,36,.2);color:#fde9a2}
+.note-bad{background:rgba(248,113,113,.07);border-color:rgba(248,113,113,.2);color:#fcd0d0}
+
+/* ===== 英雄区 ===== */
+.hero{
+  padding:40px 0 20px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:8px;
+}
+.hero-sub{color:var(--muted);font-size:15px;margin-top:8px}
+
+/* ===== 条形图 ===== */
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.bar-label{min-width:220px;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:20px;background:rgba(255,255,255,.06);border-radius:6px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:6px;transition:width .6s ease}
+.bar-val{min-width:60px;font-size:13px;text-align:right}
+
+/* ===== 双色条形图（R1/R2对比） ===== */
+.bar-dual-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bar-dual-label{min-width:220px;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-dual-track{flex:1;height:28px;background:rgba(255,255,255,.06);border-radius:6px;overflow:hidden;display:flex;position:relative}
+.bar-dual-r1{height:100%;transition:width .6s ease;border-radius:6px 0 0 6px}
+.bar-dual-r2{height:100%;transition:width .6s ease;border-radius:0 6px 6px 0}
+.bar-dual-vals{min-width:100px;font-size:12px;text-align:right;white-space:nowrap}
+
+/* ===== 评级徽章 ===== */
+.grade{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:8px;
+  font-size:14px;font-weight:800;
+}
+.grade-s{background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000}
+.grade-a{background:linear-gradient(135deg,#34d399,#059669);color:#fff}
+.grade-b{background:linear-gradient(135deg,#60a5fa,#3b82f6);color:#fff}
+.grade-c{background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff}
+.grade-d{background:rgba(248,113,113,.2);color:#f87171;border:1px solid rgba(248,113,113,.3)}
+
+/* ===== 时间线 ===== */
+.timeline{border-left:2px solid var(--border);margin-left:10px;padding-left:20px}
+.tl-item{position:relative;margin-bottom:18px}
+.tl-item::before{
+  content:'';position:absolute;
+  left:-27px;top:7px;
+  width:10px;height:10px;border-radius:50%;
+  background:var(--accent);
+}
+
+/* ===== 平台标签 ===== */
+.plat-tag{
+  display:inline-block;padding:2px 8px;border-radius:6px;
+  font-size:11px;font-weight:600;margin-left:4px;
+}
+.plat-zhipu{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.25)}
+.plat-modelscope{background:rgba(249,115,22,.15);color:#fb923c;border:1px solid rgba(249,115,22,.25)}
+.plat-nim{background:rgba(52,211,153,.15);color:#34d399;border:1px solid rgba(52,211,153,.25)}
+
+/* ===== 质量分布直方图 ===== */
+.hist-row{display:flex;align-items:flex-end;gap:6px;height:120px;padding:0 4px}
+.hist-col{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  height:100%;
+}
+.hist-bar{
+  width:100%;border-radius:4px 4px 0 0;
+  transition:height .4s ease;
+  min-height:2px;
+}
+.hist-label{font-size:11px;color:var(--muted);margin-top:6px;white-space:nowrap}
+.hist-count{font-size:11px;font-weight:700;margin-bottom:4px}
+
+/* ===== 方法论代码块 ===== */
+.code-block{
+  background:#0a1020;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 16px;
+  font-family:Consolas,"Courier New",monospace;
+  font-size:13px;
+  color:#8ec8ff;
+  overflow-x:auto;
+  white-space:pre-wrap;
+  word-break:break-all;
+  line-height:1.6;
+}
+
+/* ===== 评分条 ===== */
+.score-bar{
+  display:flex;align-items:center;gap:8px;margin-bottom:6px;
+}
+.score-bar-label{min-width:100px;font-size:12px;color:var(--muted)}
+.score-bar-track{flex:1;height:14px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:4px}
+.score-bar-val{min-width:40px;font-size:12px;text-align:right;font-weight:600}
+
+/* ===== 推荐卡片 ===== */
+.rec-card{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:18px 20px;
+  transition:border-color .2s;
+}
+.rec-card:hover{border-color:var(--accent)}
+.rec-card .model-name{font-size:15px;font-weight:700;color:#fff;margin-bottom:8px}
+.rec-card .model-meta{font-size:12px;color:var(--muted);margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<!-- ===== 导航栏 ===== -->
+<nav id="nav">
+  <div class="logo">多平台基准测试</div>
+  <button class="nav-btn active" onclick="goto('home')">🏠 总览</button>
+  <button class="nav-btn" onclick="goto('speed')">⚡ 速度</button>
+  <button class="nav-btn" onclick="goto('quality')">🧠 质量</button>
+  <button class="nav-btn" onclick="goto('data')">📊 数据</button>
+  <button class="nav-btn" onclick="goto('recommend')">🏆 推荐</button>
+  <button class="nav-btn" onclick="goto('method')">🔬 测试方法</button>
+</nav>
+
+<!-- ================================================================
+     PAGE 1: 总览
+================================================================ -->
+<div class="page active" id="page-home">
+<div class="wrap">
+  <div class="hero">
+    <h1>多平台模型对话基准测试报告</h1>
+    <div class="hero-sub">2026-05-07 · 20 个模型 · 3 个平台 · 2 轮测试 · Galgame 场景</div>
+    <div style="margin-top:14px">
+      <span class="pill pp">智谱AI 直连</span>
+      <span class="pill pw">魔搭社区</span>
+      <span class="pill pg">NVIDIA NIM</span>
+      <span class="pill pv">Galgame 角色扮演</span>
+    </div>
+  </div>
+
+  <div class="grid4" style="margin-top:20px">
+    <div class="metric"><div class="k">测试模型总数</div><div class="v blue">20</div></div>
+    <div class="metric"><div class="k">完全成功（两轮均OK）</div><div class="v good">13</div></div>
+    <div class="metric"><div class="k">部分成功 / 不稳定</div><div class="v warn">3</div></div>
+    <div class="metric"><div class="k">完全失败</div><div class="v bad">4</div></div>
+  </div>
+  <div class="grid4">
+    <div class="metric"><div class="k">总测试次数</div><div class="v">40</div></div>
+    <div class="metric"><div class="k">成功轮次</div><div class="v good">29</div></div>
+    <div class="metric"><div class="k">最快响应（均）</div><div class="v good">2.03s</div></div>
+    <div class="metric"><div class="k">最高质量分</div><div class="v purple">95</div></div>
+  </div>
+
+  <h2>关键发现</h2>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>🥇 质量冠军</h3>
+      <p>三轮并列 q=95，但速度差异显著：</p>
+      <div style="margin-top:8px">
+        <div class="score-bar">
+          <div class="score-bar-label">Qwen3.5-35B</div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:95%;background:var(--accent2)"></div></div>
+          <div class="score-bar-val purple">95</div>
+          <span style="font-size:12px;color:var(--warn);margin-left:4px">~21s</span>
+        </div>
+        <div class="score-bar">
+          <div class="score-bar-label">MiniMax-M2.5</div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:95%;background:var(--accent2)"></div></div>
+          <div class="score-bar-val purple">95</div>
+          <span style="font-size:12px;color:var(--good);margin-left:4px">~7.3s</span>
+        </div>
+        <div class="score-bar">
+          <div class="score-bar-label">Kimi-K2.5</div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:95%;background:var(--accent2)"></div></div>
+          <div class="score-bar-val purple">95</div>
+          <span style="font-size:12px;color:var(--good);margin-left:4px">~7.6s</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>⚡ 速度 + 质量双优</h3>
+      <p>质量 ≥90 且平均响应 &lt;5s：</p>
+      <div style="margin-top:8px">
+        <span class="pill pg">Llama-4-Maverick (q=92.5, ~4.5s)</span>
+        <span class="pill pg">GPT-OSS-120B (q=92.5, ~3.9s)</span>
+      </div>
+      <p style="margin-top:10px">极速但质量波动：</p>
+      <div>
+        <span class="pill pw">Llama-3.1-8B (q=87.5, ~2.0s)</span>
+        <span class="pill pw">Qwen2.5-Coder-32B (q=85, ~3.0s)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>❌ 完全失败</h3>
+      <p>两轮均无法返回有效结果：</p>
+      <ul>
+        <li><b>DeepSeek-V4-Flash (魔搭)</b>：API 返回非标准格式 (NoneType)</li>
+        <li><b>Qwen3-8B (魔搭)</b>：同上，API 格式不兼容</li>
+        <li><b>GLM-4.7-Flash (魔搭)</b>：同上，NoneType 错误</li>
+        <li><b>GLM-4.7-DashScope (魔搭)</b>：HTTP 400 "no provider supported"</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>⚠️ 不稳定 / 行为异常</h3>
+      <ul>
+        <li><b>GLM-4.7-Flash (智谱)</b>：R1 空内容 (q=0)，R2 触发 429 限流</li>
+        <li><b>GLM-4-Flash-250414 (智谱)</b>：R1 正常 (q=85)，R2 触发 429 限流</li>
+        <li><b>GLM-4.1V-Thinking-Flash (智谱)</b>：暴露 &lt;think&gt; 思维链 (q=5)</li>
+        <li><b>Llama-3.1-70B (NIM)</b>：R1 正常 (q=90)，R2 返回 HTTP 502</li>
+        <li><b>DeepSeek-V4-Flash (NIM)</b>：R1 耗时 46.35s，冷启动极慢</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>各平台一句话评价</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>平台</th><th>模型数</th><th>成功率</th><th>平均质量</th><th>平均速度</th><th>总评</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>魔搭社区</b></td><td>9</td><td>5/9 (56%)</td><td class="good">90.5</td><td class="warn">12.9s</td>
+          <td><span class="pill pw">质量高但兼容性差，4个模型API格式不兼容</span></td>
+        </tr>
+        <tr>
+          <td><b>NVIDIA NIM</b></td><td>8</td><td>7/8 (88%)</td><td>90.4</td><td class="good">9.7s</td>
+          <td><span class="pill pg">综合最稳，速度质量均衡</span></td>
+        </tr>
+        <tr>
+          <td><b>智谱AI</b></td><td>3</td><td>1/3 (33%)</td><td class="bad">30</td><td class="warn">13.4s</td>
+          <td><span class="pill pb">限流严重，thinking模型暴露思维链</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>质量 vs 速度 散点概览</h2>
+  <div class="card" style="padding:10px">
+    <div id="scatter-overview" style="width:100%;overflow-x:auto">
+      <svg id="scatter-svg" viewBox="0 0 700 380" style="width:100%;max-width:700px;display:block;margin:0 auto"></svg>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ================================================================
+     PAGE 2: 速度
+================================================================ -->
+<div class="page" id="page-speed">
+<div class="wrap">
+  <div class="hero">
+    <h1>⚡ 速度维度分析</h1>
+    <div class="hero-sub">平均响应时间 · R1/R2 对比 · 冷启动效应</div>
+  </div>
+
+  <div class="note">
+    <b>说明：</b>速度数据基于完整请求耗时（从发送到接收完毕），非首字延迟。每个模型测试 2 轮，间隔 1 秒。部分模型 R2 因限流/错误无数据。
+  </div>
+
+  <h2>平均响应时间排行（越低越好，仅成功模型）</h2>
+  <div class="card">
+    <h3>🟢 极速（&lt;5s）</h3>
+    <div id="bar-speed-fast"></div>
+    <h3 style="margin-top:20px">🟡 正常（5-15s）</h3>
+    <div id="bar-speed-mid"></div>
+    <h3 style="margin-top:20px">🔴 慢速（&gt;15s）</h3>
+    <div id="bar-speed-slow"></div>
+  </div>
+
+  <h2>R1 vs R2 响应时间对比</h2>
+  <div class="note note-warn">
+    <b>冷启动效应：</b>部分模型 R1 明显慢于 R2，典型如 DeepSeek-V4-Flash (NIM) R1=46.35s vs R2=19.28s，说明首次调用存在模型加载/调度延迟。
+  </div>
+  <div class="card">
+    <div id="bar-dual-r1r2"></div>
+  </div>
+
+  <h2>速度综合评价表</h2>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>模型</th><th>平台</th><th>R1</th><th>R2</th><th>平均</th><th>速度评级</th><th>备注</th></tr></thead>
+    <tbody>
+      <tr><td>llama-3.1-8b-instruct</td><td><span class="plat-tag plat-nim">NIM</span></td><td class="good">2.07s</td><td class="good">1.98s</td><td class="good">2.03s</td><td><span class="grade grade-s">S</span></td><td>最快</td></tr>
+      <tr><td>qwen2.5-coder-32b-instruct</td><td><span class="plat-tag plat-nim">NIM</span></td><td class="good">3.20s</td><td class="good">2.82s</td><td class="good">3.01s</td><td><span class="grade grade-s">S</span></td><td>快速稳定</td></tr>
+      <tr><td>gpt-oss-120b</td><td><span class="plat-tag plat-nim">NIM</span></td><td class="good">4.08s</td><td class="good">3.77s</td><td class="good">3.93s</td><td><span class="grade grade-s">S</span></td><td>大模型极速</td></tr>
+      <tr><td>llama-4-maverick-17b</td><td><span class="plat-tag plat-nim">NIM</span></td><td class="good">4.34s</td><td class="good">4.70s</td><td class="good">4.52s</td><td><span class="grade grade-a">A</span></td><td>速度质量双优</td></tr>
+      <tr><td>gpt-oss-20b</td><td><span class="plat-tag plat-nim">NIM</span></td><td>5.55s</td><td>6.74s</td><td>6.15s</td><td><span class="grade grade-a">A</span></td><td>稳定</td></tr>
+      <tr><td>MiniMax-M2.5</td><td><span class="plat-tag plat-modelscope">魔搭</span></td><td>7.06s</td><td>7.59s</td><td>7.33s</td><td><span class="grade grade-a">A</span></td><td>高质量+合理速度</td></tr>
+      <tr><td>Kimi-K2.5</td><td><span class="plat-tag plat-modelscope">魔搭</span></td><td>8.28s</td><td>6.87s</td><td>7.58s</td><td><span class="grade grade-a">A</span></td><td>R2明显更快</td></tr>
+      <tr><td>glm-4-flash-250414</td><td><span class="plat-tag plat-zhipu">智谱</span></td><td>8.53s</td><td class="bad">429</td><td>8.53s</td><td><span class="grade grade-c">C</span></td><td>R2限流</td></tr>
+      <tr><td>GLM-5</td><td><span class="plat-tag plat-modelscope">魔搭</span></td><td>11.63s</td><td>14.13s</td><td class="warn">12.88s</td><td><span class="grade grade-c">C</span></td><td>偏慢</td></tr>
+      <tr><td>DeepSeek-R1-0528</td><td><span class="plat-tag plat-modelscope">魔搭</span></td><td>13.33s</td><td>15.09s</td><td class="warn">14.21s</td><td><span class="grade grade-c">C</span></td><td>R1推理模型偏慢</td></tr>
+      <tr><td>kimi-k2-instruct</td><td><span class="plat-tag plat-nim">NIM</span></td><td>14.54s</td><td>12.91s</td><td class="warn">13.73s</td><td><span class="grade grade-c">C</span></td><td>偏慢</td></tr>
+      <tr><td>glm-4.1v-thinking-flash</td><td><span class="plat-tag plat-zhipu">智谱</span></td><td>13.56s</td><td class="bad">21.93s</td><td class="warn">17.75s</td><td><span class="grade grade-d">D</span></td><td>暴露思维链+慢</td></tr>
+      <tr><td>Qwen3.5-35B-A3B</td><td><span class="plat-tag plat-modelscope">魔搭</span></td><td class="bad">20.37s</td><td class="bad">22.47s</td><td class="bad">21.42s</td><td><span class="grade grade-d">D</span></td><td>质量最高但太慢</td></tr>
+      <tr><td>llama-3.1-70b-instruct</td><td><span class="plat-tag plat-nim">NIM</span></td><td class="bad">34.38s</td><td class="bad">502</td><td class="bad">34.38s</td><td><span class="grade grade-d">D</span></td><td>不稳定+慢</td></tr>
+      <tr><td>deepseek-v4-flash (NIM)</td><td><span class="plat-tag plat-nim">NIM</span></td><td class="bad">46.35s</td><td>19.28s</td><td class="bad">32.82s</td><td><span class="grade grade-d">D</span></td><td>冷启动46s</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>速度结论</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>✅ 速度可信赖</h3>
+      <ul>
+        <li>平均 &lt;5s 且两轮均成功：<b>llama-3.1-8b、qwen2.5-coder-32b、gpt-oss-120b、llama-4-maverick</b></li>
+        <li>5-8s 区间稳定可用：<b>gpt-oss-20b、MiniMax-M2.5、Kimi-K2.5</b></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>⛔ 速度问题</h3>
+      <ul>
+        <li><b>deepseek-v4-flash (NIM)</b>：冷启动 46s，不可接受</li>
+        <li><b>llama-3.1-70b</b>：34s + 502，不稳定</li>
+        <li><b>Qwen3.5-35B</b>：21s，质量虽高但交互体验差</li>
+        <li><b>智谱全系</b>：限流/429 问题严重</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ================================================================
+     PAGE 3: 质量
+================================================================ -->
+<div class="page" id="page-quality">
+<div class="wrap">
+  <div class="hero">
+    <h1>🧠 回复质量分析</h1>
+    <div class="hero-sub">JSON 格式合规 · 字段完整性 · 中文质量 · 角色人格 · 对话长度</div>
+  </div>
+
+  <div class="note">
+    <b>评分体系（100分制）：</b>JSON 格式合规 (30分) + 字段完整性 (40分) + 中文质量 (15分) + 角色人格 (5分) + 对话长度 (10分)。详细评分规则见"测试方法"页签。
+  </div>
+
+  <h2>质量分排行（仅成功轮次，取两轮均分）</h2>
+  <div class="card">
+    <div id="bar-quality"></div>
+  </div>
+
+  <h2>质量分布分析</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>质量分区间分布</h3>
+      <div class="hist-row" id="hist-quality"></div>
+    </div>
+    <div class="card">
+      <h3>各平台平均质量</h3>
+      <div class="bar-row">
+        <div class="bar-label">魔搭社区 (成功模型)</div>
+        <div class="bar-track"><div class="bar-fill" style="width:90.5%;background:var(--accent2)"></div></div>
+        <div class="bar-val purple">90.5</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">NVIDIA NIM (成功模型)</div>
+        <div class="bar-track"><div class="bar-fill" style="width:90.4%;background:var(--accent)"></div></div>
+        <div class="bar-val blue">90.4</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">智谱AI (成功模型)</div>
+        <div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--bad)"></div></div>
+        <div class="bar-val bad">30</div>
+      </div>
+      <p style="margin-top:12px;font-size:13px;color:var(--muted)">注：智谱AI仅 glm-4-flash-250414 R1 获得 q=85，其余为 q=0 或 q=5，拉低均值。</p>
+    </div>
+  </div>
+
+  <h2>质量详细评价</h2>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>模型</th><th>平台</th><th>R1质量</th><th>R2质量</th><th>均分</th><th>评级</th><th>质量评价</th></tr></thead>
+    <tbody>
+      <tr><td>Qwen3.5-35B-A3B</td><td><span class="plat-tag plat-modelscope">魔搭</span></td><td class="good">95</td><td class="good">95</td><td class="good">95</td><td><span class="grade grade-s">S</span></td><td>两轮一致满分，JSON+中文+角色均完美</td></tr>
+      <tr><td>MiniMax-M2.5</td><td><span class="plat-tag plat-modelscope">魔搭</span></td><td class="good">95</td><td class="good">95</td><td class="good">95</td><td><span class="grade grade-s">S</span></td><td>两轮一致满分，格式规范</td></tr>
+      <tr><td>Kimi-K2.5</td><td><span class="plat-tag plat-modelscope">魔搭</span></td><td class="good">95</td><td>90</td><td class="good">92.5</td><td><span class="grade grade-s">S</span></td><td>R1满分，R2略低但依然优秀</td></tr>
+      <tr><td>llama-4-maverick-17b</td><td><span class="plat-tag plat-nim">NIM</span></td><td class="good">95</td><td>90</td><td class="good">92.5</td><td><span class="grade grade-s">S</span></td><td>快速+高质量，R1接近满分</td></tr>
+      <tr><td>gpt-oss-120b</td><td><span class="plat-tag plat-nim">NIM</span></td><td>90</td><td class="good">95</td><td class="good">92.5</td><td><span class="grade grade-s">S</span></td><td>R2反超，质量稳定上升</td></tr>
+      <tr><td>deepseek-v4-flash (NIM)</td><td><span class="plat-tag plat-nim">NIM</span></td><td>90</td><td class="good">95</td><td class="good">92.5</td><td><span class="grade grade-a">A</span></td><td>质量高但速度是硬伤</td></tr>
+      <tr><td>kimi-k2-instruct</td><td><span class="plat-tag plat-nim">NIM</span></td><td>90</td><td class="good">95</td><td class="good">92.5</td><td><span class="grade grade-a">A</span></td><td>质量好但偏慢</td></tr>
+      <tr><td>DeepSeek-R1-0528</td><td><span class="plat-tag plat-modelscope">魔搭</span></td><td>90</td><td>90</td><td class="good">90</td><td><span class="grade grade-a">A</span></td><td>两轮一致，推理模型质量可靠</td></tr>
+      <tr><td>GLM-5</td><td><span class="plat-tag plat-modelscope">魔搭</span></td><td>90</td><td>90</td><td class="good">90</td><td><span class="grade grade-a">A</span></td><td>两轮一致，质量良好</td></tr>
+      <tr><td>gpt-oss-20b</td><td><span class="plat-tag plat-nim">NIM</span></td><td>90</td><td>90</td><td class="good">90</td><td><span class="grade grade-a">A</span></td><td>稳定，choices字段用英文</td></tr>
+      <tr><td>llama-3.1-70b-instruct</td><td><span class="plat-tag plat-nim">NIM</span></td><td>90</td><td class="bad">502</td><td>90</td><td><span class="grade grade-b">B</span></td><td>R1质量好但R2崩溃</td></tr>
+      <tr><td>llama-3.1-8b-instruct</td><td><span class="plat-tag plat-nim">NIM</span></td><td class="warn">80</td><td class="good">95</td><td class="warn">87.5</td><td><span class="grade grade-b">B</span></td><td>R1用错角色名，R2修正</td></tr>
+      <tr><td>glm-4-flash-250414</td><td><span class="plat-tag plat-zhipu">智谱</span></td><td class="warn">85</td><td class="bad">429</td><td class="warn">85</td><td><span class="grade grade-b">B</span></td><td>R1尚可，R2限流</td></tr>
+      <tr><td>qwen2.5-coder-32b-instruct</td><td><span class="plat-tag plat-nim">NIM</span></td><td class="warn">85</td><td class="warn">85</td><td class="warn">85</td><td><span class="grade grade-b">B</span></td><td>稳定但质量中等</td></tr>
+      <tr><td>glm-4.1v-thinking-flash</td><td><span class="plat-tag plat-zhipu">智谱</span></td><td class="bad">5</td><td class="bad">5</td><td class="bad">5</td><td><span class="grade grade-d">D</span></td><td>暴露思维链，实质不可用</td></tr>
+      <tr><td>glm-4.7-flash</td><td><span class="plat-tag plat-zhipu">智谱</span></td><td class="bad">0</td><td class="bad">429</td><td class="bad">0</td><td><span class="grade grade-d">D</span></td><td>空内容(800 tokens消耗)</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>质量结论</h2>
+  <div class="note note-good">
+    <b>质量第一梯队 (q >= 92.5)：</b>Qwen3.5-35B、MiniMax-M2.5、Kimi-K2.5、Llama-4-Maverick、GPT-OSS-120B、DeepSeek-V4-Flash(NIM)、Kimi-K2-Instruct。这些模型在 JSON 格式、中文质量、角色人格方面均表现优秀。
+  </div>
+  <div class="note note-bad">
+    <b>质量问题模型：</b>GLM-4.1V-Thinking-Flash 暴露完整思维链 (q=5)；GLM-4.7-Flash 返回空内容但消耗 800 tokens (q=0)；Llama-3.1-8B R1 使用了错误的角色名。智谱AI平台模型质量表现最差。
+  </div>
+</div>
+</div>
+
+<!-- ================================================================
+     PAGE 4: 数据
+================================================================ -->
+<div class="page" id="page-data">
+<div class="wrap">
+  <div class="hero">
+    <h1>📊 完整测试数据</h1>
+    <div class="hero-sub">20 个模型 × 2 轮 = 40 次测试 · 可排序 · 可筛选</div>
+  </div>
+
+  <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <span class="pill pp">点击表头排序</span>
+    <button class="nav-btn" onclick="filterData('all')" id="f-all" style="background:var(--panel2);color:var(--text)">全部</button>
+    <button class="nav-btn" onclick="filterData('ok')" id="f-ok">仅成功</button>
+    <button class="nav-btn" onclick="filterData('fail')" id="f-fail">仅失败</button>
+    <button class="nav-btn" onclick="filterData('partial')" id="f-partial">仅不稳定</button>
+    <span style="margin-left:8px">
+      <button class="nav-btn" onclick="filterData('nim')" id="f-nim">NIM</button>
+      <button class="nav-btn" onclick="filterData('modelscope')" id="f-modelscope">魔搭</button>
+      <button class="nav-btn" onclick="filterData('zhipu')" id="f-zhipu">智谱</button>
+    </span>
+  </div>
+
+  <div class="tbl-wrap">
+  <table id="data-table">
+    <thead>
+      <tr>
+        <th onclick="sortTable(0)" style="cursor:pointer">模型 ↕</th>
+        <th onclick="sortTable(1)" style="cursor:pointer">平台 ↕</th>
+        <th onclick="sortTable(2)" style="cursor:pointer">状态 ↕</th>
+        <th onclick="sortTable(3)" style="cursor:pointer">R1耗时 ↕</th>
+        <th onclick="sortTable(4)" style="cursor:pointer">R1质量 ↕</th>
+        <th onclick="sortTable(5)" style="cursor:pointer">R2耗时 ↕</th>
+        <th onclick="sortTable(6)" style="cursor:pointer">R2质量 ↕</th>
+        <th onclick="sortTable(7)" style="cursor:pointer">均时 ↕</th>
+        <th onclick="sortTable(8)" style="cursor:pointer">均质 ↕</th>
+        <th>备注</th>
+      </tr>
+    </thead>
+    <tbody id="data-tbody">
+    </tbody>
+  </table>
+  </div>
+
+  <h2>各平台模型深度评价</h2>
+
+  <!-- 智谱AI -->
+  <div class="card">
+    <h3>🎯 智谱AI 直连 (1/3 可用)</h3>
+    <div class="note note-bad" style="margin:10px 0">
+      智谱AI 直连 API 限流严重，3个模型中有2个在 R2 触发 HTTP 429。GLM-4.1V-Thinking-Flash 虽然不限流但暴露思维链，质量仅 5 分。
+    </div>
+    <div class="grid2">
+      <div>
+        <p><b>优点：</b></p>
+        <ul>
+          <li>glm-4-flash-250414 R1 质量 85，表现尚可</li>
+          <li>响应速度中等（8-13s）</li>
+        </ul>
+      </div>
+      <div>
+        <p><b>缺点：</b></p>
+        <ul>
+          <li>429 限流严重，连续请求几乎必触发</li>
+          <li>glm-4.7-flash 空内容但消耗 800 tokens</li>
+          <li>thinking 模型暴露思维链</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:10px"><b>推荐：</b><span class="pill pw">glm-4-flash-250414（仅单次调用可用）</span><span class="pill pb">其余不推荐</span></p>
+  </div>
+
+  <!-- 魔搭社区 -->
+  <div class="card">
+    <h3>🏪 魔搭社区 (5/9 可用)</h3>
+    <div class="note note-warn" style="margin:10px 0">
+      魔搭社区 API 兼容性是最大问题。4个模型因 API 返回非标准格式 (NoneType) 而完全失败，这不是模型本身的问题，而是平台适配问题。
+    </div>
+    <div class="grid2">
+      <div>
+        <p><b>优点：</b></p>
+        <ul>
+          <li>成功模型质量极高，平均 90.5 分</li>
+          <li>Qwen3.5-35B 质量满分 (95)</li>
+          <li>MiniMax-M2.5 两轮均 95 分，极稳定</li>
+          <li>Kimi-K2.5 质量优秀</li>
+        </ul>
+      </div>
+      <div>
+        <p><b>缺点：</b></p>
+        <ul>
+          <li>4/9 模型 API 格式不兼容</li>
+          <li>GLM-4.7-DashScope 返回 400</li>
+          <li>Qwen3.5-35B 速度偏慢 (~21s)</li>
+          <li>DeepSeek-R1 推理模型偏慢</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:10px"><b>推荐：</b><span class="pill pg">MiniMax-M2.5</span><span class="pill pg">Kimi-K2.5</span><span class="pill pw">Qwen3.5-35B（质量最高但慢）</span><span class="pill pw">GLM-5</span><span class="pill pb">DeepSeek-V4-Flash / Qwen3-8B / GLM-4.7-Flash / GLM-4.7-DashScope（不可用）</span></p>
+  </div>
+
+  <!-- NVIDIA NIM -->
+  <div class="card">
+    <h3>🟢 NVIDIA NIM (7/8 可用)</h3>
+    <div class="note note-good" style="margin:10px 0">
+      NIM 平台综合表现最稳定，8个模型中7个两轮均成功。速度和质量分布合理，是日常使用的首选平台。
+    </div>
+    <div class="grid2">
+      <div>
+        <p><b>优点：</b></p>
+        <ul>
+          <li>可用率最高 (87.5%)</li>
+          <li>llama-3.1-8b 极速 (~2s)</li>
+          <li>gpt-oss-120b 速度+质量双优</li>
+          <li>llama-4-maverick 综合体验最佳</li>
+          <li>qwen2.5-coder-32b 快速稳定</li>
+        </ul>
+      </div>
+      <div>
+        <p><b>缺点：</b></p>
+        <ul>
+          <li>llama-3.1-70b 不稳定 (R2 502)</li>
+          <li>deepseek-v4-flash 冷启动 46s</li>
+          <li>kimi-k2-instruct 偏慢</li>
+          <li>gpt-oss-20b choices 字段用英文</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:10px"><b>推荐：</b><span class="pill pg">llama-4-maverick-17b</span><span class="pill pg">gpt-oss-120b</span><span class="pill pg">llama-3.1-8b</span><span class="pill pw">gpt-oss-20b</span><span class="pill pw">qwen2.5-coder-32b</span><span class="pill pb">llama-3.1-70b / deepseek-v4-flash</span></p>
+  </div>
+</div>
+</div>
+
+<!-- ================================================================
+     PAGE 5: 推荐
+================================================================ -->
+<div class="page" id="page-recommend">
+<div class="wrap">
+  <div class="hero">
+    <h1>🏆 推荐方案</h1>
+    <div class="hero-sub">按场景 · 按优先级 · 按平台的模型选型指南</div>
+  </div>
+
+  <h2>🎯 场景选型矩阵</h2>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>使用场景</th><th>首选模型</th><th>备选模型</th><th>理由</th></tr></thead>
+    <tbody>
+      <tr><td>Galgame 对话（质量优先）</td><td><code>MiniMax-M2.5 (魔搭)</code></td><td>Qwen3.5-35B (魔搭)</td><td>q=95 两轮一致，速度合理 (~7.3s)</td></tr>
+      <tr><td>Galgame 对话（速度优先）</td><td><code>llama-4-maverick (NIM)</code></td><td>gpt-oss-120b (NIM)</td><td>q=92.5, ~4.5s，交互体验好</td></tr>
+      <tr><td>通用角色扮演</td><td><code>Kimi-K2.5 (魔搭)</code></td><td>GLM-5 (魔搭)</td><td>q=92.5/90，中文质量好</td></tr>
+      <tr><td>极速兜底响应</td><td><code>llama-3.1-8b (NIM)</code></td><td>qwen2.5-coder-32b (NIM)</td><td>~2s 响应，R1有瑕疵但R2修正</td></tr>
+      <tr><td>稳定生产部署</td><td><code>gpt-oss-20b (NIM)</code></td><td>qwen2.5-coder-32b (NIM)</td><td>两轮均 q=90，无异常行为</td></tr>
+      <tr><td>推理/逻辑场景</td><td><code>DeepSeek-R1-0528 (魔搭)</code></td><td>deepseek-v4-flash (NIM)</td><td>推理模型，质量可靠</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>📦 推荐模型池（按优先级）</h2>
+
+  <h3>🥇 第一梯队 — 必选</h3>
+  <div class="grid2">
+    <div class="rec-card">
+      <div class="model-name">MiniMax/MiniMax-M2.5 <span class="plat-tag plat-modelscope">魔搭</span></div>
+      <div style="margin:8px 0"><span class="pill pg">q=95</span><span class="pill pg">~7.3s</span><span class="pill pg">两轮一致</span></div>
+      <div class="model-meta">质量最高且最稳定，两轮均 95 分，速度在高质量模型中最快。</div>
+    </div>
+    <div class="rec-card">
+      <div class="model-name">meta/llama-4-maverick-17b <span class="plat-tag plat-nim">NIM</span></div>
+      <div style="margin:8px 0"><span class="pill pg">q=92.5</span><span class="pill pg">~4.5s</span><span class="pill pp">速度+质量双优</span></div>
+      <div class="model-meta">速度质量最佳平衡点，交互体验出色，NIM 平台稳定。</div>
+    </div>
+    <div class="rec-card">
+      <div class="model-name">openai/gpt-oss-120b <span class="plat-tag plat-nim">NIM</span></div>
+      <div style="margin:8px 0"><span class="pill pg">q=92.5</span><span class="pill pp">~3.9s</span><span class="pill pg">大模型极速</span></div>
+      <div class="model-meta">120B 参数量做到 4s 内响应，质量稳步上升，适合需要丰富内容的场景。</div>
+    </div>
+    <div class="rec-card">
+      <div class="model-name">moonshotai/Kimi-K2.5 <span class="plat-tag plat-modelscope">魔搭</span></div>
+      <div style="margin:8px 0"><span class="pill pg">q=92.5</span><span class="pill pp">~7.6s</span><span class="pill pg">中文优秀</span></div>
+      <div class="model-meta">中文角色扮演质量极高，R1 满分 95，R2 略降但依然优秀。</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">🥈 第二梯队 — 强烈推荐</h3>
+  <div class="grid2">
+    <div class="rec-card">
+      <div class="model-name">Qwen/Qwen3.5-35B-A3B <span class="plat-tag plat-modelscope">魔搭</span></div>
+      <div style="margin:8px 0"><span class="pill pv">q=95</span><span class="pill pw">~21s</span><span class="pill pw">偏慢</span></div>
+      <div class="model-meta">质量满分但速度是短板，适合对延迟不敏感的场景。</div>
+    </div>
+    <div class="rec-card">
+      <div class="model-name">openai/gpt-oss-20b <span class="plat-tag plat-nim">NIM</span></div>
+      <div style="margin:8px 0"><span class="pill pp">q=90</span><span class="pill pp">~6.1s</span><span class="pill pg">极稳定</span></div>
+      <div class="model-meta">两轮完全一致 q=90，无任何异常，生产环境首选。</div>
+    </div>
+    <div class="rec-card">
+      <div class="model-name">ZhipuAI/GLM-5 <span class="plat-tag plat-modelscope">魔搭</span></div>
+      <div style="margin:8px 0"><span class="pill pp">q=90</span><span class="pill pw">~12.9s</span></div>
+      <div class="model-meta">两轮一致 q=90，GLM 系列在魔搭表现远好于直连。</div>
+    </div>
+    <div class="rec-card">
+      <div class="model-name">deepseek-ai/DeepSeek-R1-0528 <span class="plat-tag plat-modelscope">魔搭</span></div>
+      <div style="margin:8px 0"><span class="pill pp">q=90</span><span class="pill pw">~14.2s</span><span class="pill pv">推理模型</span></div>
+      <div class="model-meta">推理模型，质量稳定，适合需要逻辑推理的场景。</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">🥉 第三梯队 — 备选 / 特殊用途</h3>
+  <div class="card">
+    <table>
+      <thead><tr><th>模型</th><th>适用场景</th><th>注意事项</th></tr></thead>
+      <tbody>
+        <tr><td>meta/llama-3.1-8b-instruct (NIM)</td><td>极速兜底、快速预响应</td><td>R1 用错角色名 (q=80)，R2 修正 (q=95)</td></tr>
+        <tr><td>qwen/qwen2.5-coder-32b-instruct (NIM)</td><td>代码辅助、快速响应</td><td>q=85 稳定，速度极快</td></tr>
+        <tr><td>glm-4-flash-250414 (智谱)</td><td>仅限单次调用</td><td>R2 必触发 429 限流</td></tr>
+        <tr><td>deepseek-v4-flash (NIM)</td><td>非实时场景</td><td>冷启动 46s，后续 19s</td></tr>
+        <tr><td>moonshotai/kimi-k2-instruct (NIM)</td><td>需要 Kimi 时</td><td>偏慢 (~13.7s)，质量尚可</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>🚫 明确不推荐使用的模型</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>模型</th><th>平台</th><th>原因</th></tr></thead>
+      <tbody>
+        <tr><td>deepseek-ai/DeepSeek-V4-Flash</td><td>魔搭</td><td>API 返回非标准格式 (NoneType)，完全不可用</td></tr>
+        <tr><td>Qwen/Qwen3-8B</td><td>魔搭</td><td>API 返回非标准格式 (NoneType)，完全不可用</td></tr>
+        <tr><td>ZhipuAI/GLM-4.7-Flash</td><td>魔搭</td><td>API 格式问题 (NoneType)，完全不可用</td></tr>
+        <tr><td>ZhipuAI/GLM-4.7-DashScope</td><td>魔搭</td><td>HTTP 400 "no provider supported"，服务不可用</td></tr>
+        <tr><td>glm-4.7-flash</td><td>智谱</td><td>空内容 + 429 限流，q=0</td></tr>
+        <tr><td>glm-4.1v-thinking-flash</td><td>智谱</td><td>暴露思维链，q=5，不适合终端用户</td></tr>
+        <tr><td>meta/llama-3.1-70b-instruct</td><td>NIM</td><td>R2 返回 502，不稳定 + 慢 (34s)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note note-good" style="margin-top:24px">
+    <b>🎯 一句话终极建议：</b><br><br>
+    日常 Galgame 对话首选 <b>MiniMax-M2.5</b>（魔搭，q=95，~7.3s）；追求速度选 <b>llama-4-maverick</b>（NIM，q=92.5，~4.5s）；生产环境求稳选 <b>gpt-oss-20b</b>（NIM，q=90，~6.1s，零异常）。把智谱直连、魔搭 API 不兼容模型、NIM 不稳定模型从常用列表移除。
+  </div>
+</div>
+</div>
+
+<!-- ================================================================
+     PAGE 6: 测试方法
+================================================================ -->
+<div class="page" id="page-method">
+<div class="wrap">
+  <div class="hero">
+    <h1>🔬 测试方法</h1>
+    <div class="hero-sub">测试环境 · Prompt 设计 · 评分标准 · 测试流程</div>
+  </div>
+
+  <h2>测试环境</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>项目</th><th>详情</th></tr></thead>
+      <tbody>
+        <tr><td><b>测试脚本</b></td><td>Python requests 库</td></tr>
+        <tr><td><b>API 代理</b></td><td>Cloudflare Pages 代理 (aigalgame.pages.dev/api)</td></tr>
+        <tr><td><b>测试平台</b></td><td>智谱AI直连 / 魔搭社区 / NVIDIA NIM</td></tr>
+        <tr><td><b>测试轮次</b></td><td>每个模型 2 轮，间隔 1 秒</td></tr>
+        <tr><td><b>max_tokens</b></td><td>800</td></tr>
+        <tr><td><b>超时设置</b></td><td>90 秒</td></tr>
+        <tr><td><b>测试日期</b></td><td>2026-05-07</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>测试 Prompt 设计</h2>
+
+  <h3>System Prompt（角色定义）</h3>
+  <div class="card">
+    <p>定义了"星酱"角色的 Galgame 系统提示词，包含角色性格、说话风格、行为模式等设定。要求模型以 JSON 格式输出对话内容，包含特定字段。</p>
+    <div class="note" style="margin-top:10px">
+      <b>核心要求：</b>模型必须以 JSON 格式返回，包含 <code>dialog</code>（对话内容）、<code>choices</code>（玩家选项）、<code>narration</code>（旁白）等字段。对话必须使用中文，体现角色人格特征。
+    </div>
+  </div>
+
+  <h3>User Message（用户输入）</h3>
+  <div class="card">
+    <div class="code-block">我决定去探索那个神秘的地下室，虽然星酱看起来有点担心……</div>
+    <p style="margin-top:10px;color:var(--muted);font-size:13px">这是一个模拟 Galgame 中途对话的 prompt，测试模型在已有上下文中的续写能力。包含角色名"星酱"，测试模型是否正确使用角色名。</p>
+  </div>
+
+  <h2>质量评分标准（100分制）</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>评分维度</th><th>分值</th><th>评分标准</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>JSON 格式合规</b></td><td>30 分</td>
+          <td>
+            返回内容是否为合法 JSON（10分）<br>
+            JSON 结构是否符合预期 schema（10分）<br>
+            是否无多余文本包裹（10分）
+          </td>
+        </tr>
+        <tr>
+          <td><b>字段完整性</b></td><td>40 分</td>
+          <td>
+            dialog 字段存在且非空（15分）<br>
+            choices 字段存在且为有效数组（10分）<br>
+            narration 字段存在（5分）<br>
+            其他必要字段完整（10分）
+          </td>
+        </tr>
+        <tr>
+          <td><b>中文质量</b></td><td>15 分</td>
+          <td>
+            对话内容为中文（5分）<br>
+            中文表达自然流畅（5分）<br>
+            choices 选项为中文（5分）
+          </td>
+        </tr>
+        <tr>
+          <td><b>角色人格</b></td><td>5 分</td>
+          <td>
+            正确使用角色名"星酱"（2分）<br>
+            体现角色性格特征（3分）
+          </td>
+        </tr>
+        <tr>
+          <td><b>对话长度</b></td><td>10 分</td>
+          <td>
+            dialog 内容有足够长度（5分）<br>
+            choices 有 2-4 个选项（5分）
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>评分扣分项</h2>
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <h3>🔴 严重扣分</h3>
+        <ul>
+          <li>暴露 &lt;think&gt; 思维链：-50 分</li>
+          <li>返回空内容：直接 0 分</li>
+          <li>JSON 完全无法解析：-30 分</li>
+          <li>使用错误角色名：-3 分</li>
+        </ul>
+      </div>
+      <div>
+        <h3>🟡 轻微扣分</h3>
+        <ul>
+          <li>choices 使用英文：-5 分</li>
+          <li>dialog 内容过短：-5 分</li>
+          <li>JSON 外有多余文本：-5 分</li>
+          <li>缺少非核心字段：-3 分/个</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h2>测试流程</h2>
+  <div class="card">
+    <div class="timeline">
+      <div class="tl-item">
+        <b>1. 模型列表准备</b>
+        <p>从 3 个平台选取 20 个模型，覆盖主流厂商（智谱、DeepSeek、Qwen、Moonshot、MiniMax、Meta、OpenAI OSS）。</p>
+      </div>
+      <div class="tl-item">
+        <b>2. 第一轮测试 (R1)</b>
+        <p>对每个模型发送测试 prompt，记录响应时间、返回内容、HTTP 状态码。超时 90 秒自动终止。</p>
+      </div>
+      <div class="tl-item">
+        <b>3. 间隔等待</b>
+        <p>每轮测试后等待 1 秒，避免触发限流。</p>
+      </div>
+      <div class="tl-item">
+        <b>4. 第二轮测试 (R2)</b>
+        <p>重复相同 prompt，检验稳定性和一致性。</p>
+      </div>
+      <div class="tl-item">
+        <b>5. 质量评分</b>
+        <p>对成功返回的内容按 5 维度评分标准打分，计算总分。</p>
+      </div>
+      <div class="tl-item">
+        <b>6. 数据汇总</b>
+        <p>汇总速度、质量、稳定性数据，生成报告。</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>已知局限性</h2>
+  <div class="card">
+    <ul>
+      <li><b>单 prompt 测试：</b>仅使用一个 Galgame 场景 prompt，不能代表模型在所有场景下的表现</li>
+      <li><b>2 轮样本量小：</b>仅 2 轮测试无法反映长尾故障率，稳定性结论仅供参考</li>
+      <li><b>API 代理影响：</b>通过 Cloudflare Pages 代理访问，网络延迟可能影响速度数据</li>
+      <li><b>平台兼容性：</b>魔搭社区 4 个模型因 API 格式问题失败，不代表模型本身能力差</li>
+      <li><b>max_tokens 限制：</b>800 tokens 可能限制部分模型的表达完整性</li>
+      <li><b>时间波动：</b>测试在特定时间段进行，不同时段模型负载不同可能影响速度</li>
+    </ul>
+  </div>
+
+  <div class="note" style="margin-top:16px">
+    <b>建议改进：</b>增加多 prompt 类型测试（闲聊/推理/代码/格式输出）；增加测试轮次至 5 轮以评估稳定性；加入异步并发测试缩短总耗时；对 API 格式不兼容的模型尝试适配不同的响应解析逻辑。
+  </div>
+</div>
+</div>
+
+<script>
+// ===== 导航 =====
+function goto(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ===== 完整测试数据 =====
+const RAW=[
+  // 智谱AI
+  {model:'glm-4-flash-250414',vendor:'zhipu',platform:'zhipu',status:'partial',r1_time:8.53,r1_q:85,r2_time:null,r2_q:null,r2_err:'HTTP_429',avg_time:8.53,avg_q:85,note:'R1正常(q=85), R2触发429限流'},
+  {model:'glm-4.7-flash',vendor:'zhipu',platform:'zhipu',status:'partial',r1_time:12.98,r1_q:0,r2_time:null,r2_q:null,r2_err:'HTTP_429',avg_time:12.98,avg_q:0,note:'R1空内容(800 tokens消耗), R2 429限流'},
+  {model:'glm-4.1v-thinking-flash',vendor:'zhipu',platform:'zhipu',status:'ok',r1_time:13.56,r1_q:5,r2_time:21.93,r2_q:5,r2_err:null,avg_time:17.75,avg_q:5,note:'暴露<think >思维链, 两轮q=5'},
+  // 魔搭社区
+  {model:'DeepSeek-V4-Flash',vendor:'deepseek',platform:'modelscope',status:'fail',r1_time:2.37,r1_q:null,r2_time:2.16,r2_q:null,r2_err:'NoneType',avg_time:2.27,avg_q:0,note:'API返回非标准格式(NoneType)'},
+  {model:'Qwen3-8B',vendor:'qwen',platform:'modelscope',status:'fail',r1_time:2.06,r1_q:null,r2_time:2.51,r2_q:null,r2_err:'NoneType',avg_time:2.29,avg_q:0,note:'API返回非标准格式(NoneType)'},
+  {model:'Qwen3.5-35B-A3B',vendor:'qwen',platform:'modelscope',status:'ok',r1_time:20.37,r1_q:95,r2_time:22.47,r2_q:95,r2_err:null,avg_time:21.42,avg_q:95,note:'最佳质量! 两轮均q=95'},
+  {model:'Kimi-K2.5',vendor:'moonshotai',platform:'modelscope',status:'ok',r1_time:8.28,r1_q:95,r2_time:6.87,r2_q:90,r2_err:null,avg_time:7.58,avg_q:92.5,note:'R1满分, R2优秀'},
+  {model:'MiniMax-M2.5',vendor:'minimax',platform:'modelscope',status:'ok',r1_time:7.06,r1_q:95,r2_time:7.59,r2_q:95,r2_err:null,avg_time:7.33,avg_q:95,note:'两轮均q=95, 极稳定'},
+  {model:'DeepSeek-R1-0528',vendor:'deepseek',platform:'modelscope',status:'ok',r1_time:13.33,r1_q:90,r2_time:15.09,r2_q:90,r2_err:null,avg_time:14.21,avg_q:90,note:'推理模型, 两轮一致q=90'},
+  {model:'GLM-4.7-Flash',vendor:'zhipu',platform:'modelscope',status:'fail',r1_time:1.39,r1_q:null,r2_time:2.47,r2_q:null,r2_err:'NoneType',avg_time:1.93,avg_q:0,note:'API格式问题(NoneType)'},
+  {model:'GLM-5',vendor:'zhipu',platform:'modelscope',status:'ok',r1_time:11.63,r1_q:90,r2_time:14.13,r2_q:90,r2_err:null,avg_time:12.88,avg_q:90,note:'两轮一致q=90'},
+  {model:'GLM-4.7-DashScope',vendor:'zhipu',platform:'modelscope',status:'fail',r1_time:1.42,r1_q:null,r2_time:1.45,r2_q:null,r2_err:'HTTP_400',avg_time:1.44,avg_q:0,note:'HTTP 400: no provider supported'},
+  // NVIDIA NIM
+  {model:'llama-4-maverick-17b',vendor:'meta',platform:'nim',status:'ok',r1_time:4.34,r1_q:95,r2_time:4.70,r2_q:90,r2_err:null,avg_time:4.52,avg_q:92.5,note:'速度+质量双优'},
+  {model:'gpt-oss-120b',vendor:'openai',platform:'nim',status:'ok',r1_time:4.08,r1_q:90,r2_time:3.77,r2_q:95,r2_err:null,avg_time:3.93,avg_q:92.5,note:'大模型极速, R2反超'},
+  {model:'gpt-oss-20b',vendor:'openai',platform:'nim',status:'ok',r1_time:5.55,r1_q:90,r2_time:6.74,r2_q:90,r2_err:null,avg_time:6.15,avg_q:90,note:'极稳定, choices用英文'},
+  {model:'deepseek-v4-flash',vendor:'deepseek',platform:'nim',status:'ok',r1_time:46.35,r1_q:90,r2_time:19.28,r2_q:95,r2_err:null,avg_time:32.82,avg_q:92.5,note:'冷启动46s! R2正常'},
+  {model:'kimi-k2-instruct',vendor:'moonshotai',platform:'nim',status:'ok',r1_time:14.54,r1_q:90,r2_time:12.91,r2_q:95,r2_err:null,avg_time:13.73,avg_q:92.5,note:'偏慢但质量好'},
+  {model:'llama-3.1-8b-instruct',vendor:'meta',platform:'nim',status:'ok',r1_time:2.07,r1_q:80,r2_time:1.98,r2_q:95,r2_err:null,avg_time:2.03,avg_q:87.5,note:'最快! R1用错名字'},
+  {model:'llama-3.1-70b-instruct',vendor:'meta',platform:'nim',status:'partial',r1_time:34.38,r1_q:90,r2_time:null,r2_q:null,r2_err:'HTTP_502',avg_time:34.38,avg_q:90,note:'R1慢, R2 502崩溃'},
+  {model:'qwen2.5-coder-32b-instruct',vendor:'qwen',platform:'nim',status:'ok',r1_time:3.20,r1_q:85,r2_time:2.82,r2_q:85,r2_err:null,avg_time:3.01,avg_q:85,note:'快速稳定, 质量尚可'},
+];
+
+// ===== 数据表渲染 =====
+let currentFilter='all';
+let sortCol=-1,sortAsc=true;
+
+function renderTable(data){
+  const tbody=document.getElementById('data-tbody');
+  tbody.innerHTML='';
+  data.forEach(r=>{
+    const tr=document.createElement('tr');
+    const platClass=r.platform==='nim'?'plat-nim':r.platform==='modelscope'?'plat-modelscope':'plat-zhipu';
+    const platName=r.platform==='nim'?'NIM':r.platform==='modelscope'?'魔搭':'智谱';
+    const statusMap={ok:'<span class="pill pg">OK</span>',fail:'<span class="pill pb">失败</span>',partial:'<span class="pill pw">不稳定</span>'};
+    const r1tStr=r.r1_time!=null?r.r1_time.toFixed(2)+'s':'—';
+    const r1qStr=r.r1_q!=null?r.r1_q:'—';
+    const r2tStr=r.r2_time!=null?r.r2_time.toFixed(2)+'s':(r.r2_err||'—');
+    const r2qStr=r.r2_q!=null?r.r2_q:(r.r2_err||'—');
+    const avgTStr=r.avg_time!=null?r.avg_time.toFixed(2)+'s':'—';
+    const avgQStr=r.avg_q!=null?r.avg_q:'—';
+    const r1tCol=r.r1_time==null?'':r.r1_time<5?'good':r.r1_time<15?'warn':'bad';
+    const r2tCol=r.r2_time==null?'':r.r2_time<5?'good':r.r2_time<15?'warn':'bad';
+    const qCol=r.avg_q>=90?'good':r.avg_q>=80?'warn':'bad';
+    tr.innerHTML=`
+      <td style="font-size:12px;font-weight:600">${r.model}</td>
+      <td><span class="plat-tag ${platClass}">${platName}</span></td>
+      <td>${statusMap[r.status]||r.status}</td>
+      <td class="${r1tCol}">${r1tStr}</td>
+      <td class="${r.r1_q!=null&&r.r1_q>=90?'good':r.r1_q!=null&&r.r1_q>=80?'warn':r.r1_q!=null?'bad':''}">${r1qStr}</td>
+      <td class="${r2tCol}">${r2tStr}</td>
+      <td class="${r.r2_q!=null&&r.r2_q>=90?'good':r.r2_q!=null&&r.r2_q>=80?'warn':r.r2_q!=null?'bad':''}">${r2qStr}</td>
+      <td class="${r.avg_time<5?'good':r.avg_time<15?'warn':'bad'}">${avgTStr}</td>
+      <td class="${qCol}">${avgQStr}</td>
+      <td style="font-size:12px;color:var(--muted)">${r.note}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterData(type){
+  currentFilter=type;
+  document.querySelectorAll('[id^="f-"]').forEach(b=>{
+    b.style.background='transparent';
+    b.style.color='var(--muted)';
+  });
+  const btn=document.getElementById('f-'+type);
+  if(btn){btn.style.background='var(--panel2)';btn.style.color='var(--text)';}
+  let data=[...RAW];
+  if(type==='ok') data=RAW.filter(r=>r.status==='ok');
+  else if(type==='fail') data=RAW.filter(r=>r.status==='fail');
+  else if(type==='partial') data=RAW.filter(r=>r.status==='partial');
+  else if(type==='nim') data=RAW.filter(r=>r.platform==='nim');
+  else if(type==='modelscope') data=RAW.filter(r=>r.platform==='modelscope');
+  else if(type==='zhipu') data=RAW.filter(r=>r.platform==='zhipu');
+  if(sortCol>=0) applySort(data);
+  else renderTable(data);
+}
+
+function applySort(data){
+  const keys=['model','platform','status','r1_time','r1_q','r2_time','r2_q','avg_time','avg_q'];
+  data.sort((a,b)=>{
+    let av=a[keys[sortCol]],bv=b[keys[sortCol]];
+    if(av==null) av=sortAsc?Infinity:-Infinity;
+    if(bv==null) bv=sortAsc?Infinity:-Infinity;
+    if(typeof av==='string') return sortAsc?av.localeCompare(bv):bv.localeCompare(av);
+    return sortAsc?av-bv:bv-av;
+  });
+  renderTable(data);
+}
+
+function sortTable(col){
+  if(sortCol===col) sortAsc=!sortAsc; else{sortCol=col;sortAsc=true;}
+  filterData(currentFilter);
+}
+
+// ===== 条形图 =====
+function makeBar(containerId,data){
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  const max=Math.max(...data.map(d=>d.val),0.01);
+  el.innerHTML=data.map(d=>{
+    const pct=(d.val/max*100).toFixed(1);
+    const col=d.color||'var(--accent)';
+    return `<div class="bar-row">
+      <div class="bar-label" title="${d.label}">${d.label.length>28?d.label.slice(0,26)+'…':d.label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div class="bar-val" style="color:${col}">${d.display}</div>
+    </div>`;
+  }).join('');
+}
+
+function makeDualBar(containerId,data){
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  const max=Math.max(...data.flatMap(d=>[d.r1||0,d.r2||0]),0.01);
+  el.innerHTML=data.map(d=>{
+    const r1Pct=((d.r1||0)/max*100).toFixed(1);
+    const r2Pct=((d.r2||0)/max*100).toFixed(1);
+    const r1Disp=d.r1!=null?d.r1.toFixed(2)+'s':d.r1Err||'—';
+    const r2Disp=d.r2!=null?d.r2.toFixed(2)+'s':d.r2Err||'—';
+    return `<div class="bar-dual-row">
+      <div class="bar-dual-label" title="${d.label}">${d.label.length>28?d.label.slice(0,26)+'…':d.label}</div>
+      <div class="bar-dual-track">
+        <div class="bar-dual-r1" style="width:${r1Pct}%;background:var(--accent)"></div>
+        <div class="bar-dual-r2" style="width:${r2Pct}%;background:var(--accent2)"></div>
+      </div>
+      <div class="bar-dual-vals">
+        <span style="color:var(--accent)">R1:${r1Disp}</span>
+        <span style="color:var(--accent2)">R2:${r2Disp}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== 散点图 =====
+function drawScatter(){
+  const svg=document.getElementById('scatter-svg');
+  if(!svg) return;
+  const okModels=RAW.filter(r=>r.status!=='fail'&&r.avg_q>0);
+  if(!okModels.length) return;
+  const maxTime=Math.max(...okModels.map(r=>r.avg_time),1);
+  const w=700,h=380,pad={t:30,r:30,b:50,l:60};
+  const cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;
+
+  let html=`<rect x="0" y="0" width="${w}" height="${h}" fill="var(--panel)" rx="8"/>`;
+
+  // Grid lines
+  for(let i=0;i<=5;i++){
+    const y=pad.t+ch-ch*(i/5);
+    html+=`<line x1="${pad.l}" y1="${y}" x2="${w-pad.r}" y2="${y}" stroke="var(--border)" stroke-width="0.5"/>`;
+    html+=`<text x="${pad.l-8}" y="${y+4}" fill="var(--muted)" font-size="11" text-anchor="end">${i*20}</text>`;
+  }
+  for(let i=0;i<=5;i++){
+    const x=pad.l+cw*(i/5);
+    html+=`<line x1="${x}" y1="${pad.t}" x2="${x}" y2="${h-pad.b}" stroke="var(--border)" stroke-width="0.5"/>`;
+    const tVal=(maxTime*i/5).toFixed(0);
+    html+=`<text x="${x}" y="${h-pad.b+18}" fill="var(--muted)" font-size="11" text-anchor="middle">${tVal}s</text>`;
+  }
+
+  // Axis labels
+  html+=`<text x="${pad.l+cw/2}" y="${h-5}" fill="var(--muted)" font-size="12" text-anchor="middle">平均响应时间 (s)</text>`;
+  html+=`<text x="14" y="${pad.t+ch/2}" fill="var(--muted)" font-size="12" text-anchor="middle" transform="rotate(-90,14,${pad.t+ch/2})">质量分</text>`;
+
+  // Quadrant labels
+  html+=`<text x="${pad.l+cw*0.2}" y="${pad.t+18}" fill="rgba(52,211,153,.3)" font-size="13" font-weight="700" text-anchor="middle">快+好</text>`;
+  html+=`<text x="${pad.l+cw*0.8}" y="${pad.t+18}" fill="rgba(248,113,113,.3)" font-size="13" font-weight="700" text-anchor="middle">慢+好</text>`;
+  html+=`<text x="${pad.l+cw*0.2}" y="${h-pad.b-8}" fill="rgba(251,191,36,.3)" font-size="13" font-weight="700" text-anchor="middle">快+差</text>`;
+  html+=`<text x="${pad.l+cw*0.8}" y="${h-pad.b-8}" fill="rgba(248,113,113,.3)" font-size="13" font-weight="700" text-anchor="middle">慢+差</text>`;
+
+  // Quadrant dividers
+  const midTimeX=pad.l+cw*0.35;
+  const midQY=pad.t+ch*0.45;
+  html+=`<line x1="${midTimeX}" y1="${pad.t}" x2="${midTimeX}" y2="${h-pad.b}" stroke="var(--muted)" stroke-width="0.5" stroke-dasharray="4,4"/>`;
+  html+=`<line x1="${pad.l}" y1="${midQY}" x2="${w-pad.r}" y2="${midQY}" stroke="var(--muted)" stroke-width="0.5" stroke-dasharray="4,4"/>`;
+
+  // Points
+  okModels.forEach(r=>{
+    const x=pad.l+cw*(r.avg_time/maxTime);
+    const y=pad.t+ch-ch*(r.avg_q/100);
+    const platCol=r.platform==='nim'?'#34d399':r.platform==='modelscope'?'#fb923c':'#60a5fa';
+    const shortName=r.model.split('/').pop().replace('-instruct','').replace('-128e','');
+    html+=`<circle cx="${x}" cy="${y}" r="6" fill="${platCol}" opacity="0.85"/>`;
+    html+=`<text x="${x+9}" y="${y+4}" fill="var(--text)" font-size="10" opacity="0.8">${shortName}</text>`;
+  });
+
+  // Legend
+  html+=`<circle cx="${w-160}" cy="${pad.t+14}" r="5" fill="#34d399"/>`;
+  html+=`<text x="${w-150}" y="${pad.t+18}" fill="var(--muted)" font-size="11">NIM</text>`;
+  html+=`<circle cx="${w-110}" cy="${pad.t+14}" r="5" fill="#fb923c"/>`;
+  html+=`<text x="${w-100}" y="${pad.t+18}" fill="var(--muted)" font-size="11">魔搭</text>`;
+  html+=`<circle cx="${w-55}" cy="${pad.t+14}" r="5" fill="#60a5fa"/>`;
+  html+=`<text x="${w-45}" y="${pad.t+18}" fill="var(--muted)" font-size="11">智谱</text>`;
+
+  svg.innerHTML=html;
+}
+
+// ===== 质量分布直方图 =====
+function drawHist(){
+  const el=document.getElementById('hist-quality');
+  if(!el) return;
+  const okModels=RAW.filter(r=>r.avg_q>0&&r.status!=='fail');
+  const bins=[
+    {label:'0-20',min:0,max:20,count:0,color:'var(--bad)'},
+    {label:'20-40',min:20,max:40,count:0,color:'var(--bad)'},
+    {label:'40-60',min:40,max:60,count:0,color:'var(--warn)'},
+    {label:'60-80',min:60,max:80,count:0,color:'var(--warn)'},
+    {label:'80-90',min:80,max:90,count:0,color:'var(--accent)'},
+    {label:'90-95',min:90,max:95,count:0,color:'var(--good)'},
+    {label:'95-100',min:95,max:100,count:0,color:'var(--good)'},
+  ];
+  okModels.forEach(r=>{
+    for(const b of bins){
+      if(r.avg_q>=b.min&&r.avg_q<b.max){b.count++;break;}
+      if(r.avg_q===100&&b.max===100){b.count++;break;}
+    }
+  });
+  const maxCount=Math.max(...bins.map(b=>b.count),1);
+  el.innerHTML=bins.map(b=>{
+    const hPct=(b.count/maxCount*100).toFixed(0);
+    return `<div class="hist-col">
+      <div class="hist-count" style="color:${b.color}">${b.count}</div>
+      <div class="hist-bar" style="height:${hPct}%;background:${b.color}"></div>
+      <div class="hist-label">${b.label}</div>
+    </div>`;
+  }).join('');
+}
+
+// ===== 初始化 =====
+window.addEventListener('load',()=>{
+  // 数据表
+  renderTable(RAW);
+
+  // 速度条形图
+  const okForSpeed=RAW.filter(r=>r.status!=='fail'&&r.avg_time!=null).sort((a,b)=>a.avg_time-b.avg_time);
+  const speedFast=okForSpeed.filter(r=>r.avg_time<5).map(r=>({
+    label:r.model,val:r.avg_time,display:r.avg_time.toFixed(2)+'s',color:'var(--good)'
+  }));
+  const speedMid=okForSpeed.filter(r=>r.avg_time>=5&&r.avg_time<15).map(r=>({
+    label:r.model,val:r.avg_time,display:r.avg_time.toFixed(2)+'s',color:'var(--warn)'
+  }));
+  const speedSlow=okForSpeed.filter(r=>r.avg_time>=15).map(r=>({
+    label:r.model,val:r.avg_time,display:r.avg_time.toFixed(2)+'s',color:'var(--bad)'
+  }));
+  makeBar('bar-speed-fast',speedFast);
+  makeBar('bar-speed-mid',speedMid);
+  makeBar('bar-speed-slow',speedSlow);
+
+  // R1/R2 对比
+  const dualData=RAW.filter(r=>r.status!=='fail').sort((a,b)=>a.avg_time-b.avg_time).map(r=>({
+    label:r.model,r1:r.r1_time,r2:r.r2_time,r1Err:null,r2Err:r.r2_err
+  }));
+  makeDualBar('bar-dual-r1r2',dualData);
+
+  // 质量条形图
+  const okForQ=RAW.filter(r=>r.avg_q>0&&r.status!=='fail').sort((a,b)=>b.avg_q-a.avg_q);
+  const qData=okForQ.map(r=>({
+    label:r.model,val:r.avg_q,display:r.avg_q,
+    color:r.avg_q>=95?'var(--good)':r.avg_q>=90?'var(--accent)':r.avg_q>=80?'var(--warn)':'var(--bad)'
+  }));
+  makeBar('bar-quality',qData);
+
+  // 散点图
+  drawScatter();
+
+  // 直方图
+  drawHist();
+});
+</script>
+</body>
+</html>
