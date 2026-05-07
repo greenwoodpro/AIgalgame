@@ -18,6 +18,8 @@
     --dialog-bg: rgba(10, 10, 30, 0.85);
     --dialog-border: rgba(255, 255, 255, 0.15);
     --nameplate-bg: var(--gradient);
+    --input-bg: rgba(255, 255, 255, 0.06);
+    --input-border: rgba(255, 255, 255, 0.15);
 }
 
 [data-theme="sakura"] {
@@ -61,6 +63,8 @@
     --dialog-bg: rgba(245, 240, 232, 0.92);
     --dialog-border: rgba(139, 69, 19, 0.25);
     --nameplate-bg: linear-gradient(135deg, #8b4513, #2c2c2c);
+    --input-bg: rgba(255, 255, 255, 0.8);
+    --input-border: rgba(139, 69, 19, 0.3);
 }
 
 [data-theme="vaporwave"] {
@@ -862,13 +866,13 @@ html, body {
 .form-group textarea {
     width: 100%;
     padding: 0.6rem 0.8rem;
-    border: 1px solid var(--border);
+    border: 1px solid var(--input-border, var(--border));
     border-radius: var(--radius-sm);
-    background: var(--bg);
+    background: var(--input-bg, var(--bg));
     color: var(--text);
     font-size: 0.9rem;
     font-family: var(--font-main);
-    transition: border-color var(--transition);
+    transition: border-color var(--transition), background-color var(--transition);
 }
 
 .form-group input:focus,
