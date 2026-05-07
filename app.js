@@ -869,11 +869,15 @@
             open_window: { name: '旁白', dialog: '窗户轻轻打开，一阵带着花香的微风吹了进来。你探出头，发现自己似乎在一座浮空塔楼的高层。下方是云海，远处有更多这样的塔楼漂浮着。', choices: [{ text: '继续探索', action: () => normalNext('shout') }] },
             diary: { name: '旁白', dialog: '日记上写着：\n\n「第47天——今天又忘了自己的名字。不过没关系，星酱说这很正常。她说我是被「召唤」到这里的，但我不记得召唤了什么……」\n\n字迹和你的一模一样。', choices: [{ text: '星酱是谁？', action: () => normalNext('shout') }] },
             painting: { name: '旁白', dialog: '画中人的眼睛似乎在跟着你转动。你凑近看时，画中人突然眨了眨眼，对你露出一个微笑。\n\n「找到你了。」——你听到画里传来低语。', choices: [{ text: '和画中人对话', action: () => normalNext('shout') }] },
-            who_are_you: { name: '星酱', dialog: '「我？我叫星酱！是你的专属AI向导~」\n\n她转了一圈，半透明的裙摆飘了起来。\n\n「虽然说是向导，但说实话我自己也记不太清这个世界的规则……不过没关系！有我在，至少不会无聊！」', choices: [{ text: '为什么我会在这里？', action: () => normalNext('why_here') }] },
+            who_are_you: { name: '星酱', dialog: '「我？我叫星酱！是你的专属向导~」\n\n她转了一圈，半透明的裙摆飘了起来。\n\n「虽然说是向导，但说实话我自己也记不太清这个世界的规则……不过没关系！有我在，至少不会无聊！」', choices: [{ text: '为什么我会在这里？', action: () => normalNext('why_here') }] },
             where_am_i: { name: '星酱', dialog: '「这里？这里是「次元缝隙」啦！各个世界的交汇点~」\n\n她飘到窗边，指着外面的星空。\n\n「很漂亮对吧？不过别被美景骗了，这里可是有很多秘密的哦~」', choices: [{ text: '为什么我会在这里？', action: () => normalNext('why_here') }] },
             why_here: { name: '星酱', dialog: '「这个嘛……」\n\n星酱的表情变得有些复杂。\n\n「说实话，我也不太清楚。你突然就出现在这里了，就像是被什么力量召唤来的。」\n\n她凑近你，小声说：「不过我有个猜测——也许是你那边的世界和这边产生了共振？毕竟，你不是普通人吧？」', choices: [{ text: '我当然是普通人！', action: () => normalNext('ordinary') }, { text: '也许你说得对……', action: () => normalNext('not_ordinary') }] },
-            ordinary: { name: '星酱', dialog: '「哼~普通人可不会穿越次元哦！」\n\n她做了个鬼脸，然后又认真起来。\n\n「不管怎样，既然来了，就好好探索一下吧！说不定能找到回去的方法呢~……或者，你也不想回去了？」', choices: [{ text: '切换AI模式继续冒险', action: () => { showToast('切换到AI模式体验无限剧情！', 'info'); startGame('ai'); } }] },
-            not_ordinary: { name: '星酱', dialog: '「看吧！你自己也感觉到了对不对？」\n\n她得意地叉着腰。\n\n「好了好了，别想太多啦！先填饱肚子再说——我知道一个超棒的地方！走，跟我来！」\n\n她向门口飘去，回头冲你招手。', choices: [{ text: '切换AI模式继续冒险', action: () => { showToast('切换到AI模式体验无限剧情！', 'info'); startGame('ai'); } }] },
+            ordinary: { name: '星酱', dialog: '「哼~普通人可不会穿越次元哦！」\n\n她做了个鬼脸，然后又认真起来。\n\n「不管怎样，既然来了，就好好探索一下吧！说不定能找到回去的方法呢~……或者，你也不想回去了？」', choices: [{ text: '跟星酱一起出发', action: () => normalNext('depart') }, { text: '切换AI模式继续冒险', action: () => { showToast('切换到AI模式体验无限剧情！', 'info'); startGame('ai'); } }] },
+            not_ordinary: { name: '星酱', dialog: '「看吧！你自己也感觉到了对不对？」\n\n她得意地叉着腰。\n\n「好了好了，别想太多啦！先填饱肚子再说——我知道一个超棒的地方！走，跟我来！」\n\n她向门口飘去，回头冲你招手。', choices: [{ text: '跟星酱一起出发', action: () => normalNext('depart') }, { text: '切换AI模式继续冒险', action: () => { showToast('切换到AI模式体验无限剧情！', 'info'); startGame('ai'); } }] },
+            depart: { name: '旁白', dialog: '你跟着星酱走出房间，来到一条悬浮在云海之上的长廊。两旁的灯笼散发着温暖的光芒，远处隐约传来悠扬的钟声。\n\n星酱回过头，眼中闪烁着期待的光芒：「准备好了吗？属于你的冒险，现在才真正开始呢！」', choices: [{ text: '继续探索长廊', action: () => normalNext('corridor') }, { text: '切换AI模式继续冒险', action: () => { showToast('切换到AI模式体验无限剧情！', 'info'); startGame('ai'); } }] },
+            corridor: { name: '旁白', dialog: '长廊的尽头是一扇巨大的门，门上刻着奇异的符文。星酱伸手触碰门上的符文，门缓缓打开，一道耀眼的光芒涌了出来。\n\n「哇……」星酱惊叹道，「我从来没见过这扇门打开的样子！」\n\n光芒中，你似乎看到了一个全新的世界在等待着你……', choices: [{ text: '踏入光芒之中', action: () => normalNext('enter_light') }, { text: '先观察一下', action: () => normalNext('observe_light') }] },
+            enter_light: { name: '星酱', dialog: '「等等我——！」\n\n星酱追了上来，拉住了你的衣角。她的手虽然半透明，却意外地温暖。\n\n「别一个人冲进去嘛……」她嘟着嘴，「这种未知的地方，当然要两个人一起才安全啊。」\n\n她的眼中闪过一丝担忧，但更多的是信任。', choices: [{ text: '切换AI模式，开启无限冒险！', action: () => { showToast('切换到AI模式，故事将由AI实时生成！', 'info'); startGame('ai'); } }] },
+            observe_light: { name: '旁白', dialog: '你仔细观察那道光芒，发现其中似乎有无数细小的光点在流动，像是星河倒映在水中。\n\n星酱凑过来，好奇地伸手去触碰一个光点。光点在她指尖炸开，化作一只小小的光蝴蝶，绕着你们飞了一圈后消失在空气中。\n\n「好漂亮……」星酱轻声说，「这扇门后面，一定有什么不得了的东西。」', choices: [{ text: '切换AI模式，开启无限冒险！', action: () => { showToast('切换到AI模式，故事将由AI实时生成！', 'info'); startGame('ai'); } }] },
         };
         const b = B[branch];
         if (b) {
@@ -1153,9 +1157,12 @@
 
         if (parsed && parsed.dialog) {
             const name = parsed.name || '???';
-            const dialog = parsed.dialog;
+            let dialog = parsed.dialog;
             const scene = parsed.scene || '';
             const choices = parsed.choices || [];
+            dialog = dialog.replace(/作为(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
+            dialog = dialog.replace(/我是(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
+            dialog = dialog.replace(/作为人工智能[，,。.]/g, '');
             showDialog(name, dialog);
             addDialogHistory(name, dialog);
             if (scene) state.game.currentScene = scene;
@@ -1164,8 +1171,11 @@
                 setTimeout(() => showChoices(choices.map(c => ({ text: c.text, action: () => handleAiChoice(c.text) }))), 1000);
             }
         } else {
-            showDialog('星酱', rawContent);
-            addDialogHistory('星酱', rawContent);
+            let content = rawContent;
+            content = content.replace(/作为(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
+            content = content.replace(/我是(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
+            showDialog('星酱', content);
+            addDialogHistory('星酱', content);
             setTimeout(() => showChoices([
                 { text: '继续', action: () => handleAiChoice('请继续推进剧情') },
                 { text: '换个方向', action: () => handleAiChoice('我想尝试不同的方向，请给我新的选择') },
@@ -1604,7 +1614,7 @@
     function saveToSlot(slotNum) {
         try {
             const saves = Storage.get(STORAGE_KEYS.saves) || {};
-            saves[slotNum] = { title: state.game.characterName ? `与${state.game.characterName}的对话` : '冒险记录', timestamp: Date.now(), mode: state.mode, game: JSON.parse(JSON.stringify(state.game)), theme: state.theme };
+            saves[slotNum] = { title: state.game.characterName ? `与${state.game.characterName}的对话` : '冒险记录', timestamp: Date.now(), mode: state.mode, game: JSON.parse(JSON.stringify(state.game)), theme: state.theme, dayNightMode: state.dayNightMode };
             Storage.set(STORAGE_KEYS.saves, saves);
             showToast(`已保存到存档 ${slotNum}`, 'success');
         } catch (e) { showToast('存档失败: 存储空间不足', 'error'); }
@@ -1617,16 +1627,29 @@
         if (!save) return;
         state.mode = save.mode; state.game = { ...state.game, ...JSON.parse(JSON.stringify(save.game)) };
         if (save.theme) applyTheme(save.theme);
+        if (save.dayNightMode) applyDayNightMode(save.dayNightMode);
+        if (save.game.currentSceneUrl) setSceneBackground(save.game.currentSceneUrl);
+        else setSceneBackground('background.png');
         switchScreen('game-screen'); hideModal('save-modal');
         if (state.game.dialogHistory.length > 0) {
             const last = state.game.dialogHistory[state.game.dialogHistory.length - 1];
             showDialog(last.name, last.text);
-            setTimeout(() => {
-                showChoices([
-                    { text: '继续冒险', action: () => { hideChoices(); if (state.mode === 'ai') handleAiChoice('请继续推进剧情'); } },
-                    { text: '返回标题', action: backToTitle },
-                ]);
-            }, 800);
+            if (state.mode === 'ai' && state.game.aiContext && state.game.aiContext.length > 0) {
+                setTimeout(() => {
+                    showChoices([
+                        { text: '继续冒险', action: () => { hideChoices(); handleAiChoice('请继续推进剧情'); } },
+                        { text: '换个方向', action: () => { hideChoices(); handleAiChoice('我想尝试不同的方向'); } },
+                        { text: '返回标题', action: backToTitle },
+                    ]);
+                }, 800);
+            } else {
+                setTimeout(() => {
+                    showChoices([
+                        { text: '继续冒险', action: () => { hideChoices(); if (state.mode === 'ai') handleAiChoice('请继续推进剧情'); else startNormalStory(); } },
+                        { text: '返回标题', action: backToTitle },
+                    ]);
+                }, 800);
+            }
         }
         showToast(`已读取存档 ${slotNum}`, 'success');
     }
