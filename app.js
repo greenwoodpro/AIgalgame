@@ -742,6 +742,21 @@
         state.settings.imageModel = $('#image-model').value;
         state.settings.systemPrompt = $('#system-prompt').value || DEFAULT_SYSTEM_PROMPT;
         state.settings.maxResponseLength = parseInt($('#max-response-length').value) || 500;
+        state.settings.textSpeed = parseInt($('#text-speed').value) || 40;
+        state.settings.textEffect = $('#text-effect').value;
+        state.settings.autoWait = parseInt($('#auto-wait').value) || 3;
+        state.settings.saveConversation = $('#save-conversation').checked;
+        state.settings.maxContext = parseInt($('#max-context').value) || 20;
+        state.settings.corsProxy = $('#cors-proxy-toggle').checked;
+        state.settings.useProxyKeys = $('#use-proxy-keys').checked;
+        state.settings.autoGenScene = $('#auto-gen-scene').checked;
+        state.settings.enableThinking = $('#enable-thinking').checked;
+        state.settings.autoSwitchBg = $('#auto-switch-bg').checked;
+        state.settings.bgSwitchInterval = parseInt($('#bg-switch-interval').value) || 120;
+        state.settings.imageCooldown = parseInt($('#image-cooldown').value) || 60;
+        state.settings.dayNightMode = $('#day-night-toggle').checked ? 'night' : 'day';
+        state.dayNightMode = state.settings.dayNightMode;
+        applyDayNightMode(state.settings.dayNightMode);
         saveSettings();
     }
 
@@ -1434,7 +1449,11 @@
         const hasKey = state.settings.useProxyKeys || !!state.settings.apiKeys[state.settings.imageApiProvider];
         if (!hasKey) return;
         const now = Date.now();
-        if (now - lastImageGenTime < getImageCooldown()) return;
+        if (now - lastImageGenTime < getImageCooldown()) {
+            pendingSceneDescription = sceneDescription;
+            showToast(`场景图将在${Math.ceil((getImageCooldown() - (now - lastImageGenTime)) / 1000)}秒后生成`, 'info');
+            return;
+        }
         lastImageGenTime = now;
         try {
             showToast('正在生成场景图...', 'info');
@@ -1508,9 +1527,27 @@
     let currentAbortController = null;
     let bgAutoSwitchTimer = null;
     let lastImageGenTime = 0;
+    let pendingSceneDescription = null;
 
     function getImageCooldown() {
-        return (state.settings.imageCooldown || 30) * 1000;
+        return (state.settings.imageCooldown || 60) * 1000;
+    }
+
+    function schedulePendingImage() {
+        if (!pendingSceneDescription) return;
+        const now = Date.now();
+        const remaining = getImageCooldown() - (now - lastImageGenTime);
+        if (remaining <= 0) {
+            generateSceneImage(pendingSceneDescription);
+            pendingSceneDescription = null;
+        } else {
+            setTimeout(() => {
+                if (pendingSceneDescription) {
+                    generateSceneImage(pendingSceneDescription);
+                    pendingSceneDescription = null;
+                }
+            }, remaining);
+        }
     }
 
     function startBgAutoSwitch() {
