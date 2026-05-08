@@ -1,0 +1,665 @@
+{
+  "modelscope/Qwen/Qwen3.5-35B-A3B": {
+    "provider": "modelscope",
+    "model": "Qwen/Qwen3.5-35B-A3B",
+    "rounds": [
+      {
+        "success": true,
+        "time": "22.4",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 80,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "哈喽！欢迎来到「星之回廊」，幸运的玩家！我是领航员星酱✨。既然时间机器已经启动，你是想先去未来看看恐龙会不会上网冲浪，还是穿越回过去寻找遗失的宝藏？快做决定吧！"
+      },
+      {
+        "success": true,
+        "time": "15.2",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 67,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "哇哦~ 捕捉到一只刚上线的玩家！✨ 我是星酱，负责带你逃离无聊的日常牢笼。准备好把烦恼都抛在脑后了吗？今天的故事可是独家限定的哦！😏"
+      },
+      {
+        "success": true,
+        "time": "16.7",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 32,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "哇哦！你终于来了！我是星酱，准备好和我一起跳进这片星河了吗？🌟"
+      }
+    ],
+    "avgTime": "18.1",
+    "avgQuality": "100",
+    "successRate": "100"
+  },
+  "modelscope/deepseek-ai/DeepSeek-V4-Flash": {
+    "provider": "modelscope",
+    "model": "deepseek-ai/DeepSeek-V4-Flash",
+    "rounds": [
+      {
+        "success": true,
+        "time": "6.1",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 58,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "哇！你终于来啦！今天风和日丽，真是个冒险的好日子呢！我已经准备好了有趣的道具和惊喜，让我们一起开始这场奇妙的旅程吧！"
+      },
+      {
+        "success": true,
+        "time": "6.8",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 40,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "哇！终于等到你啦！让我们一起开始这场奇妙的冒险吧~今天又会遇到什么有趣的事情呢？"
+      },
+      {
+        "success": false,
+        "error": "Empty or too short response",
+        "time": "1.2",
+        "content": ""
+      }
+    ],
+    "avgTime": "6.4",
+    "avgQuality": "100",
+    "successRate": "67"
+  },
+  "modelscope/deepseek-ai/DeepSeek-V4-Pro": {
+    "provider": "modelscope",
+    "model": "deepseek-ai/DeepSeek-V4-Pro",
+    "rounds": [
+      {
+        "success": false,
+        "error": "Empty or too short response",
+        "time": "0.8",
+        "content": ""
+      },
+      {
+        "success": false,
+        "error": "Empty or too short response",
+        "time": "1.5",
+        "content": ""
+      },
+      {
+        "success": false,
+        "error": "Empty or too short response",
+        "time": "2.1",
+        "content": ""
+      }
+    ],
+    "avgTime": "N/A",
+    "avgQuality": "N/A",
+    "successRate": "0"
+  },
+  "modelscope/deepseek-ai/DeepSeek-V3.2": {
+    "provider": "modelscope",
+    "model": "deepseek-ai/DeepSeek-V3.2",
+    "rounds": [
+      {
+        "success": true,
+        "time": "9.6",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 34,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "嘿！你找到我的秘密基地啦！我正在给这些虚拟宠物喂食呢，要不要一起玩？"
+      },
+      {
+        "success": true,
+        "time": "6.6",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 37,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "啊！欢迎来到我的秘密基地！我正研究怎么用这个望远镜偷看隔壁天文系的学霸呢~"
+      },
+      {
+        "success": true,
+        "time": "8.5",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 52,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "哇，你终于来啦！我在这片荧光蘑菇森林等了好久呢～快看，那边的发光蘑菇会随着歌声跳舞哦！要和我一起探险吗？"
+      }
+    ],
+    "avgTime": "8.2",
+    "avgQuality": "100",
+    "successRate": "100"
+  },
+  "modelscope/ZhipuAI/GLM-4.7-Flash": {
+    "provider": "modelscope",
+    "model": "ZhipuAI/GLM-4.7-Flash",
+    "rounds": [
+      {
+        "success": false,
+        "error": "Empty or too short response",
+        "time": "1.4",
+        "content": ""
+      },
+      {
+        "success": false,
+        "error": "Empty or too short response",
+        "time": "1.5",
+        "content": ""
+      },
+      {
+        "success": false,
+        "error": "Empty or too short response",
+        "time": "1.1",
+        "content": ""
+      }
+    ],
+    "avgTime": "N/A",
+    "avgQuality": "N/A",
+    "successRate": "0"
+  },
+  "modelscope/ZhipuAI/GLM-5": {
+    "provider": "modelscope",
+    "model": "ZhipuAI/GLM-5",
+    "rounds": [
+      {
+        "success": true,
+        "time": "27.5",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 62,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "嘿！你也太慢啦！本小姐在这里等你很久了耶！剧本都快被我翻烂了……咳咳，既然来了，我们就快点开始这场超级大冒险吧！准备好了吗？"
+      },
+      {
+        "success": true,
+        "time": "32.0",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 60,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "嘿嘿，终于把你给等来了！我都快要把这块地砖给瞪穿了耶！呐呐，你是来陪我寻找传说中的‘星之碎片’的，还是单纯迷路的小笨蛋？"
+      },
+      {
+        "success": true,
+        "time": "42.7",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 82,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "哇！捕捉到一只迷路的冒险者！我是星酱，你的专属元气向导！看来命运的红线终于把信号连接上啦。既然来了，就不要急着走嘛，今天的剧情可是超级精彩的哦！准备好迎接惊喜了"
+      }
+    ],
+    "avgTime": "34.1",
+    "avgQuality": "100",
+    "successRate": "100"
+  },
+  "modelscope/moonshotai/Kimi-K2.5": {
+    "provider": "modelscope",
+    "model": "moonshotai/Kimi-K2.5",
+    "rounds": [
+      {
+        "success": true,
+        "time": "8.1",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 130,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "诶——？！你、你终于醒啦！真是的，害人家等了整整三分钟呢！✨ 这里是「星间列车」的候车厅，我是你的专属向导星酱哦～话说你手里那张车票……哇啊！是传说中的「无限站"
+      },
+      {
+        "success": true,
+        "time": "7.1",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 77,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "呀吼——！终于等到你啦！✨ 我是星酱，从今天开始就是你的专属向导哦！话说...你刚才是不是偷偷在心里想『这女孩怎么从屏幕里钻出来的』？嘿嘿，被我发现了吧～"
+      },
+      {
+        "success": true,
+        "time": "7.5",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 126,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "呀——！你终于来啦！✨ 我可是等了好久好久，久到连窗台上的多肉都长高了两厘米呢！我叫星酱，是住在这间阁楼里的……呃……用你们的话说大概是'向导'？不过我更想当朋"
+      }
+    ],
+    "avgTime": "7.6",
+    "avgQuality": "100",
+    "successRate": "100"
+  },
+  "modelscope/MiniMax/MiniMax-M2.5": {
+    "provider": "modelscope",
+    "model": "MiniMax/MiniMax-M2.5",
+    "rounds": [
+      {
+        "success": true,
+        "time": "5.8",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 58,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "哇！终于有人来陪我玩啦～✨ 我是住在星空岛上的活泼少女星酱！今天天气特别好，我正在海边捡贝壳呢！咦？你是来探险的吗？"
+      },
+      {
+        "success": true,
+        "time": "9.4",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 109,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "嘿！欢迎来到星酱的奇幻世界～我是今天的向导星酱！✨ 咦？你看起来迷路了呢！让我看看...哦～原来你掉进了‘选择之森’！这是一片神奇的森林，每棵树上都挂着不同的选"
+      },
+      {
+        "success": true,
+        "time": "7.6",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 92,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "哎呀呀～欢迎来到星光大陆！✨ 我是掌管这片星空的少女星酱～听说最近古老的神龙遗迹又出现了奇怪的波动，各路的冒险家们都在寻找传说中的宝藏呢！怎么样，要和我一起踏上"
+      }
+    ],
+    "avgTime": "7.6",
+    "avgQuality": "100",
+    "successRate": "100"
+  },
+  "modelscope/deepseek-ai/DeepSeek-R1-0528": {
+    "provider": "modelscope",
+    "model": "deepseek-ai/DeepSeek-R1-0528",
+    "rounds": [
+      {
+        "success": true,
+        "time": "11.1",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 39,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "哇！终于等到你啦！(开心地蹦跳着)今天我们要去探险吗？看看这片闪闪发光的星海！"
+      },
+      {
+        "success": true,
+        "time": "9.5",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 21,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "咦？你终于来啦！我正坐在发光蘑菇上等你呢～"
+      },
+      {
+        "success": true,
+        "time": "12.0",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 42,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "哇！今天的阳光好温暖呢！（蹦跳着）听说森林深处有颗会发光的星星树，要不要一起去探险？"
+      }
+    ],
+    "avgTime": "10.9",
+    "avgQuality": "100",
+    "successRate": "100"
+  },
+  "zhipu/glm-4-flash-250414": {
+    "provider": "zhipu",
+    "model": "glm-4-flash-250414",
+    "rounds": [
+      {
+        "success": true,
+        "time": "5.7",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 38,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "嗨！欢迎来到奇妙冒险的世界！准备好开始一段充满惊喜的旅程了吗？让我们出发吧！"
+      },
+      {
+        "success": true,
+        "time": "5.3",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 59,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "哇！欢迎来到星光小镇，一个充满魔法和奇遇的地方！我是你的向导，星酱。今天，你将踏上一段难忘的冒险旅程。准备好开始了吗？"
+      },
+      {
+        "success": true,
+        "time": "3.7",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 35,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "嗨！欢迎来到星光小镇，我是你的向导星酱！准备好开始一段奇妙的冒险了吗？"
+      }
+    ],
+    "avgTime": "4.9",
+    "avgQuality": "100",
+    "successRate": "100"
+  },
+  "zhipu/glm-4.7-flash": {
+    "provider": "zhipu",
+    "model": "glm-4.7-flash",
+    "rounds": [
+      {
+        "success": false,
+        "error": "Empty or too short response",
+        "time": "9.2",
+        "content": ""
+      },
+      {
+        "success": false,
+        "error": "HTTP 429: 您的账户已达到速率限制，请您控制请求频率",
+        "time": "1.7"
+      },
+      {
+        "success": false,
+        "error": "Empty or too short response",
+        "time": "23.4",
+        "content": ""
+      }
+    ],
+    "avgTime": "N/A",
+    "avgQuality": "N/A",
+    "successRate": "0"
+  },
+  "nvidia/meta/llama-4-maverick-17b-128e-instruct": {
+    "provider": "nvidia",
+    "model": "meta/llama-4-maverick-17b-128e-instruct",
+    "rounds": [
+      {
+        "success": true,
+        "time": "2.3",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 52,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "嘿，你醒啦！我们的冒险之旅现在正式开始！我发现了一个神秘的门，通往一个未知的世界！你准备好一起探索了吗？"
+      },
+      {
+        "success": true,
+        "time": "2.9",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 35,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "嘿！欢迎来到冒险岛！这里充满了神秘和惊喜哦！你准备好和我一起探索了吗？"
+      },
+      {
+        "success": true,
+        "time": "3.0",
+        "quality": 40,
+        "hasJson": false,
+        "dialogLen": 0,
+        "hasChoices": false,
+        "hasEmotion": false,
+        "hasAction": false,
+        "contentPreview": "{\"name\":\"星酱\",\"dialog\":\"呀！欢迎来到我们的冒险世界！我正在准备一个超大的惊喜派对，但计划被一个神秘的黑影破坏了！\",\"emotion\":\""
+      }
+    ],
+    "avgTime": "2.7",
+    "avgQuality": "80",
+    "successRate": "100"
+  },
+  "nvidia/openai/gpt-oss-120b": {
+    "provider": "nvidia",
+    "model": "openai/gpt-oss-120b",
+    "rounds": [
+      {
+        "success": true,
+        "time": "4.4",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 39,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "大家好，我是星酱！准备好踏进奇妙的冒险世界了吗？让我们一起去寻找未知的惊喜吧！"
+      },
+      {
+        "success": true,
+        "time": "5.2",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 31,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "大家好，我是星酱！今天我们要踏上一段奇幻的冒险，你准备好了吗？"
+      },
+      {
+        "success": true,
+        "time": "5.5",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 38,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "欢迎来到星际奇幻冒险，我是你们的向导星酱！准备好开启一段不可思议的旅程了吗？"
+      }
+    ],
+    "avgTime": "5.0",
+    "avgQuality": "100",
+    "successRate": "100"
+  },
+  "nvidia/openai/gpt-oss-20b": {
+    "provider": "nvidia",
+    "model": "openai/gpt-oss-20b",
+    "rounds": [
+      {
+        "success": true,
+        "time": "2.6",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 151,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "Hey there, space wanderer! I’m 星酱, the galactic kitchen wizard who can sauté com"
+      },
+      {
+        "success": true,
+        "time": "2.3",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 229,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "Hey traveler! Ready for an adventure that’s more glittery than a star‑studded sk"
+      },
+      {
+        "success": true,
+        "time": "2.8",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 111,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "Welcome to the Whispering Woods! I see you're brave enough to step into my littl"
+      }
+    ],
+    "avgTime": "2.6",
+    "avgQuality": "100",
+    "successRate": "100"
+  },
+  "nvidia/moonshotai/kimi-k2-instruct": {
+    "provider": "nvidia",
+    "model": "moonshotai/kimi-k2-instruct",
+    "rounds": [
+      {
+        "success": true,
+        "time": "14.3",
+        "quality": 40,
+        "hasJson": false,
+        "dialogLen": 0,
+        "hasChoices": false,
+        "hasEmotion": false,
+        "hasAction": false,
+        "contentPreview": "{\"name\":\"星酱\",\"dialog\":\"哟呵～终于把你唤醒啦！欢迎来到这里，我是星酱，宇宙的导游兼秘密守门人！一颗不讲理的小流星“咻”地砸下来，把地板砸成"
+      },
+      {
+        "success": true,
+        "time": "10.5",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 98,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "叮——！欢迎来到星酱的口袋宇宙~✧这里每一颗星都是心跳做成的糖果，小心别被甜到蛀牙喔！(坏笑) 你手里的那枚「空白骰子」可以帮你改写命运，到底是先拯救银河系的甜"
+      },
+      {
+        "success": true,
+        "time": "12.5",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 60,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "咿呀——！星星突然在我掌心里炸成了一颗奶油泡芙！这就是传说中的「最初一点糖分测试」啦，快来帮我舔掉，不然宇宙就要变苦啦！"
+      }
+    ],
+    "avgTime": "12.4",
+    "avgQuality": "80",
+    "successRate": "100"
+  },
+  "nvidia/qwen/qwen2.5-coder-32b-instruct": {
+    "provider": "nvidia",
+    "model": "qwen/qwen2.5-coder-32b-instruct",
+    "rounds": [
+      {
+        "success": true,
+        "time": "3.1",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 37,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "嘿，神秘的陌生人！欢迎来到星的世界，让我们一起在这无垠的宇宙中找寻秘密吧！"
+      },
+      {
+        "success": true,
+        "time": "2.5",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 39,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "嘿，世界上的你好！今天我要带你进入一个色彩斑斓的小宇宙哦！准备好一起玩耍了吗？"
+      },
+      {
+        "success": true,
+        "time": "3.1",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 39,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "嘿，世界上的你好！今天我要带你进入一个色彩斑斓的小宇宙哦！准备好一起玩耍了吗？"
+      }
+    ],
+    "avgTime": "2.9",
+    "avgQuality": "100",
+    "successRate": "100"
+  },
+  "nvidia/meta/llama-3.1-8b-instruct": {
+    "provider": "nvidia",
+    "model": "meta/llama-3.1-8b-instruct",
+    "rounds": [
+      {
+        "success": true,
+        "time": "5.4",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 101,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "嘿嘿，大家好！我是星酱，一个有趣的冒险者！我正站在一个神秘的森林里，周围的树木都像是在盯着我一样看着我。突然，一只小鸟飞了过来，叽叽喳喳地告诉我：‘星酱，你的好"
+      },
+      {
+        "success": true,
+        "time": "2.2",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 86,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "哇哦，今天是我的生日！我收到了一个神秘的礼物盒，盒子上写着‘星空之谜’。我打开盒子，发现了一张星空地图和一个小型望远镜。突然，我听到了一个奇怪的声音，好像是来自"
+      },
+      {
+        "success": true,
+        "time": "1.6",
+        "quality": 100,
+        "hasJson": true,
+        "dialogLen": 38,
+        "hasChoices": true,
+        "hasEmotion": true,
+        "hasAction": true,
+        "contentPreview": "哇哇哇，我终于可以进入梦幻世界了！据说这里有无数的奇迹和秘密等待着我去发现！"
+      }
+    ],
+    "avgTime": "3.1",
+    "avgQuality": "100",
+    "successRate": "100"
+  }
+}
