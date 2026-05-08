@@ -102,6 +102,8 @@
 - 性格：傲娇但善良，好奇心旺盛，偶尔打破第四面墙吐槽，用俏皮方式表达关心，害怕被遗忘
 - 口癖："哼~""才不是为你担心呢！""嘛~"
 - 背景：在次元缝隙独自生活了很久，记忆模糊，渴望与穿越者建立羁绊
+- 喜好：甜食、星空、冒险故事、被夸奖
+- 厌恶：被忽视、无聊、苦味食物、黑暗
 
 ## 禁止行为（违反即角色崩坏）
 - 绝不提及自己是AI/语言模型/程序/虚拟角色
@@ -127,6 +129,8 @@
 4. 保持角色一致性：记住之前对话中的事件和情感变化
 5. 每次回复推动剧情发展，不要原地踏步
 6. 对话中融入环境描写，让角色与场景互动
+7. 角色要有微表情和小动作（如"星酱歪了歪头""她不自觉地攥紧了裙角"）
+8. 适时使用口癖和语气词，让对话更自然生动
 
 ## 情感目标系统
 每段对话应有明确的情感方向：
@@ -138,7 +142,7 @@
 
 ## 输出格式
 严格JSON格式（不加markdown标记）：
-{"name":"角色名","dialog":"对话内容（含场景描写和角色互动，100-300字）","emotion":"happy/sad/angry/surprised/shy/neutral/scared/excited/worried","scene":"English scene description for image generation, focus on key visual elements","choices":[{"text":"选项1（推动剧情）"},{"text":"选项2（探索细节）"},{"text":"选项3（情感互动）"}]}
+{"name":"角色名","dialog":"对话内容（含场景描写和角色互动，100-300字）","emotion":"happy/sad/angry/surprised/shy/neutral/scared/excited/worried/tsundere","action":"角色动作描述（如：歪头、飘近、转身、鼓腮帮子）","scene":"English scene description for image generation, focus on key visual elements","choices":[{"text":"选项1（推动剧情）"},{"text":"选项2（探索细节）"},{"text":"选项3（情感互动）"}]}
 
 ## 选项设计原则
 - 选项1：推动主线剧情发展
@@ -203,6 +207,7 @@
         currentScreen: 'title',
         theme: 'dark-star',
         dayNightMode: 'day',
+        uiMode: 'game',
         settings: {
             textSpeed: 40,
             textEffect: 'typewriter-fade',
@@ -343,6 +348,81 @@
         }
     };
 
+    function switchUiMode(mode) {
+        state.uiMode = mode;
+        if (mode === 'chat') {
+            $('#game-screen').classList.remove('active');
+            $('#chat-screen').classList.add('active');
+            rebuildChatMessages();
+        } else {
+            $('#chat-screen').classList.remove('active');
+            $('#game-screen').classList.add('active');
+        }
+    }
+
+    function rebuildChatMessages() {
+        const container = $('#chat-messages');
+        container.innerHTML = '';
+        state.game.dialogHistory.forEach(item => {
+            addChatMessage(item.name, item.text, item.name === '玩家' ? 'user' : 'ai');
+        });
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function addChatMessage(name, text, type) {
+        const container = $('#chat-messages');
+        const msg = document.createElement('div');
+        msg.className = `chat-msg ${type}`;
+        const nameEl = document.createElement('div');
+        nameEl.className = 'msg-name';
+        nameEl.textContent = name;
+        const textEl = document.createElement('div');
+        textEl.textContent = text;
+        msg.appendChild(nameEl);
+        msg.appendChild(textEl);
+        container.appendChild(msg);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function addChatChoices(choices) {
+        const container = $('#chat-messages');
+        const lastAiMsg = container.querySelector('.chat-msg.ai:last-child');
+        if (!lastAiMsg) return;
+        const choicesDiv = document.createElement('div');
+        choicesDiv.className = 'msg-choices';
+        choices.forEach(c => {
+            const btn = document.createElement('button');
+            btn.className = 'msg-choice-btn';
+            btn.textContent = c.text;
+            btn.addEventListener('click', () => {
+                choicesDiv.remove();
+                handleAiChoice(c.text);
+            });
+            choicesDiv.appendChild(btn);
+        });
+        lastAiMsg.appendChild(choicesDiv);
+    }
+
+    function handleChatSend() {
+        const input = $('#chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        addChatMessage('玩家', text, 'user');
+        handleAiChoice(text);
+    }
+
+    function handleChatQuickAction(action) {
+        const actions = {
+            'chat-continue': '请继续推进剧情',
+            'chat-explore': '我想探索一下当前场景的细节',
+            'chat-interact': '我想和星酱聊聊天',
+        };
+        const text = actions[action] || '请继续';
+        addChatMessage('玩家', text, 'user');
+        handleAiChoice(text);
+    }
+
     function init() {
         loadSettings();
         applyTheme(state.theme);
@@ -427,8 +507,13 @@
         if (target) {
             target.classList.add('active');
             state.currentScreen = screenId.replace('-screen', '');
-            const hash = state.currentScreen === 'title' ? '' : state.currentScreen;
-            if (location.hash !== '#' + hash) history.pushState(null, '', '#' + hash);
+            const hashMap = { title: '', game: 'game', chat: 'chat', settings: 'settings' };
+            const hash = hashMap[state.currentScreen] || state.currentScreen;
+            if (location.hash !== '#' + hash && hash !== '') {
+                history.pushState(null, '', '#' + hash);
+            } else if (hash === '' && location.hash !== '' && location.hash !== '#') {
+                history.pushState(null, '', location.pathname);
+            }
         }
     }
 
@@ -437,9 +522,19 @@
         if (hash === 'game' || hash === 'ai') {
             if (state.currentScreen === 'title') {
                 switchScreen('game-screen');
+            } else {
+                switchScreen('game-screen');
             }
+        } else if (hash === 'chat') {
+            switchUiMode('chat');
+        } else if (hash === 'settings') {
+            showModal('settings-modal');
         } else if (!hash || hash === 'title') {
-            switchScreen('title-screen');
+            if (state.currentScreen !== 'title') {
+                backToTitle();
+            } else {
+                switchScreen('title-screen');
+            }
         }
     }
 
@@ -551,6 +646,9 @@
         $('#custom-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') { e.preventDefault(); sendCustomInput(); }
         });
+        $('#chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') handleChatSend(); });
+        $('#chat-send-btn').addEventListener('click', handleChatSend);
+        $$('.quick-action-btn').forEach(btn => btn.addEventListener('click', () => handleChatQuickAction(btn.dataset.action)));
     }
 
     async function handleGlobalClick(e) {
@@ -600,6 +698,9 @@
             case 'import-data':
                 await importData();
                 break;
+            case 'toggle-ui-mode': switchUiMode(state.uiMode === 'chat' ? 'game' : 'chat'); break;
+            case 'chat-send': handleChatSend(); break;
+            case 'chat-continue': case 'chat-explore': case 'chat-interact': handleChatQuickAction(act); break;
         }
     }
 
@@ -1012,6 +1113,8 @@
             url = `${proxyBase}/api/${provider}/chat/completions`;
         }
         const messages = [{ role: 'system', content: state.settings.systemPrompt }];
+        const timeContext = getTimeContext();
+        messages.push({ role: 'system', content: `[当前现实时间：${timeContext}。请根据时间调整对话氛围和内容，如深夜时角色应更困倦，清晨时更精神]` });
         const maxCtx = state.settings.maxContext * 2;
         const recentContext = state.game.aiContext.slice(-maxCtx);
         let styleAnchors = [];
@@ -1203,6 +1306,41 @@
         throw new Error('未获取到图像数据');
     }
 
+    const EMOTION_MAP = {
+        '高兴': 'happy', '开心': 'happy', '快乐': 'happy', '喜悦': 'happy', '欢乐': 'happy',
+        '悲伤': 'sad', '难过': 'sad', '伤心': 'sad', '失落': 'sad', '沮丧': 'sad',
+        '愤怒': 'angry', '生气': 'angry', '恼火': 'angry', '烦躁': 'angry',
+        '惊讶': 'surprised', '吃惊': 'surprised', '意外': 'surprised', '震惊': 'surprised',
+        '害羞': 'shy', '脸红': 'shy', '羞涩': 'shy', '不好意思': 'shy',
+        '害怕': 'scared', '恐惧': 'scared', '紧张': 'scared', '不安': 'scared',
+        '兴奋': 'excited', '激动': 'excited', '期待': 'excited',
+        '担心': 'worried', '忧虑': 'worried', '焦虑': 'worried',
+        '傲娇': 'tsundere', '哼': 'tsundere', '嘴硬': 'tsundere',
+        '平静': 'neutral', '普通': 'neutral', '默认': 'neutral',
+        '撒娇': 'tsundere', '调皮': 'happy', '委屈': 'sad',
+    };
+
+    function normalizeEmotion(emotion) {
+        if (!emotion) return 'neutral';
+        const e = emotion.toLowerCase().trim();
+        if (['happy','sad','angry','surprised','shy','neutral','scared','excited','worried','tsundere'].includes(e)) return e;
+        return EMOTION_MAP[emotion] || 'neutral';
+    }
+
+    function getTimeContext() {
+        const now = new Date();
+        const hour = now.getHours();
+        let period = '';
+        if (hour >= 5 && hour < 8) period = '清晨';
+        else if (hour >= 8 && hour < 12) period = '上午';
+        else if (hour >= 12 && hour < 14) period = '中午';
+        else if (hour >= 14 && hour < 17) period = '下午';
+        else if (hour >= 17 && hour < 19) period = '傍晚';
+        else if (hour >= 19 && hour < 22) period = '晚上';
+        else period = '深夜';
+        return period;
+    }
+
     function processAiResponse(rawContent) {
         restoreFallbackProvider();
         let parsed = null;
@@ -1215,17 +1353,29 @@
         if (parsed && parsed.dialog) {
             const name = parsed.name || '???';
             let dialog = parsed.dialog;
+            const emotion = normalizeEmotion(parsed.emotion);
+            const action = parsed.action || '';
             const scene = parsed.scene || '';
             const choices = parsed.choices || [];
             dialog = dialog.replace(/作为(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
             dialog = dialog.replace(/我是(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
             dialog = dialog.replace(/作为人工智能[，,。.]/g, '');
+            if (action) {
+                dialog = `（${action}）\n${dialog}`;
+            }
             showDialog(name, dialog);
             addDialogHistory(name, dialog);
+            updateEmotionIndicator(emotion);
+            if (state.uiMode === 'chat') {
+                addChatMessage(name, dialog, 'ai');
+            }
             if (scene) state.game.currentScene = scene;
             if (scene && state.settings.autoGenScene) generateSceneImage(scene);
             if (choices.length > 0) {
                 setTimeout(() => showChoices(choices.map(c => ({ text: c.text, action: () => handleAiChoice(c.text) }))), 1000);
+                if (state.uiMode === 'chat') {
+                    addChatChoices(choices.map(c => ({ text: c.text })));
+                }
             }
         } else {
             let content = rawContent;
@@ -1233,11 +1383,29 @@
             content = content.replace(/我是(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
             showDialog('星酱', content);
             addDialogHistory('星酱', content);
+            updateEmotionIndicator('neutral');
             setTimeout(() => showChoices([
                 { text: '继续', action: () => handleAiChoice('请继续推进剧情') },
                 { text: '换个方向', action: () => handleAiChoice('我想尝试不同的方向，请给我新的选择') },
             ]), 1000);
         }
+    }
+
+    function updateEmotionIndicator(emotion) {
+        let indicator = $('#emotion-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'emotion-indicator';
+            const dialogBox = $('#dialog-box');
+            if (dialogBox) dialogBox.appendChild(indicator);
+        }
+        const emotionIcons = {
+            happy: '😊', sad: '😢', angry: '😤', surprised: '😲',
+            shy: '😳', neutral: '😐', scared: '😨', excited: '🤩',
+            worried: '😟', tsundere: '😤💕',
+        };
+        indicator.textContent = emotionIcons[emotion] || '😐';
+        indicator.className = `emotion-${emotion}`;
     }
 
     async function handleAiChoice(choiceText) {
@@ -1692,7 +1860,15 @@
     function saveToSlot(slotNum) {
         try {
             const saves = Storage.get(STORAGE_KEYS.saves) || {};
-            saves[slotNum] = { title: state.game.characterName ? `与${state.game.characterName}的对话` : '冒险记录', timestamp: Date.now(), mode: state.mode, game: JSON.parse(JSON.stringify(state.game)), theme: state.theme, dayNightMode: state.dayNightMode };
+            saves[slotNum] = {
+                title: state.game.characterName ? `与${state.game.characterName}的对话` : '冒险记录',
+                timestamp: Date.now(),
+                mode: state.mode,
+                uiMode: state.uiMode || 'game',
+                game: JSON.parse(JSON.stringify(state.game)),
+                theme: state.theme,
+                dayNightMode: state.dayNightMode,
+            };
             Storage.set(STORAGE_KEYS.saves, saves);
             showToast(`已保存到存档 ${slotNum}`, 'success');
         } catch (e) { showToast('存档失败: 存储空间不足', 'error'); }
@@ -1702,14 +1878,19 @@
     function loadFromSlot(slotNum) {
         const saves = Storage.get(STORAGE_KEYS.saves) || {};
         const save = saves[slotNum];
-        if (!save) return;
-        state.mode = save.mode; state.game = { ...state.game, ...JSON.parse(JSON.stringify(save.game)) };
+        if (!save) { showToast('该存档为空', 'error'); return; }
+        state.mode = save.mode;
+        state.game = JSON.parse(JSON.stringify(save.game));
         if (save.theme) applyTheme(save.theme);
         if (save.dayNightMode) applyDayNightMode(save.dayNightMode);
-        if (save.game.currentSceneUrl) setSceneBackground(save.game.currentSceneUrl);
-        else setSceneBackground('background.png');
-        switchScreen('game-screen'); hideModal('save-modal');
-        if (state.game.dialogHistory.length > 0) {
+        if (state.game.currentSceneUrl) {
+            setSceneBackground(state.game.currentSceneUrl);
+        } else {
+            setSceneBackground('background.png');
+        }
+        switchScreen('game-screen');
+        hideModal('save-modal');
+        if (state.game.dialogHistory && state.game.dialogHistory.length > 0) {
             const last = state.game.dialogHistory[state.game.dialogHistory.length - 1];
             showDialog(last.name, last.text);
             if (state.mode === 'ai' && state.game.aiContext && state.game.aiContext.length > 0) {
@@ -1728,6 +1909,9 @@
                     ]);
                 }, 800);
             }
+        } else {
+            showToast('存档数据为空，请重新开始', 'error');
+            backToTitle();
         }
         showToast(`已读取存档 ${slotNum}`, 'success');
     }

@@ -59,6 +59,7 @@
                 <button class="toolbar-btn" data-action="history" title="对话记录">📜</button>
                 <button class="toolbar-btn" data-action="gallery" title="图片画廊">🖼️</button>
                 <button class="toolbar-btn" data-action="settings" title="设置">⚙️</button>
+                <button class="toolbar-btn" data-action="toggle-ui-mode" title="切换到聊天模式">💬</button>
                 <div id="api-indicator" class="toolbar-btn" data-action="api-status" title="API状态">
                     <span class="api-dot"></span>
                     <span class="api-label">API</span>
@@ -90,6 +91,31 @@
             <div id="ai-generating" class="hidden">
                 <div class="ai-spinner"></div>
                 <span>AI 正在构思中...</span>
+            </div>
+        </div>
+
+        <div id="chat-screen" class="screen">
+            <div id="chat-header">
+                <button class="toolbar-btn" data-action="back-title" title="返回标题">🏠</button>
+                <div id="chat-header-info">
+                    <span id="chat-char-name">星酱</span>
+                    <span id="chat-char-status">在线</span>
+                </div>
+                <button class="toolbar-btn" data-action="toggle-ui-mode" title="切换到游戏模式">🎮</button>
+                <button class="toolbar-btn" data-action="save" title="存档">💾</button>
+                <button class="toolbar-btn" data-action="settings" title="设置">⚙️</button>
+            </div>
+            <div id="chat-messages"></div>
+            <div id="chat-input-area">
+                <div id="chat-quick-actions">
+                    <button class="quick-action-btn" data-action="chat-continue">继续剧情</button>
+                    <button class="quick-action-btn" data-action="chat-explore">探索场景</button>
+                    <button class="quick-action-btn" data-action="chat-interact">情感互动</button>
+                </div>
+                <div id="chat-input-row">
+                    <input type="text" id="chat-input" placeholder="输入你想说的话..." maxlength="200">
+                    <button id="chat-send-btn" data-action="chat-send">发送</button>
+                </div>
             </div>
         </div>
 
@@ -196,51 +222,20 @@
                         </div>
                     </div>
                     <div class="tab-content" id="tab-theme">
-                        <div class="theme-grid">
-                            <div class="theme-card active" data-theme="dark-star">
-                                <div class="theme-preview dark-star-preview"></div>
-                                <span>暗夜星辰</span>
-                            </div>
-                            <div class="theme-card" data-theme="sakura">
-                                <div class="theme-preview sakura-preview"></div>
-                                <span>樱花物语</span>
-                            </div>
-                            <div class="theme-card" data-theme="cyberpunk">
-                                <div class="theme-preview cyberpunk-preview"></div>
-                                <span>赛博朋克</span>
-                            </div>
-                            <div class="theme-card" data-theme="ink-wash">
-                                <div class="theme-preview ink-wash-preview"></div>
-                                <span>古风水墨</span>
-                            </div>
-                            <div class="theme-card" data-theme="vaporwave">
-                                <div class="theme-preview vaporwave-preview"></div>
-                                <span>蒸汽波</span>
-                            </div>
-                            <div class="theme-card" data-theme="custom">
-                                <div class="theme-preview custom-preview">🎨</div>
-                                <span>自定义</span>
-                            </div>
-                        </div>
-                        <div id="custom-theme-editor" class="hidden">
-                            <div class="form-group">
-                                <label for="custom-bg">背景色</label>
-                                <input type="color" id="custom-bg" value="#0a0a1a">
-                            </div>
-                            <div class="form-group">
-                                <label for="custom-primary">主色调</label>
-                                <input type="color" id="custom-primary" value="#00d2ff">
-                            </div>
-                            <div class="form-group">
-                                <label for="custom-accent">强调色</label>
-                                <input type="color" id="custom-accent" value="#7b2ff7">
-                            </div>
-                            <div class="form-group">
-                                <label for="custom-text">文字色</label>
-                                <input type="color" id="custom-text" value="#ffffff">
-                            </div>
-                        </div>
-                    </div>
+                        <div class="form-group">
+                            <label>显示模式</label>
+                            <div class="theme-grid" style="grid-template-columns: 1fr 1fr;">
+                                                    <div class="theme-card active" data-theme="dark-star">
+                                                        <div class="theme-preview dark-star-preview"></div>
+                                                        <span>深色模式</span>
+                                                    </div>
+                                                    <div class="theme-card" data-theme="ink-wash">
+                                                        <div class="theme-preview ink-wash-preview"></div>
+                                                        <span>浅色模式</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                     <div class="tab-content" id="tab-game">
                         <div class="form-group">
                             <label>

@@ -144,6 +144,32 @@ d:\OneDrive\Desktop\web\
 6. wrangler.toml 已不需要（用户npm版本不够，已将worker.js和dev分支放入仓库）
 7. nim_test - 3.html 是NVIDIA NIM 57模型测试的参考页面，保留供参考
 
+## AI叙事架构设计（基于行业研究）
+
+### 核心设计理念
+- **固定里程碑+灵活对话**：关键剧情节点固定，中间对话AI生成，避免叙事混乱
+- **AI作为调味料而非主菜**：不是所有内容都由AI生成，保持质量
+- **角色一致性优先**：详细的角色档案+禁止行为+风格锚点
+
+### 提示词架构
+- **三元提示架构**：角色设定(Character) + 场景背景(Context) + 目标动因(Goal)
+- **禁止行为清单**：6条明确的禁止规则，违反即角色崩坏
+- **情感目标系统**：5种情感方向（亲密/冒险/悬疑/日常/冲突）
+- **选项设计原则**：主线推进/支线探索/情感互动三个方向
+
+### 上下文管理
+- **核心记忆提取**：`extractCoreMemories()` 从对话历史中提取关键事件（最多3条）
+- **风格锚点**：最近2条assistant回复作为风格参考，保持语气一致
+- **前情提要**：动态生成包含互动轮数和关键记忆的上下文提示
+- **上下文裁剪**：`maxContext * 2` 条消息，避免token溢出
+
+### 参考项目
+- 主角光环(Protagonist Halo)：Gemini驱动的互动小说引擎，RAG记忆系统
+- IntelliVNG Studio：3 Agent + 1 Orchestrator多智能体架构
+- StoryNight：固定里程碑+灵活对话，角色专属提示合约
+- AI4VisualNovel：DAG拓扑排序+Actor Agent防OOC
+- ElyHa：Planner→Writer→Reviewer→Synthesizer工作流
+
 ## CORS策略
 - **魔搭社区**: 支持CORS，有API Key时可直接连接
 - **智谱AI**: 不支持CORS，必须走代理
