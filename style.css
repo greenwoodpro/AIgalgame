@@ -1606,6 +1606,28 @@ html, body {
     background: rgba(0, 0, 0, 0.7);
 }
 
+#outline-select-btn {
+    position: absolute;
+    top: 50px;
+    left: 10px;
+    z-index: 20;
+    padding: 0.3rem 0.6rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 0.75rem;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all var(--transition);
+}
+
+#outline-select-btn:hover {
+    background: rgba(0, 210, 255, 0.2);
+    border-color: var(--primary);
+}
+
 /* ==================== 面板差异化 ==================== */
 .settings-panel { max-width: 640px; }
 .save-panel { max-width: 560px; }

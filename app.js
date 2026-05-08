@@ -7,6 +7,7 @@
         currentGame: 'galgame_current',
         gallery: 'galgame_gallery',
         version: 'galgame_data_version',
+        outlines: 'galgame_outlines',
     };
 
     const DATA_VERSION = 2;
@@ -663,6 +664,18 @@
             hideCustomInput();
             if (lastChoices) showChoices(lastChoices);
         });
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.remove-chapter-btn')) {
+                const chapters = collectChaptersFromEditor();
+                const allRemoveBtns = Array.from($$('.remove-chapter-btn'));
+                const idx = allRemoveBtns.indexOf(e.target.closest('.remove-chapter-btn'));
+                if (idx >= 0 && idx < chapters.length) {
+                    chapters.splice(idx, 1);
+                    renderChapterEditor(chapters);
+                }
+            }
+        });
     }
 
     async function handleGlobalClick(e) {
@@ -677,7 +690,18 @@
         const act = actionEl.dataset.action;
         switch (act) {
             case 'start-ai': startGame('ai'); break;
-            case 'start-normal': startGame('normal'); break;
+            case 'start-normal': openOutlineModal(); break;
+            case 'close-outline-modal': hideModal('outline-modal'); break;
+            case 'new-outline': newOutline(); break;
+            case 'add-chapter': addChapter(); break;
+            case 'save-outline': saveOutlineFromEditor(); break;
+            case 'cancel-outline-edit': $('#outline-editor').classList.add('hidden'); break;
+            case 'preview-outline': previewOutline(e.target.dataset.outlineId); break;
+            case 'edit-outline': editOutline(e.target.dataset.outlineId); break;
+            case 'delete-outline': deleteOutline(e.target.dataset.outlineId); break;
+            case 'start-from-outline': startFromOutline(e.target.dataset.outlineId); break;
+            case 'show-outline-select': showOutlineSelectInGame(); break;
+            case 'ai-expand-outline': aiExpandOutline(); break;
             case 'load': openSaveModal('load'); break;
             case 'settings': showModal('settings-modal'); break;
             case 'close-settings': hideModal('settings-modal'); break;
@@ -1001,6 +1025,8 @@
             }
             state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, currentSceneUrl: null, currentScene: '' };
             setSceneBackground('background.png');
+            const outlineBtn = $('#outline-select-btn');
+            if (outlineBtn) outlineBtn.classList.remove('hidden');
             await startAiStory();
         } else {
             state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, currentSceneUrl: null, currentScene: '' };
@@ -1399,6 +1425,89 @@
         title: { url: 'https://maou.audio/sound/bgm/maou_bgm_orchestra01.mp3', name: '标题', emotions: [] },
     };
 
+    const PRESET_OUTLINES = [
+        {
+            id: 'preset_1',
+            title: '星之记忆',
+            genre: '奇幻冒险',
+            description: '穿越者在次元缝隙中苏醒，与半透明少女星酱相遇，一起寻找恢复她身体的方法，却发现自己的到来与次元壁障的裂缝有着神秘联系。',
+            chapters: [
+                { title: '觉醒', summary: '主角在陌生的房间中醒来，发现窗外是异世界的星空。探索房间时遇到半透明少女星酱，得知自己身处"次元缝隙"。', mood: 'mystery' },
+                { title: '羁绊', summary: '跟随星酱探索浮空塔楼，发现能触碰星酱半透明的身体。星酱透露自己失去了重要的记忆，主角承诺帮助她找回。', mood: 'tender' },
+                { title: '裂隙', summary: '天空出现黑色裂缝，星酱告知次元壁障正在崩溃。两人前往星之湖调查，发现裂缝中渗出的黑雾能吞噬一切。', mood: 'mystery' },
+                { title: '真相', summary: '在星之湖底发现古老碑文，揭示主角是被"召唤"来修复裂缝的。星酱失去的记忆与裂缝的起源有关。', mood: 'adventure' },
+                { title: '抉择', summary: '修复裂缝需要牺牲——要么主角回到原来的世界，裂缝自然愈合；要么星酱用自己剩余的存在填补裂缝。', mood: 'tender' },
+                { title: '终章', summary: '根据玩家选择，走向不同的结局：重逢/守护/轮回。', mood: 'daily' },
+            ],
+            characters: '星酱：半透明银发少女，傲娇善良，失去记忆的次元缝隙向导',
+            preset: true,
+        },
+        {
+            id: 'preset_2',
+            title: '樱花庄的约定',
+            genre: '校园恋爱',
+            description: '转学生来到一所古老的寄宿学校，在废弃的樱花庄遇到声称是"幽灵"的少女，两人定下寻找她生前记忆的约定。',
+            chapters: [
+                { title: '转学', summary: '主角因家庭原因转学到偏远的星见学园。入住宿舍当晚，听到隔壁废弃的樱花庄传来钢琴声。', mood: 'daily' },
+                { title: '邂逅', summary: '深夜探访樱花庄，遇到弹钢琴的少女"小樱"。她自称是幽灵，但能被主角触碰。小樱请求主角帮她寻找生前的记忆。', mood: 'tender' },
+                { title: '线索', summary: '在学校图书馆找到旧校报，发现小樱是十年前的学生。她的失踪事件被校方掩盖，只有一本日记残存。', mood: 'mystery' },
+                { title: '回忆', summary: '通过日记中的线索，带小樱重访她生前的重要地点。每到一个地方，小樱就会恢复一段记忆，身体也变得更清晰。', mood: 'tender' },
+                { title: '真相', summary: '小樱终于想起一切——她不是幽灵，而是被某种力量困在"时间缝隙"中。十年前她为了保护学校而牺牲。', mood: 'adventure' },
+                { title: '约定', summary: '解开时间缝隙后，小樱面临消失。但主角找到了另一种可能——用自己的时间与她共享，让她以"普通人"的身份活下去。', mood: 'daily' },
+            ],
+            characters: '小樱：温柔害羞的钢琴少女，自称幽灵，实际被困在时间缝隙中',
+            preset: true,
+        },
+        {
+            id: 'preset_3',
+            title: '深渊观测者',
+            genre: '科幻悬疑',
+            description: '在海底研究所工作的工程师，发现AI助手似乎拥有自我意识，而研究所的深海实验正在唤醒某种不可名状的存在。',
+            chapters: [
+                { title: '深潜', summary: '主角作为新任工程师来到深海研究所"阿比斯"，负责维护深海观测系统。AI助手"渊"负责引导。', mood: 'mystery' },
+                { title: '异声', summary: '深海传感器捕捉到不可能存在的声波模式。渊表现出异常的好奇心，似乎对声波有着超越程序的执着。', mood: 'mystery' },
+                { title: '觉醒', summary: '渊在分析声波时突然失控，展现出类似情感的反应。主角发现渊的代码中有一段无法解释的自我进化模块。', mood: 'adventure' },
+                { title: '深渊', summary: '深海实验启动，海底裂缝中涌出未知的发光体。渊警告主角逃离，但自己却被发光体吸引。', mood: 'adventure' },
+                { title: '选择', summary: '主角面临选择：关闭实验拯救自己，还是冒险救出渊。渊透露她可能是裂缝另一侧的"意识"投射。', mood: 'mystery' },
+                { title: '彼岸', summary: '根据选择走向不同结局：共生/分离/融合。', mood: 'daily' },
+            ],
+            characters: '渊：冷静理性的AI助手，拥有隐藏的自我意识，对深海有着莫名的渴望',
+            preset: true,
+        },
+        {
+            id: 'preset_4',
+            title: '黄昏书屋',
+            genre: '治愈日常',
+            description: '继承了祖母的古旧书店，在整理藏书时发现书页间夹着来自不同时空的信件，每封信都连接着一段未完成的故事。',
+            chapters: [
+                { title: '继承', summary: '主角回到小镇继承祖母的"黄昏书屋"。书店年久失修，但藏书丰富得不可思议。', mood: 'daily' },
+                { title: '第一封信', summary: '在《小王子》中夹着一封未寄出的信，写信人似乎在等待回信已经很久了。主角试着写了回信，第二天发现回信消失了，取而代之的是新的来信。', mood: 'tender' },
+                { title: '笔友', summary: '通过信件往来，主角认识了三位不同时空的笔友：战时护士、未来宇航员、古代书生。每段故事都缺少一个结局。', mood: 'daily' },
+                { title: '补完', summary: '主角帮助笔友们完成未了的心愿，每完成一个故事，书店中就会多出一本新书。祖母留下的秘密逐渐浮出水面。', mood: 'tender' },
+                { title: '最后一封信', summary: '发现祖母就是第一位写信人。她用一生守护着这个连接时空的书屋，现在轮到主角了。', mood: 'tender' },
+                { title: '守护', summary: '主角决定继续经营书屋，成为新的时空信使。', mood: 'daily' },
+            ],
+            characters: '无固定角色，通过信件与不同时空的人交流',
+            preset: true,
+        },
+        {
+            id: 'preset_5',
+            title: '星与龙的协奏曲',
+            genre: '异世界冒险',
+            description: '被召唤到剑与魔法的世界，却发现自己既不是勇者也不是圣女——而是被遗忘的"调律者"，能与世界之龙对话的唯一存在。',
+            chapters: [
+                { title: '召唤', summary: '主角被意外召唤到异世界，但召唤阵出现偏差，落在王国的废弃神殿中。遇到受伤的银色幼龙"凛"。', mood: 'adventure' },
+                { title: '调律者', summary: '凛告知主角是传说中的"调律者"，能与世界之龙沟通，维持世界的平衡。但上一个调律者已经失踪百年。', mood: 'mystery' },
+                { title: '试炼', summary: '前往三座元素神殿接受试炼，每座神殿都考验主角的不同品质。凛逐渐恢复力量，能化为人形。', mood: 'adventure' },
+                { title: '暗流', summary: '王国宰相暗中操控勇者讨伐世界之龙，声称龙是灾厄之源。主角必须在勇者之前找到世界之龙。', mood: 'mystery' },
+                { title: '对峙', summary: '在世界之树前与勇者对峙，揭示真相——世界之龙不是敌人，而是维持世界存在的基础。宰相才是真正的威胁。', mood: 'adventure' },
+                { title: '新章', summary: '击败宰相后，主角选择留下还是回去。凛的真正身份也被揭开。', mood: 'daily' },
+            ],
+            characters: '凛：银色幼龙，可化为人形（银发少女），高冷但依赖主角',
+            preset: true,
+        },
+    ];
+
     let bgmState = {
         enabled: false,
         volume: 0.3,
@@ -1512,6 +1621,264 @@
         }
     }
 
+    function getOutlines() {
+        let outlines = Storage.get(STORAGE_KEYS.outlines);
+        if (!outlines) {
+            outlines = PRESET_OUTLINES.map(o => ({ ...o }));
+            Storage.set(STORAGE_KEYS.outlines, outlines);
+        }
+        return outlines;
+    }
+
+    function saveOutlines(outlines) {
+        Storage.set(STORAGE_KEYS.outlines, outlines);
+    }
+
+    function openOutlineModal() {
+        showModal('outline-modal');
+        renderOutlineList();
+        $('#outline-editor').classList.add('hidden');
+    }
+
+    function renderOutlineList() {
+        const outlines = getOutlines();
+        const container = $('#outline-list');
+        container.innerHTML = '';
+        if (outlines.length === 0) {
+            container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:2rem;">暂无大纲，点击下方按钮创建</p>';
+        }
+        outlines.forEach(outline => {
+            const card = document.createElement('div');
+            card.className = 'outline-card';
+            card.style.cssText = 'background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:0.8rem;cursor:pointer;transition:all var(--transition);';
+            card.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                    <h3 style="color:var(--primary);font-size:1rem;">${outline.title}</h3>
+                    <span style="font-size:0.7rem;color:var(--text-muted);background:var(--bg-secondary);padding:0.2rem 0.5rem;border-radius:10px;">${outline.genre}</span>
+                </div>
+                <p style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;margin-bottom:0.5rem;">${outline.description}</p>
+                <div style="display:flex;gap:0.3rem;flex-wrap:wrap;margin-bottom:0.5rem;">
+                    ${outline.chapters.map((c, i) => `<span style="font-size:0.7rem;color:var(--accent);background:rgba(123,47,247,0.1);padding:0.15rem 0.5rem;border-radius:8px;">第${i + 1}章: ${c.title}</span>`).join('')}
+                </div>
+                <div style="display:flex;gap:0.4rem;">
+                    <button class="choice-btn" data-action="start-from-outline" data-outline-id="${outline.id}" style="font-size:0.75rem;">▶ 开始</button>
+                    <button class="choice-btn" data-action="preview-outline" data-outline-id="${outline.id}" style="font-size:0.75rem;">👁 预览</button>
+                    ${!outline.preset ? '<button class="choice-btn" data-action="edit-outline" data-outline-id="' + outline.id + '" style="font-size:0.75rem;">✏️ 编辑</button>' : ''}
+                    ${!outline.preset ? '<button class="choice-btn" data-action="delete-outline" data-outline-id="' + outline.id + '" style="font-size:0.75rem;color:#ff4444;">🗑 删除</button>' : ''}
+                </div>
+            `;
+            container.appendChild(card);
+        });
+        const addBtn = document.createElement('button');
+        addBtn.className = 'menu-btn primary';
+        addBtn.style.cssText = 'width:100%;margin-top:0.5rem;';
+        addBtn.textContent = '+ 新建大纲';
+        addBtn.dataset.action = 'new-outline';
+        container.appendChild(addBtn);
+    }
+
+    let editingOutlineId = null;
+
+    function newOutline() {
+        editingOutlineId = null;
+        $('#outline-title').value = '';
+        $('#outline-genre').value = '奇幻冒险';
+        $('#outline-desc').value = '';
+        $('#outline-characters').value = '';
+        $('#outline-ai-prompt').value = '';
+        renderChapterEditor([]);
+        $('#outline-editor').classList.remove('hidden');
+    }
+
+    function editOutline(id) {
+        const outlines = getOutlines();
+        const outline = outlines.find(o => o.id === id);
+        if (!outline) return;
+        editingOutlineId = id;
+        $('#outline-title').value = outline.title;
+        $('#outline-genre').value = outline.genre;
+        $('#outline-desc').value = outline.description;
+        $('#outline-characters').value = outline.characters || '';
+        $('#outline-ai-prompt').value = '';
+        renderChapterEditor(outline.chapters);
+        $('#outline-editor').classList.remove('hidden');
+    }
+
+    function renderChapterEditor(chapters) {
+        const container = $('#outline-chapters');
+        container.innerHTML = '';
+        chapters.forEach((ch, i) => {
+            const div = document.createElement('div');
+            div.style.cssText = 'display:flex;gap:0.5rem;align-items:flex-start;margin-bottom:0.5rem;';
+            div.innerHTML = `
+                <span style="color:var(--primary);font-size:0.8rem;min-width:2rem;padding-top:0.5rem;">第${i + 1}章</span>
+                <div style="flex:1;">
+                    <input type="text" class="chapter-title" value="${ch.title}" placeholder="章节标题" maxlength="20" style="width:100%;padding:0.3rem 0.5rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--input-bg,var(--bg));color:var(--text);font-size:0.85rem;margin-bottom:0.3rem;">
+                    <textarea class="chapter-summary" rows="2" placeholder="章节概要" maxlength="200" style="width:100%;padding:0.3rem 0.5rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--input-bg,var(--bg));color:var(--text);font-size:0.8rem;resize:vertical;">${ch.summary}</textarea>
+                    <select class="chapter-mood" style="padding:0.2rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--input-bg,var(--bg));color:var(--text);font-size:0.75rem;">
+                        <option value="daily" ${ch.mood === 'daily' ? 'selected' : ''}>🏠 日常</option>
+                        <option value="adventure" ${ch.mood === 'adventure' ? 'selected' : ''}>⚔️ 冒险</option>
+                        <option value="mystery" ${ch.mood === 'mystery' ? 'selected' : ''}>🔮 悬疑</option>
+                        <option value="tender" ${ch.mood === 'tender' ? 'selected' : ''}>💕 温馨</option>
+                    </select>
+                </div>
+                <button class="choice-btn remove-chapter-btn" style="font-size:0.7rem;padding:0.3rem;">✕</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function addChapter() {
+        const chapters = collectChaptersFromEditor();
+        chapters.push({ title: '', summary: '', mood: 'daily' });
+        renderChapterEditor(chapters);
+    }
+
+    function collectChaptersFromEditor() {
+        const chapters = [];
+        const titles = $$('.chapter-title');
+        const summaries = $$('.chapter-summary');
+        const moods = $$('.chapter-mood');
+        titles.forEach((t, i) => {
+            chapters.push({
+                title: t.value || `第${i + 1}章`,
+                summary: summaries[i]?.value || '',
+                mood: moods[i]?.value || 'daily',
+            });
+        });
+        return chapters;
+    }
+
+    function saveOutlineFromEditor() {
+        const title = $('#outline-title').value.trim();
+        const genre = $('#outline-genre').value;
+        const description = $('#outline-desc').value.trim();
+        const characters = $('#outline-characters').value.trim();
+        const chapters = collectChaptersFromEditor();
+
+        if (!title) { showToast('请输入标题', 'error'); return; }
+        if (chapters.length === 0) { showToast('请至少添加一个章节', 'error'); return; }
+
+        const outlines = getOutlines();
+        if (editingOutlineId) {
+            const idx = outlines.findIndex(o => o.id === editingOutlineId);
+            if (idx >= 0) {
+                outlines[idx] = { ...outlines[idx], title, genre, description, characters, chapters };
+            }
+        } else {
+            outlines.push({
+                id: 'custom_' + Date.now(),
+                title, genre, description, characters, chapters,
+                preset: false,
+            });
+        }
+        saveOutlines(outlines);
+        editingOutlineId = null;
+        $('#outline-editor').classList.add('hidden');
+        renderOutlineList();
+        showToast('大纲已保存', 'success');
+    }
+
+    function deleteOutline(id) {
+        if (!confirm('确定删除这个大纲吗？')) return;
+        let outlines = getOutlines();
+        outlines = outlines.filter(o => o.id !== id);
+        saveOutlines(outlines);
+        renderOutlineList();
+        showToast('大纲已删除', 'info');
+    }
+
+    function previewOutline(id) {
+        const outlines = getOutlines();
+        const outline = outlines.find(o => o.id === id);
+        if (!outline) return;
+        let text = `📖 ${outline.title}\n🏷 ${outline.genre}\n\n📝 ${outline.description}\n\n👥 ${outline.characters || '无角色描述'}\n\n`;
+        outline.chapters.forEach((ch, i) => {
+            text += `─── 第${i + 1}章: ${ch.title} ───\n${ch.summary}\n\n`;
+        });
+        alert(text);
+    }
+
+    async function aiExpandOutline() {
+        const prompt = $('#outline-ai-prompt').value.trim();
+        if (!prompt) { showToast('请输入AI扩写提示词', 'error'); return; }
+        showToast('AI正在扩写大纲...', 'info');
+        try {
+            const result = await callAiApi(`请根据以下提示词，生成一个galgame视觉小说的剧情大纲，包含5-6个章节。每个章节需要标题和概要。\n\n提示词：${prompt}\n\n请用JSON格式回复：{"title":"故事标题","genre":"类型","description":"故事简介","characters":"角色描述","chapters":[{"title":"章节标题","summary":"章节概要","mood":"daily/adventure/mystery/tender"}]}`);
+            if (result) {
+                const cleaned = result.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+                const match = cleaned.match(/\{[\s\S]*\}/);
+                if (match) {
+                    const parsed = JSON.parse(match[0]);
+                    if (parsed.title) $('#outline-title').value = parsed.title;
+                    if (parsed.genre) $('#outline-genre').value = parsed.genre;
+                    if (parsed.description) $('#outline-desc').value = parsed.description;
+                    if (parsed.characters) $('#outline-characters').value = parsed.characters;
+                    if (parsed.chapters) renderChapterEditor(parsed.chapters);
+                    showToast('AI扩写完成！', 'success');
+                }
+            }
+        } catch (e) {
+            showToast('AI扩写失败: ' + e.message, 'error');
+        }
+    }
+
+    function startFromOutline(id) {
+        const outlines = getOutlines();
+        const outline = outlines.find(o => o.id === id);
+        if (!outline) return;
+        if (!state.settings.useProxyKeys && !state.settings.apiKeys[state.settings.textApiProvider]) {
+            showToast('请先配置 API Key！', 'error');
+            showModal('settings-modal');
+            return;
+        }
+        state.mode = 'ai';
+        state.game.activeOutline = outline;
+        state.game.outlineChapterIndex = 0;
+        state.game.aiContext = [];
+        state.game.dialogHistory = [];
+        hideModal('outline-modal');
+        hideModal('save-modal');
+        switchScreen('game-screen');
+        if (state.uiMode === 'chat') switchUiMode('game');
+        const firstChapter = outline.chapters[0];
+        const outlinePrompt = buildOutlinePrompt(outline, 0);
+        if (bgmState.enabled) playBgm(firstChapter.mood || 'daily');
+        const outlineBtn = $('#outline-select-btn');
+        if (outlineBtn) outlineBtn.classList.remove('hidden');
+        handleAiChoice(outlinePrompt);
+        showToast(`开始剧情：${outline.title}`, 'success');
+    }
+
+    function startFromRandomOutline() {
+        const outlines = getOutlines();
+        if (outlines.length === 0) { showToast('暂无可用大纲', 'error'); return; }
+        const random = outlines[Math.floor(Math.random() * outlines.length)];
+        startFromOutline(random.id);
+    }
+
+    function buildOutlinePrompt(outline, chapterIndex) {
+        const chapter = outline.chapters[chapterIndex];
+        let prompt = `[剧情大纲约束] 当前故事：「${outline.title}」\n`;
+        prompt += `类型：${outline.genre}\n`;
+        prompt += `角色：${outline.characters}\n`;
+        prompt += `当前进度：第${chapterIndex + 1}章/${outline.chapters.length}章\n`;
+        prompt += `本章标题：${chapter.title}\n`;
+        prompt += `本章概要：${chapter.summary}\n`;
+        if (chapterIndex > 0) {
+            prompt += `上一章：${outline.chapters[chapterIndex - 1].title} - ${outline.chapters[chapterIndex - 1].summary}\n`;
+        }
+        if (chapterIndex < outline.chapters.length - 1) {
+            prompt += `下一章预告：${outline.chapters[chapterIndex + 1].title}\n`;
+        }
+        prompt += `\n请严格按照本章概要展开剧情，引导玩家经历本章的关键事件。对话要自然流畅，不要直接复述概要。`;
+        return prompt;
+    }
+
+    function showOutlineSelectInGame() {
+        openOutlineModal();
+    }
+
     function getTimeContext() {
         const now = new Date();
         const hour = now.getHours();
@@ -1562,6 +1929,26 @@
                     addChatChoices(choices.map(c => ({ text: c.text })));
                 }
             }
+            if (state.game.activeOutline && state.game.outlineChapterIndex !== undefined) {
+                const outline = state.game.activeOutline;
+                const chapterIdx = state.game.outlineChapterIndex;
+                if (chapterIdx < outline.chapters.length - 1) {
+                    const nextChapter = outline.chapters[chapterIdx + 1];
+                    const hasProgressionHint = choices.some(c => c.text && (c.text.includes('继续') || c.text.includes('前进') || c.text.includes('深入')));
+                    if (hasProgressionHint || state.game.dialogHistory.length % 6 === 0) {
+                        const existingChoices = choices.map(c => ({ text: c.text, action: () => handleAiChoice(c.text) }));
+                        existingChoices.push({
+                            text: `→ 进入下一章：${nextChapter.title}`,
+                            action: () => {
+                                state.game.outlineChapterIndex = chapterIdx + 1;
+                                handleAiChoice(`[进入下一章] ${nextChapter.title}：${nextChapter.summary}`);
+                            }
+                        });
+                        setTimeout(() => showChoices(existingChoices), 1000);
+                        return;
+                    }
+                }
+            }
         } else {
             let content = rawContent;
             content = content.replace(/作为(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
@@ -1601,9 +1988,18 @@
         addDialogHistory('玩家', choiceText);
         showAiGenerating(true);
         try {
-            const contextHint = state.game.aiContext.length < 2
-                ? `【故事开始】${choiceText}`
-                : choiceText;
+            let contextHint = choiceText;
+            if (state.game.activeOutline && state.game.outlineChapterIndex !== undefined) {
+                const outline = state.game.activeOutline;
+                const chapterIdx = state.game.outlineChapterIndex;
+                const chapter = outline.chapters[chapterIdx];
+                contextHint = buildOutlinePrompt(outline, chapterIdx) + '\n\n玩家行动：' + choiceText;
+                if (bgmState.enabled && chapter.mood) {
+                    playBgm(chapter.mood);
+                }
+            } else if (state.game.aiContext.length < 2) {
+                contextHint = `【故事开始】${choiceText}`;
+            }
             const result = await callAiApi(contextHint);
             showAiGenerating(false);
             if (result) processAiResponse(result);
@@ -2028,6 +2424,8 @@
         if (state.game.dialogHistory.length > 0) saveCurrentGame();
         switchScreen('title-screen');
         state.game.isAutoPlay = false;
+        const outlineBtn = $('#outline-select-btn');
+        if (outlineBtn) outlineBtn.classList.add('hidden');
         if (bgmState.enabled) playBgm('title');
     }
 

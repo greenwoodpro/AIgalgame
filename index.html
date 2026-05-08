@@ -30,8 +30,8 @@
                         <small>AI实时生成剧情</small>
                     </button>
                     <button class="menu-btn" data-action="start-normal">
-                        <span class="btn-icon">📖</span> 普通模式
-                        <small>预设剧本体验</small>
+                        <span class="btn-icon">📋</span> 剧情大纲
+                        <small>选择或创建故事大纲</small>
                     </button>
                     <button class="menu-btn" data-action="load">
                         <span class="btn-icon">📂</span> 继续旅程
@@ -48,6 +48,7 @@
         </div>
 
         <div id="game-screen" class="screen">
+            <button id="outline-select-btn" class="hidden" data-action="show-outline-select" title="从大纲开始">📋 大纲</button>
             <div id="scene-layer">
                 <button id="scene-download-btn" data-action="download-scene">💾 下载场景图</button>
                 <div id="scene-bg"></div>
@@ -121,6 +122,59 @@
                 <div id="chat-input-row">
                     <input type="text" id="chat-input" placeholder="输入你想说的话..." maxlength="200">
                     <button id="chat-send-btn" data-action="chat-send">发送</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="outline-modal" class="modal hidden">
+            <div class="modal-backdrop" data-action="close-outline-modal"></div>
+            <div class="modal-content" style="max-width:600px;max-height:85vh;">
+                <div class="modal-header">
+                    <h2>📋 剧情大纲</h2>
+                    <button class="modal-close" data-action="close-outline-modal">✕</button>
+                </div>
+                <div class="modal-body" style="overflow-y:auto;max-height:calc(85vh - 60px);">
+                    <div id="outline-list"></div>
+                    <div id="outline-editor" class="hidden">
+                        <div class="form-group">
+                            <label for="outline-title">标题</label>
+                            <input type="text" id="outline-title" placeholder="故事标题" maxlength="30">
+                        </div>
+                        <div class="form-group">
+                            <label for="outline-genre">类型</label>
+                            <select id="outline-genre">
+                                <option value="奇幻冒险">奇幻冒险</option>
+                                <option value="校园恋爱">校园恋爱</option>
+                                <option value="科幻悬疑">科幻悬疑</option>
+                                <option value="治愈日常">治愈日常</option>
+                                <option value="异世界冒险">异世界冒险</option>
+                                <option value="恐怖惊悚">恐怖惊悚</option>
+                                <option value="历史古风">历史古风</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="outline-desc">故事简介</label>
+                            <textarea id="outline-desc" rows="3" placeholder="描述这个故事的世界观和主线..." maxlength="300"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="outline-characters">主要角色</label>
+                            <textarea id="outline-characters" rows="2" placeholder="描述主要角色的性格和外貌..." maxlength="200"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>章节大纲</label>
+                            <div id="outline-chapters"></div>
+                            <button class="choice-btn" data-action="add-chapter" style="margin-top:0.5rem;">+ 添加章节</button>
+                        </div>
+                        <div class="form-group">
+                            <label for="outline-ai-prompt">AI扩写提示词（可选）</label>
+                            <textarea id="outline-ai-prompt" rows="2" placeholder="输入关键词或描述，让AI帮你扩写大纲..." maxlength="200"></textarea>
+                            <button class="choice-btn" data-action="ai-expand-outline" style="margin-top:0.5rem;">🤖 AI扩写</button>
+                        </div>
+                        <div style="display:flex;gap:0.5rem;margin-top:1rem;">
+                            <button class="menu-btn primary" data-action="save-outline" style="flex:1;">保存大纲</button>
+                            <button class="menu-btn" data-action="cancel-outline-edit" style="flex:1;">取消</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
