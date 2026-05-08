@@ -1244,10 +1244,13 @@
             headers['Authorization'] = `Bearer ${apiKey}`;
         }
 
-        const body = { model: state.settings.imageModel, prompt, size: '1792x1024' };
+        const isMobile = window.innerWidth < 768;
+        const imageSize = isMobile ? '1024x1792' : '1792x1024';
+        const msImageSize = isMobile ? '576*1024' : '1024*576';
+        const body = { model: state.settings.imageModel, prompt, size: imageSize };
 
         if (provider === 'modelscope') {
-            body.size = '1024*576';
+            body.size = msImageSize;
             body.parameters = { n: 1 };
             headers['X-ModelScope-Async-Mode'] = 'true';
             const submitResponse = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
