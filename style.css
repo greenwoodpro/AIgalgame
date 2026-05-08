@@ -278,6 +278,11 @@ html, body {
     transform: translateY(-3px);
 }
 
+.menu-btn[data-action="toggle-bgm"].bgm-active {
+    background: rgba(0, 210, 255, 0.2);
+    border-color: var(--primary);
+}
+
 .title-footer {
     font-size: 0.75rem;
     color: var(--text-muted);

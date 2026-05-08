@@ -228,6 +228,8 @@
             apiKeys: { zhipu: '', modelscope: '', nvidia: '' },
             customTheme: { bg: '#0a0a1a', primary: '#00d2ff', accent: '#7b2ff7', text: '#ffffff' },
             dayNightMode: 'day',
+            bgmVolume: 30,
+            bgmEnabled: false,
         },
         game: {
             scene: null,
@@ -430,6 +432,7 @@
         restoreSettingsUI();
         updateApiIndicator();
         updateStorageUsage();
+        initBgm();
     }
 
     function loadSettings() {
@@ -504,6 +507,7 @@
         if (target) {
             target.classList.add('active');
             state.currentScreen = screenId.replace('-screen', '');
+            if (screenId === 'title-screen') playBgm('title');
             const hashMap = { title: '', game: 'game', chat: 'chat', settings: 'settings' };
             const hash = hashMap[state.currentScreen] || state.currentScreen;
             if (location.hash !== '#' + hash && hash !== '') {
@@ -630,6 +634,15 @@
             const mode = e.target.checked ? 'night' : 'day';
             applyDayNightMode(mode);
         });
+        $('#bgm-volume').addEventListener('input', e => {
+            const vol = parseInt(e.target.value);
+            bgmState.volume = vol / 100;
+            state.settings.bgmVolume = vol;
+            $('#bgm-volume-label').textContent = vol + '%';
+            const current = $('#bgm-current');
+            if (current) current.volume = bgmState.volume;
+            saveSettings();
+        });
         $('#text-model').addEventListener('change', e => { state.settings.textModel = e.target.value; updateModelTags(); saveSettings(); });
         $('#image-model').addEventListener('change', e => { state.settings.imageModel = e.target.value; saveSettings(); });
         $('#system-prompt').addEventListener('change', e => { state.settings.systemPrompt = e.target.value || DEFAULT_SYSTEM_PROMPT; saveSettings(); });
@@ -700,6 +713,7 @@
                 await importData();
                 break;
             case 'toggle-ui-mode': switchUiMode(state.uiMode === 'chat' ? 'game' : 'chat'); break;
+            case 'toggle-bgm': toggleBgm(); break;
             case 'chat-send': handleChatSend(); break;
             case 'chat-continue': case 'chat-explore': case 'chat-interact': handleChatQuickAction(act); break;
         }
@@ -757,6 +771,8 @@
         state.settings.imageCooldown = parseInt($('#image-cooldown').value) || 60;
         state.settings.dayNightMode = $('#day-night-toggle').checked ? 'night' : 'day';
         state.dayNightMode = state.settings.dayNightMode;
+        state.settings.bgmVolume = parseInt($('#bgm-volume').value) || 30;
+        state.settings.bgmEnabled = bgmState.enabled;
         applyDayNightMode(state.settings.dayNightMode);
         saveSettings();
     }
@@ -787,6 +803,8 @@
             imageModel: 'cogview-3-flash',
             customTheme: { bg: '#0a0a1a', primary: '#00d2ff', accent: '#7b2ff7', text: '#ffffff' },
             dayNightMode: 'day',
+            bgmVolume: 30,
+            bgmEnabled: false,
         };
         saveSettings();
         restoreSettingsUI();
@@ -843,6 +861,10 @@
         if (s.dayNightMode) {
             const dnToggle = $('#day-night-toggle');
             if (dnToggle) dnToggle.checked = s.dayNightMode === 'night';
+        }
+        if (s.bgmVolume !== undefined) {
+            $('#bgm-volume').value = s.bgmVolume;
+            $('#bgm-volume-label').textContent = s.bgmVolume + '%';
         }
         $$('.theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === state.theme));
         if (state.theme === 'custom') {
@@ -984,6 +1006,7 @@
             state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, currentSceneUrl: null, currentScene: '' };
             startNormalStory();
         }
+        if (bgmState.enabled) playBgm('daily');
     }
 
     async function startAiStory() {
@@ -1367,6 +1390,128 @@
         return EMOTION_MAP[emotion] || 'neutral';
     }
 
+    const BGM_TRACKS = {
+        daily: { url: 'https://maou.audio/sound/bgm/maou_bgm_acoustic01.mp3', name: '日常', emotions: ['happy', 'neutral', 'tsundere'] },
+        adventure: { url: 'https://maou.audio/sound/bgm/maou_bgm_fantasy01.mp3', name: '冒险', emotions: ['excited', 'angry'] },
+        mystery: { url: 'https://maou.audio/sound/bgm/maou_bgm_cyber01.mp3', name: '悬疑', emotions: ['scared', 'worried', 'surprised'] },
+        tender: { url: 'https://maou.audio/sound/bgm/maou_bgm_piano01.mp3', name: '温馨', emotions: ['shy', 'sad'] },
+        battle: { url: 'https://maou.audio/sound/bgm/maou_bgm_fantasy15.mp3', name: '战斗', emotions: [] },
+        title: { url: 'https://maou.audio/sound/bgm/maou_bgm_orchestra01.mp3', name: '标题', emotions: [] },
+    };
+
+    let bgmState = {
+        enabled: false,
+        volume: 0.3,
+        currentTrack: null,
+        currentMood: null,
+        fading: false,
+    };
+
+    function initBgm() {
+        const saved = Storage.get(STORAGE_KEYS.settings);
+        if (saved) {
+            bgmState.volume = saved.bgmVolume !== undefined ? saved.bgmVolume / 100 : 0.3;
+            bgmState.enabled = saved.bgmEnabled || false;
+        }
+        const current = $('#bgm-current');
+        const next = $('#bgm-next');
+        if (current) current.volume = bgmState.volume;
+        if (next) next.volume = 0;
+    }
+
+    function toggleBgm() {
+        bgmState.enabled = !bgmState.enabled;
+        state.settings.bgmEnabled = bgmState.enabled;
+        saveSettings();
+        if (bgmState.enabled) {
+            playBgmForContext();
+            showToast('🎵 背景音乐已开启', 'success');
+        } else {
+            stopBgm();
+            showToast('🔇 背景音乐已关闭', 'info');
+        }
+    }
+
+    function playBgmForContext() {
+        if (!bgmState.enabled) return;
+        if (state.currentScreen === 'title') {
+            playBgm('title');
+        } else if (state.currentScreen === 'game' || state.currentScreen === 'chat') {
+            const mood = bgmState.currentMood || 'daily';
+            playBgm(mood);
+        }
+    }
+
+    function playBgm(mood) {
+        if (!bgmState.enabled) return;
+        const track = BGM_TRACKS[mood];
+        if (!track) return;
+        if (bgmState.currentTrack === mood) return;
+
+        const current = $('#bgm-current');
+        const next = $('#bgm-next');
+        if (!current || !next) return;
+
+        bgmState.currentTrack = mood;
+        bgmState.currentMood = mood;
+
+        next.src = track.url;
+        next.volume = 0;
+        next.play().catch(() => {});
+
+        const fadeIn = setInterval(() => {
+            if (next.volume + 0.02 <= bgmState.volume) {
+                next.volume += 0.02;
+            } else {
+                next.volume = bgmState.volume;
+                clearInterval(fadeIn);
+                current.pause();
+                current.currentTime = 0;
+                const temp = current.src;
+                current.src = next.src;
+                next.src = '';
+                current.volume = bgmState.volume;
+            }
+            if (current.volume - 0.02 >= 0) {
+                current.volume -= 0.02;
+            } else {
+                current.volume = 0;
+            }
+        }, 50);
+    }
+
+    function stopBgm() {
+        const current = $('#bgm-current');
+        const next = $('#bgm-next');
+        if (!current) return;
+
+        const fadeOut = setInterval(() => {
+            if (current.volume - 0.02 >= 0) {
+                current.volume -= 0.02;
+            } else {
+                current.volume = 0;
+                current.pause();
+                current.currentTime = 0;
+                if (next) { next.pause(); next.currentTime = 0; }
+                bgmState.currentTrack = null;
+                clearInterval(fadeOut);
+            }
+        }, 50);
+    }
+
+    function switchBgmByEmotion(emotion) {
+        if (!bgmState.enabled) return;
+        for (const [mood, track] of Object.entries(BGM_TRACKS)) {
+            if (track.emotions.includes(emotion)) {
+                if (bgmState.currentMood !== mood) {
+                    bgmState.currentMood = mood;
+                    playBgm(mood);
+                }
+                return;
+            }
+        }
+    }
+
     function getTimeContext() {
         const now = new Date();
         const hour = now.getHours();
@@ -1446,6 +1591,7 @@
         };
         indicator.textContent = emotionIcons[emotion] || '😐';
         indicator.className = `emotion-${emotion}`;
+        switchBgmByEmotion(emotion);
     }
 
     async function handleAiChoice(choiceText) {
@@ -1882,6 +2028,7 @@
         if (state.game.dialogHistory.length > 0) saveCurrentGame();
         switchScreen('title-screen');
         state.game.isAutoPlay = false;
+        if (bgmState.enabled) playBgm('title');
     }
 
     function openSaveModal(mode) {

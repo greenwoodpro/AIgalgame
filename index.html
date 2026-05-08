@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <audio id="bgm-current" loop preload="none"></audio>
+    <audio id="bgm-next" loop preload="none"></audio>
     <div id="app">
         <div id="title-screen" class="screen active">
             <canvas id="title-canvas"></canvas>
@@ -39,6 +41,7 @@
                         <span class="btn-icon">⚙️</span> 设置
                         <small>API / 主题 / 模型</small>
                     </button>
+                    <button class="menu-btn" data-action="toggle-bgm">🎵 音乐</button>
                 </nav>
                 <p class="title-footer">© 2026 次元邂逅 · 用热爱与代码构建</p>
             </div>
@@ -60,6 +63,7 @@
                 <button class="toolbar-btn" data-action="gallery" title="图片画廊">🖼️</button>
                 <button class="toolbar-btn" data-action="settings" title="设置">⚙️</button>
                 <button class="toolbar-btn" data-action="toggle-ui-mode" title="切换到聊天模式">💬</button>
+                <button class="toolbar-btn" data-action="toggle-bgm" title="背景音乐">🎵</button>
                 <div id="api-indicator" class="toolbar-btn" data-action="api-status" title="API状态">
                     <span class="api-dot"></span>
                     <span class="api-label">API</span>
@@ -105,6 +109,7 @@
                 <button class="toolbar-btn" data-action="toggle-ui-mode" title="切换到游戏模式">🎮</button>
                 <button class="toolbar-btn" data-action="save" title="存档">💾</button>
                 <button class="toolbar-btn" data-action="settings" title="设置">⚙️</button>
+                <button class="toolbar-btn" data-action="toggle-bgm" title="背景音乐">🎵</button>
             </div>
             <div id="chat-messages"></div>
             <div id="chat-input-area">
@@ -244,6 +249,13 @@
                                 夜间模式（降低亮度，保护眼睛）
                             </label>
                             <small>开启后降低整体亮度，与主题颜色独立控制</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="bgm-volume">背景音乐音量</label>
+                            <div style="display:flex;align-items:center;gap:0.5rem;">
+                                <input type="range" id="bgm-volume" min="0" max="100" value="30" style="flex:1;">
+                                <span id="bgm-volume-label">30%</span>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="text-speed">文字显示速度</label>
