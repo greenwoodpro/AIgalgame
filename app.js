@@ -1244,9 +1244,11 @@
             headers['Authorization'] = `Bearer ${apiKey}`;
         }
 
-        const body = { model: state.settings.imageModel, prompt };
+        const body = { model: state.settings.imageModel, prompt, size: '1792x1024' };
 
         if (provider === 'modelscope') {
+            body.size = '1024*576';
+            body.parameters = { n: 1 };
             headers['X-ModelScope-Async-Mode'] = 'true';
             const submitResponse = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
             if (!submitResponse.ok) {
