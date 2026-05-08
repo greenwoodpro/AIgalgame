@@ -646,6 +646,10 @@
         $('#chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') handleChatSend(); });
         $('#chat-send-btn').addEventListener('click', handleChatSend);
         $$('.quick-action-btn').forEach(btn => btn.addEventListener('click', () => handleChatQuickAction(btn.dataset.action)));
+        $('#back-to-choices-btn').addEventListener('click', () => {
+            hideCustomInput();
+            if (lastChoices) showChoices(lastChoices);
+        });
     }
 
     async function handleGlobalClick(e) {
@@ -951,6 +955,19 @@
     }
 
     async function startGame(mode) {
+        if (state.game.dialogHistory.length > 0) {
+            if (confirm('是否继续上次的对话？\n\n确定 = 继续\n取消 = 重新开始')) {
+                stopTitleParticles();
+                switchScreen('game-screen');
+                const lastDialog = state.game.dialogHistory[state.game.dialogHistory.length - 1];
+                if (lastDialog) showDialog(lastDialog.name, lastDialog.text);
+                if (state.game.currentSceneUrl) setSceneBackground(state.game.currentSceneUrl);
+                else setSceneBackground('background.png');
+                if (state.mode === 'ai' && state.settings.autoSwitchBg) startBgAutoSwitch();
+                showToast('已恢复上次对话', 'success');
+                return;
+            }
+        }
         state.mode = mode;
         stopTitleParticles();
         switchScreen('game-screen');
@@ -959,17 +976,6 @@
                 showToast('请先配置 API Key！', 'error');
                 showModal('settings-modal');
                 return;
-            }
-            const savedGame = Storage.get(STORAGE_KEYS.currentGame);
-            if (savedGame && savedGame.mode === 'ai' && savedGame.aiContext && savedGame.aiContext.length > 0) {
-                if (confirm('检测到上次的AI对话记录，是否继续？\n\n确定 = 继续上次对话\n取消 = 开始新对话')) {
-                    state.game = { ...savedGame, isTyping: false, isAutoPlay: false };
-                    const lastDialog = state.game.dialogHistory[state.game.dialogHistory.length - 1];
-                    if (lastDialog) showDialog(lastDialog.name, lastDialog.text);
-                    if (state.game.currentSceneUrl) setSceneBackground(state.game.currentSceneUrl);
-                    showToast('已恢复上次对话', 'success');
-                    return;
-                }
             }
             state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, currentSceneUrl: null, currentScene: '' };
             setSceneBackground('background.png');
@@ -1242,9 +1248,9 @@
         }
 
         const isMobile = window.innerWidth < 768;
-        const imageSize = isMobile ? '1024x1792' : '1792x1024';
+        const cogviewSize = isMobile ? '720x1440' : '1344x768';
         const msImageSize = isMobile ? '576*1024' : '1024*576';
-        const body = { model: state.settings.imageModel, prompt, size: imageSize };
+        const body = { model: state.settings.imageModel, prompt, size: cogviewSize };
 
         if (provider === 'modelscope') {
             body.size = msImageSize;
@@ -1530,6 +1536,7 @@
     let bgAutoSwitchTimer = null;
     let lastImageGenTime = 0;
     let pendingSceneDescription = null;
+    let lastChoices = null;
 
     function getImageCooldown() {
         return (state.settings.imageCooldown || 60) * 1000;
@@ -1690,6 +1697,15 @@
     function hideChoices() { $('#choices-box').classList.add('hidden'); }
 
     function showCustomInput() {
+        const choicesContainer = $('#choices-box');
+        if (choicesContainer && choicesContainer.children.length > 0) {
+            lastChoices = Array.from(choicesContainer.children)
+                .filter(btn => !btn.classList.contains('custom-choice-btn'))
+                .map(btn => ({
+                    text: btn.textContent,
+                    action: () => handleAiChoice(btn.textContent)
+                }));
+        }
         const inputBox = $('#custom-input-box');
         const input = $('#custom-input');
         inputBox.classList.remove('hidden');

@@ -51,7 +51,7 @@
 [data-theme="ink-wash"] {
     --bg: #f5f0e8;
     --bg-secondary: #e8e0d0;
-    --bg-card: rgba(0, 0, 0, 0.04);
+    --bg-card: rgba(255, 255, 255, 0.45);
     --text: #2c2c2c;
     --text-secondary: rgba(44, 44, 44, 0.7);
     --text-muted: rgba(44, 44, 44, 0.4);
@@ -60,10 +60,10 @@
     --gradient: linear-gradient(135deg, #8b4513, #2c2c2c);
     --border: rgba(139, 69, 19, 0.2);
     --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --dialog-bg: rgba(245, 240, 232, 0.92);
+    --dialog-bg: rgba(245, 240, 232, 0.75);
     --dialog-border: rgba(139, 69, 19, 0.25);
     --nameplate-bg: linear-gradient(135deg, #8b4513, #2c2c2c);
-    --input-bg: rgba(255, 255, 255, 0.8);
+    --input-bg: rgba(255, 255, 255, 0.5);
     --input-border: rgba(139, 69, 19, 0.3);
 }
 
@@ -653,10 +653,15 @@ html, body {
 }
 
 #choices-box {
-    position: absolute;
-    bottom: 220px;
-    left: 50%;
-    transform: translateX(-50%);
+    position: relative;
+    bottom: auto;
+    margin-top: auto;
+    margin-bottom: 260px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-bottom: 0.5rem;
+    transform: translateZ(0);
+    will-change: transform;
     z-index: 15;
     display: flex;
     flex-direction: column;
@@ -666,6 +671,10 @@ html, body {
     pointer-events: auto;
     max-height: 40vh;
     overflow-y: auto;
+}
+
+#choices-box:hover {
+    transform: translateZ(0);
 }
 
 .choice-btn {
@@ -1320,7 +1329,7 @@ html, body {
     #dialog-box { padding: 0 1rem 1rem; }
     #dialog-box::before { height: 200px; }
     #dialog-content { font-size: 0.95rem; line-height: 1.7; }
-    #choices-box { bottom: 200px; max-width: 95%; }
+    #choices-box { margin-bottom: 220px; max-width: 95%; }
     .choice-btn { padding: 0.8rem 1.2rem; font-size: 0.9rem; }
     .modal-content { width: 95%; max-height: 90vh; }
     .theme-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1352,7 +1361,7 @@ html, body {
     #game-toolbar { gap: 0.15rem; padding: 0.3rem; }
     #dialog-content { font-size: 0.88rem; min-height: 60px; }
     #dialog-box::before { height: 170px; }
-    #choices-box { bottom: 170px; }
+    #choices-box { margin-bottom: 190px; }
     .choice-btn { padding: 0.7rem 1rem; font-size: 0.85rem; }
     .modal-body { padding: 1rem; }
     .modal-header { padding: 1rem; }
@@ -1414,8 +1423,10 @@ html, body {
 
 /* ==================== 古风特效 ==================== */
 [data-theme="ink-wash"] #dialog-box::before {
-    background: rgba(245, 240, 232, 0.92);
+    background: rgba(245, 240, 232, 0.75);
     border-top: 1px solid rgba(139, 69, 19, 0.3);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 }
 
 [data-theme="ink-wash"] .choice-btn {
@@ -1425,6 +1436,24 @@ html, body {
 [data-theme="ink-wash"] .choice-btn::before {
     content: '◆ ';
     color: var(--primary);
+}
+
+[data-theme="ink-wash"] .form-group input,
+[data-theme="ink-wash"] .form-group select,
+[data-theme="ink-wash"] .form-group textarea {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+[data-theme="ink-wash"] .settings-panel {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+}
+
+[data-theme="ink-wash"] .modal-content {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    background: rgba(245, 240, 232, 0.85);
 }
 
 /* ==================== 蒸汽波特效 ==================== */
