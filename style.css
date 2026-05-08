@@ -1375,6 +1375,8 @@ html, body {
     #gallery-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
     #custom-input-box { bottom: 190px; }
     #info-badge { top: 8px; right: 8px; font-size: 0.9rem; }
+    #character-sprite { width: 200px; height: 350px; bottom: 180px; }
+    #outline-chapter-display { font-size: 0.6rem; max-width: 60%; }
 }
 
 /* ==================== 滚动条 ==================== */
@@ -1626,6 +1628,91 @@ html, body {
 #outline-select-btn:hover {
     background: rgba(0, 210, 255, 0.2);
     border-color: var(--primary);
+}
+
+#outline-chapter-display {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    padding: 0.3rem 0.8rem;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    white-space: nowrap;
+    max-width: 80%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+}
+
+#character-sprite {
+    position: absolute;
+    bottom: 220px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    width: 300px;
+    height: 500px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center bottom;
+    pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+#character-sprite.sprite-enter {
+    animation: spriteEnter 0.5s ease-out;
+}
+
+#character-sprite.sprite-exit {
+    animation: spriteExit 0.4s ease-in forwards;
+}
+
+#character-sprite.sprite-switch {
+    animation: spriteSwitch 0.3s ease;
+}
+
+@keyframes spriteEnter {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes spriteExit {
+    from { opacity: 1; transform: translateX(-50%) translateY(0); }
+    to { opacity: 0; transform: translateX(-50%) translateY(20px); }
+}
+
+@keyframes spriteSwitch {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+#bgm-track-name {
+    position: absolute;
+    top: 50px;
+    right: 10px;
+    z-index: 20;
+    padding: 0.2rem 0.5rem;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+[data-action="toggle-tts"].tts-active {
+    background: rgba(0, 210, 255, 0.3);
+    border-radius: var(--radius-sm);
 }
 
 /* ==================== 面板差异化 ==================== */

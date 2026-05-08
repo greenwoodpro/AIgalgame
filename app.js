@@ -231,6 +231,8 @@
             dayNightMode: 'day',
             bgmVolume: 30,
             bgmEnabled: false,
+            ttsEnabled: false,
+            ttsVoice: 'zh-CN-XiaoxiaoNeural',
         },
         game: {
             scene: null,
@@ -434,6 +436,7 @@
         updateApiIndicator();
         updateStorageUsage();
         initBgm();
+        initTts();
     }
 
     function loadSettings() {
@@ -644,6 +647,17 @@
             if (current) current.volume = bgmState.volume;
             saveSettings();
         });
+        $('#tts-toggle').addEventListener('change', e => {
+            ttsState.enabled = e.target.checked;
+            state.settings.ttsEnabled = ttsState.enabled;
+            if (!ttsState.enabled) stopTts();
+            saveSettings();
+        });
+        $('#tts-voice').addEventListener('change', e => {
+            ttsState.voice = e.target.value;
+            state.settings.ttsVoice = ttsState.voice;
+            saveSettings();
+        });
         $('#text-model').addEventListener('change', e => { state.settings.textModel = e.target.value; updateModelTags(); saveSettings(); });
         $('#image-model').addEventListener('change', e => { state.settings.imageModel = e.target.value; saveSettings(); });
         $('#system-prompt').addEventListener('change', e => { state.settings.systemPrompt = e.target.value || DEFAULT_SYSTEM_PROMPT; saveSettings(); });
@@ -702,6 +716,8 @@
             case 'start-from-outline': startFromOutline(e.target.dataset.outlineId); break;
             case 'show-outline-select': showOutlineSelectInGame(); break;
             case 'ai-expand-outline': aiExpandOutline(); break;
+            case 'random-outline': startFromRandomOutline(); break;
+            case 'close-outline-preview': { const pm = $('#outline-preview-modal'); if (pm) pm.classList.add('hidden'); } break;
             case 'load': openSaveModal('load'); break;
             case 'settings': showModal('settings-modal'); break;
             case 'close-settings': hideModal('settings-modal'); break;
@@ -738,6 +754,7 @@
                 break;
             case 'toggle-ui-mode': switchUiMode(state.uiMode === 'chat' ? 'game' : 'chat'); break;
             case 'toggle-bgm': toggleBgm(); break;
+            case 'toggle-tts': toggleTts(); break;
             case 'chat-send': handleChatSend(); break;
             case 'chat-continue': case 'chat-explore': case 'chat-interact': handleChatQuickAction(act); break;
         }
@@ -797,6 +814,8 @@
         state.dayNightMode = state.settings.dayNightMode;
         state.settings.bgmVolume = parseInt($('#bgm-volume').value) || 30;
         state.settings.bgmEnabled = bgmState.enabled;
+        state.settings.ttsEnabled = ttsState.enabled;
+        state.settings.ttsVoice = ttsState.voice;
         applyDayNightMode(state.settings.dayNightMode);
         saveSettings();
     }
@@ -829,6 +848,8 @@
             dayNightMode: 'day',
             bgmVolume: 30,
             bgmEnabled: false,
+            ttsEnabled: false,
+            ttsVoice: 'zh-CN-XiaoxiaoNeural',
         };
         saveSettings();
         restoreSettingsUI();
@@ -889,6 +910,16 @@
         if (s.bgmVolume !== undefined) {
             $('#bgm-volume').value = s.bgmVolume;
             $('#bgm-volume-label').textContent = s.bgmVolume + '%';
+        }
+        if (s.ttsEnabled !== undefined) {
+            const ttsToggle = $('#tts-toggle');
+            if (ttsToggle) ttsToggle.checked = s.ttsEnabled;
+            ttsState.enabled = s.ttsEnabled;
+        }
+        if (s.ttsVoice) {
+            const ttsVoiceSelect = $('#tts-voice');
+            if (ttsVoiceSelect) ttsVoiceSelect.value = s.ttsVoice;
+            ttsState.voice = s.ttsVoice;
         }
         $$('.theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === state.theme));
         if (state.theme === 'custom') {
@@ -1027,6 +1058,7 @@
             setSceneBackground('background.png');
             const outlineBtn = $('#outline-select-btn');
             if (outlineBtn) outlineBtn.classList.remove('hidden');
+            showSprite('char_1', 'normal');
             await startAiStory();
         } else {
             state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, currentSceneUrl: null, currentScene: '' };
@@ -1417,12 +1449,15 @@
     }
 
     const BGM_TRACKS = {
-        daily: { url: 'https://maou.audio/sound/bgm/maou_bgm_acoustic01.mp3', name: '日常', emotions: ['happy', 'neutral', 'tsundere'] },
-        adventure: { url: 'https://maou.audio/sound/bgm/maou_bgm_fantasy01.mp3', name: '冒险', emotions: ['excited', 'angry'] },
-        mystery: { url: 'https://maou.audio/sound/bgm/maou_bgm_cyber01.mp3', name: '悬疑', emotions: ['scared', 'worried', 'surprised'] },
-        tender: { url: 'https://maou.audio/sound/bgm/maou_bgm_piano01.mp3', name: '温馨', emotions: ['shy', 'sad'] },
-        battle: { url: 'https://maou.audio/sound/bgm/maou_bgm_fantasy15.mp3', name: '战斗', emotions: [] },
-        title: { url: 'https://maou.audio/sound/bgm/maou_bgm_orchestra01.mp3', name: '标题', emotions: [] },
+        daily: { url: 'https://maou.audio/sound/bgm/maou_bgm_acoustic01.mp3', name: '日常·微风', emotions: ['happy', 'neutral', 'tsundere'] },
+        adventure: { url: 'https://maou.audio/sound/bgm/maou_bgm_fantasy01.mp3', name: '冒险·征途', emotions: ['excited', 'angry'] },
+        mystery: { url: 'https://maou.audio/sound/bgm/maou_bgm_cyber01.mp3', name: '悬疑·暗流', emotions: ['scared', 'worried', 'surprised'] },
+        tender: { url: 'https://maou.audio/sound/bgm/maou_bgm_piano01.mp3', name: '温馨·月色', emotions: ['shy', 'sad'] },
+        romantic: { url: 'https://maou.audio/sound/bgm/maou_bgm_fantasy08.mp3', name: '恋慕·心跳', emotions: [] },
+        battle: { url: 'https://maou.audio/sound/bgm/maou_bgm_fantasy15.mp3', name: '战斗·觉醒', emotions: [] },
+        melancholy: { url: 'https://maou.audio/sound/bgm/maou_bgm_piano02.mp3', name: '哀愁·雨声', emotions: [] },
+        horror: { url: 'https://maou.audio/sound/bgm/maou_bgm_cyber02.mp3', name: '恐怖·深渊', emotions: [] },
+        title: { url: 'https://maou.audio/sound/bgm/maou_bgm_orchestra01.mp3', name: '标题·星穹', emotions: [] },
     };
 
     const PRESET_OUTLINES = [
@@ -1535,9 +1570,13 @@
         if (bgmState.enabled) {
             playBgmForContext();
             showToast('🎵 背景音乐已开启', 'success');
+            const label = $('#bgm-track-name');
+            if (label) label.classList.remove('hidden');
         } else {
             stopBgm();
             showToast('🔇 背景音乐已关闭', 'info');
+            const label = $('#bgm-track-name');
+            if (label) label.classList.add('hidden');
         }
     }
 
@@ -1563,30 +1602,38 @@
 
         bgmState.currentTrack = mood;
         bgmState.currentMood = mood;
+        updateBgmLabel(track.name);
 
         next.src = track.url;
         next.volume = 0;
-        next.play().catch(() => {});
+        const playPromise = next.play();
+        if (playPromise) playPromise.catch(() => {});
 
+        const step = 0.015;
+        const interval = 60;
         const fadeIn = setInterval(() => {
-            if (next.volume + 0.02 <= bgmState.volume) {
-                next.volume += 0.02;
+            if (next.volume + step <= bgmState.volume) {
+                next.volume += step;
             } else {
                 next.volume = bgmState.volume;
                 clearInterval(fadeIn);
                 current.pause();
                 current.currentTime = 0;
-                const temp = current.src;
                 current.src = next.src;
                 next.src = '';
                 current.volume = bgmState.volume;
             }
-            if (current.volume - 0.02 >= 0) {
-                current.volume -= 0.02;
+            if (current.volume - step >= 0) {
+                current.volume -= step;
             } else {
                 current.volume = 0;
             }
-        }, 50);
+        }, interval);
+    }
+
+    function updateBgmLabel(name) {
+        const label = $('#bgm-track-name');
+        if (label) label.textContent = name || '';
     }
 
     function stopBgm() {
@@ -1675,6 +1722,12 @@
         addBtn.textContent = '+ 新建大纲';
         addBtn.dataset.action = 'new-outline';
         container.appendChild(addBtn);
+        const randomBtn = document.createElement('button');
+        randomBtn.className = 'menu-btn';
+        randomBtn.style.cssText = 'width:100%;margin-top:0.5rem;border-color:var(--accent);';
+        randomBtn.innerHTML = '🎲 随机选择大纲';
+        randomBtn.dataset.action = 'random-outline';
+        container.appendChild(randomBtn);
     }
 
     let editingOutlineId = null;
@@ -1792,11 +1845,38 @@
         const outlines = getOutlines();
         const outline = outlines.find(o => o.id === id);
         if (!outline) return;
-        let text = `📖 ${outline.title}\n🏷 ${outline.genre}\n\n📝 ${outline.description}\n\n👥 ${outline.characters || '无角色描述'}\n\n`;
+        let html = `<div style="margin-bottom:1rem;">`;
+        html += `<h3 style="color:var(--primary);font-size:1.1rem;margin-bottom:0.5rem;">📖 ${outline.title}</h3>`;
+        html += `<div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.8rem;">`;
+        html += `<span style="font-size:0.75rem;color:var(--text-muted);background:var(--bg-secondary);padding:0.2rem 0.6rem;border-radius:10px;">${outline.genre}</span>`;
+        html += `</div>`;
+        html += `<p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;margin-bottom:0.8rem;">${outline.description}</p>`;
+        if (outline.characters) {
+            html += `<p style="font-size:0.85rem;color:var(--accent);margin-bottom:0.8rem;">👥 ${outline.characters}</p>`;
+        }
+        html += `</div>`;
+        html += `<div style="border-top:1px solid var(--border);padding-top:0.8rem;">`;
         outline.chapters.forEach((ch, i) => {
-            text += `─── 第${i + 1}章: ${ch.title} ───\n${ch.summary}\n\n`;
+            const moodEmoji = { daily: '🏠', adventure: '⚔️', mystery: '🔮', tender: '💕', romantic: '💗', battle: '🗡️', melancholy: '🌧️', horror: '👻' };
+            html += `<div style="margin-bottom:0.8rem;padding:0.6rem;background:var(--bg-card);border-radius:var(--radius-sm);border-left:3px solid var(--primary);">`;
+            html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">`;
+            html += `<strong style="color:var(--primary);font-size:0.9rem;">第${i + 1}章：${ch.title}</strong>`;
+            html += `<span style="font-size:0.7rem;">${moodEmoji[ch.mood] || '🏠'} ${ch.mood || 'daily'}</span>`;
+            html += `</div>`;
+            html += `<p style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;">${ch.summary}</p>`;
+            html += `</div>`;
         });
-        alert(text);
+        html += `</div>`;
+        html += `<div style="display:flex;gap:0.5rem;margin-top:1rem;">`;
+        html += `<button class="menu-btn primary" data-action="start-from-outline" data-outline-id="${outline.id}" style="flex:1;">▶ 开始此大纲</button>`;
+        html += `<button class="menu-btn" data-action="close-outline-preview" style="flex:1;">关闭</button>`;
+        html += `</div>`;
+        const previewModal = $('#outline-preview-modal');
+        if (previewModal) {
+            const content = previewModal.querySelector('.outline-preview-content');
+            if (content) content.innerHTML = html;
+            previewModal.classList.remove('hidden');
+        }
     }
 
     async function aiExpandOutline() {
@@ -1837,8 +1917,12 @@
         state.game.outlineChapterIndex = 0;
         state.game.aiContext = [];
         state.game.dialogHistory = [];
+        state.game.variables = {};
+        state.game.isAutoPlay = false;
         hideModal('outline-modal');
         hideModal('save-modal');
+        const previewModal = $('#outline-preview-modal');
+        if (previewModal) previewModal.classList.add('hidden');
         switchScreen('game-screen');
         if (state.uiMode === 'chat') switchUiMode('game');
         const firstChapter = outline.chapters[0];
@@ -1846,6 +1930,8 @@
         if (bgmState.enabled) playBgm(firstChapter.mood || 'daily');
         const outlineBtn = $('#outline-select-btn');
         if (outlineBtn) outlineBtn.classList.remove('hidden');
+        updateOutlineChapterDisplay(outline, 0);
+        setSceneBackground('background.png');
         handleAiChoice(outlinePrompt);
         showToast(`开始剧情：${outline.title}`, 'success');
     }
@@ -1859,20 +1945,38 @@
 
     function buildOutlinePrompt(outline, chapterIndex) {
         const chapter = outline.chapters[chapterIndex];
-        let prompt = `[剧情大纲约束] 当前故事：「${outline.title}」\n`;
+        let prompt = `[剧情大纲约束 - 必须严格遵守]\n`;
+        prompt += `当前故事：「${outline.title}」\n`;
         prompt += `类型：${outline.genre}\n`;
         prompt += `角色：${outline.characters}\n`;
-        prompt += `当前进度：第${chapterIndex + 1}章/${outline.chapters.length}章\n`;
-        prompt += `本章标题：${chapter.title}\n`;
-        prompt += `本章概要：${chapter.summary}\n`;
+        prompt += `当前进度：第${chapterIndex + 1}章/${outline.chapters.length}章\n\n`;
+        prompt += `【本章标题】${chapter.title}\n`;
+        prompt += `【本章概要】${chapter.summary}\n`;
+        prompt += `【本章氛围】${chapter.mood || 'daily'}\n\n`;
         if (chapterIndex > 0) {
-            prompt += `上一章：${outline.chapters[chapterIndex - 1].title} - ${outline.chapters[chapterIndex - 1].summary}\n`;
+            prompt += `【上一章回顾】${outline.chapters[chapterIndex - 1].title} - ${outline.chapters[chapterIndex - 1].summary}\n`;
         }
         if (chapterIndex < outline.chapters.length - 1) {
-            prompt += `下一章预告：${outline.chapters[chapterIndex + 1].title}\n`;
+            prompt += `【下一章预告】${outline.chapters[chapterIndex + 1].title}\n`;
         }
-        prompt += `\n请严格按照本章概要展开剧情，引导玩家经历本章的关键事件。对话要自然流畅，不要直接复述概要。`;
+        prompt += `\n【约束规则】\n`;
+        prompt += `1. 你必须严格按照本章概要展开剧情，所有事件和对话都要围绕概要中的关键节点\n`;
+        prompt += `2. 不要偏离主线，不要引入概要中没有的新设定或角色\n`;
+        prompt += `3. 对话要自然流畅，通过角色的行动和语言逐步推进到概要描述的关键事件\n`;
+        prompt += `4. 每次回复都要推动剧情向本章概要的终点发展，不要原地踏步\n`;
+        prompt += `5. 当本章概要的所有关键事件都已发生后，在选项中加入"进入下一章"的选项\n`;
+        prompt += `6. 保持galgame风格：注重角色互动、情感描写、场景氛围\n`;
         return prompt;
+    }
+
+    function updateOutlineChapterDisplay(outline, chapterIndex) {
+        const display = $('#outline-chapter-display');
+        if (!display || !outline) return;
+        const chapter = outline.chapters[chapterIndex];
+        if (chapter) {
+            display.textContent = `${outline.title} · 第${chapterIndex + 1}章：${chapter.title}`;
+            display.classList.remove('hidden');
+        }
     }
 
     function showOutlineSelectInGame() {
@@ -1918,6 +2022,10 @@
             showDialog(name, dialog);
             addDialogHistory(name, dialog);
             updateEmotionIndicator(emotion);
+            if (ttsState.enabled) speakText(dialog, emotion);
+            if (spriteState.visible === false && name !== '旁白' && name !== '系统') {
+                showSprite('char_1', SPRITE_CONFIG.emotionMap[emotion] || 'normal');
+            }
             if (state.uiMode === 'chat') {
                 addChatMessage(name, dialog, 'ai');
             }
@@ -1934,13 +2042,15 @@
                 const chapterIdx = state.game.outlineChapterIndex;
                 if (chapterIdx < outline.chapters.length - 1) {
                     const nextChapter = outline.chapters[chapterIdx + 1];
-                    const hasProgressionHint = choices.some(c => c.text && (c.text.includes('继续') || c.text.includes('前进') || c.text.includes('深入')));
-                    if (hasProgressionHint || state.game.dialogHistory.length % 6 === 0) {
+                    const hasProgressionHint = choices.some(c => c.text && (c.text.includes('继续') || c.text.includes('前进') || c.text.includes('深入') || c.text.includes('下一章')));
+                    if (hasProgressionHint || state.game.dialogHistory.length % 5 === 0) {
                         const existingChoices = choices.map(c => ({ text: c.text, action: () => handleAiChoice(c.text) }));
                         existingChoices.push({
                             text: `→ 进入下一章：${nextChapter.title}`,
                             action: () => {
                                 state.game.outlineChapterIndex = chapterIdx + 1;
+                                updateOutlineChapterDisplay(outline, chapterIdx + 1);
+                                if (bgmState.enabled && nextChapter.mood) playBgm(nextChapter.mood);
                                 handleAiChoice(`[进入下一章] ${nextChapter.title}：${nextChapter.summary}`);
                             }
                         });
@@ -1948,6 +2058,7 @@
                         return;
                     }
                 }
+                updateOutlineChapterDisplay(outline, chapterIdx);
             }
         } else {
             let content = rawContent;
@@ -1979,6 +2090,7 @@
         indicator.textContent = emotionIcons[emotion] || '😐';
         indicator.className = `emotion-${emotion}`;
         switchBgmByEmotion(emotion);
+        switchSpriteExpression(emotion);
     }
 
     async function handleAiChoice(choiceText) {
@@ -2421,11 +2533,15 @@
         apiCallInProgress = false;
         state.game.isTyping = false;
         stopBgAutoSwitch();
+        stopTts();
         if (state.game.dialogHistory.length > 0) saveCurrentGame();
         switchScreen('title-screen');
         state.game.isAutoPlay = false;
         const outlineBtn = $('#outline-select-btn');
         if (outlineBtn) outlineBtn.classList.add('hidden');
+        const chapterDisplay = $('#outline-chapter-display');
+        if (chapterDisplay) chapterDisplay.classList.add('hidden');
+        hideSprite();
         if (bgmState.enabled) playBgm('title');
     }
 
@@ -2673,6 +2789,161 @@
         }
         content.appendChild(storageCard);
         showModal('api-status-modal');
+    }
+
+    const SPRITE_CONFIG = {
+        characters: [
+            { id: 'char_1', name: '星酱', folder: 'sprites/char1', defaultExpr: 'normal' },
+            { id: 'char_2', name: '角色2', folder: 'sprites/char2', defaultExpr: 'normal' },
+            { id: 'char_3', name: '角色3', folder: 'sprites/char3', defaultExpr: 'normal' },
+            { id: 'char_4', name: '角色4', folder: 'sprites/char4', defaultExpr: 'normal' },
+            { id: 'char_5', name: '角色5', folder: 'sprites/char5', defaultExpr: 'normal' },
+        ],
+        expressions: ['normal', 'surprised', 'shy', 'shocked', 'confused', 'angry'],
+        emotionMap: {
+            happy: 'surprised', sad: 'confused', angry: 'angry', surprised: 'shocked',
+            shy: 'shy', neutral: 'normal', scared: 'shocked', excited: 'surprised',
+            worried: 'confused', tsundere: 'angry',
+        },
+    };
+
+    let spriteState = {
+        currentChar: null,
+        currentExpr: 'normal',
+        visible: false,
+    };
+
+    function showSprite(charId, expression) {
+        const char = SPRITE_CONFIG.characters.find(c => c.id === charId);
+        if (!char) return;
+        const expr = expression || char.defaultExpr;
+        spriteState.currentChar = charId;
+        spriteState.currentExpr = expr;
+        spriteState.visible = true;
+        const spriteEl = $('#character-sprite');
+        if (!spriteEl) return;
+        const imgSrc = `${char.folder}/${expr}.png`;
+        spriteEl.style.backgroundImage = `url('${imgSrc}')`;
+        spriteEl.classList.remove('hidden');
+        spriteEl.classList.add('sprite-enter');
+        setTimeout(() => spriteEl.classList.remove('sprite-enter'), 500);
+    }
+
+    function hideSprite() {
+        const spriteEl = $('#character-sprite');
+        if (!spriteEl) return;
+        spriteEl.classList.add('sprite-exit');
+        setTimeout(() => {
+            spriteEl.classList.add('hidden');
+            spriteEl.classList.remove('sprite-exit');
+            spriteState.visible = false;
+        }, 400);
+    }
+
+    function switchSpriteExpression(emotion) {
+        if (!spriteState.visible || !spriteState.currentChar) return;
+        const expr = SPRITE_CONFIG.emotionMap[emotion] || 'normal';
+        if (expr !== spriteState.currentExpr) {
+            spriteState.currentExpr = expr;
+            const char = SPRITE_CONFIG.characters.find(c => c.id === spriteState.currentChar);
+            if (!char) return;
+            const spriteEl = $('#character-sprite');
+            if (!spriteEl) return;
+            const imgSrc = `${char.folder}/${expr}.png`;
+            spriteEl.style.backgroundImage = `url('${imgSrc}')`;
+            spriteEl.classList.add('sprite-switch');
+            setTimeout(() => spriteEl.classList.remove('sprite-switch'), 300);
+        }
+    }
+
+    const TTS_CONFIG = {
+        voices: [
+            { id: 'zh-CN-XiaoxiaoNeural', name: '晓晓（温柔）', style: 'gentle' },
+            { id: 'zh-CN-XiaoyiNeural', name: '晓伊（甜美）', style: 'sweet' },
+            { id: 'zh-CN-XiaomoNeural', name: '晓墨（文艺）', style: 'literary' },
+            { id: 'zh-CN-XiaochenNeural', name: '晓辰（活力）', style: 'energetic' },
+            { id: 'zh-CN-XiaohanNeural', name: '晓涵（知性）', style: 'intellectual' },
+        ],
+        defaultVoice: 'zh-CN-XiaoxiaoNeural',
+    };
+
+    let ttsState = {
+        enabled: false,
+        voice: TTS_CONFIG.defaultVoice,
+        speaking: false,
+        audio: null,
+    };
+
+    function initTts() {
+        const saved = Storage.get(STORAGE_KEYS.settings);
+        if (saved) {
+            ttsState.enabled = saved.ttsEnabled || false;
+            ttsState.voice = saved.ttsVoice || TTS_CONFIG.defaultVoice;
+        }
+    }
+
+    async function speakText(text, emotion) {
+        if (!ttsState.enabled) return;
+        if (ttsState.speaking) stopTts();
+        const cleanText = text.replace(/（[^）]*）/g, '').replace(/[「」『』]/g, '').trim();
+        if (!cleanText || cleanText.length < 2) return;
+        ttsState.speaking = true;
+        try {
+            const voice = ttsState.voice;
+            const rate = emotion === 'excited' ? '+10%' : emotion === 'sad' ? '-10%' : '+0%';
+            const pitch = emotion === 'shy' ? '+5Hz' : emotion === 'angry' ? '-5Hz' : '+0Hz';
+            const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='zh-CN'>
+                <voice name='${voice}'>
+                    <prosody rate='${rate}' pitch='${pitch}'>${cleanText}</prosody>
+                </voice>
+            </speak>`;
+            const response = await fetch('https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/ssml+xml',
+                    'X-Microsoft-OutputFormat': 'audio-24khz-48kbitrate-mono-mp3',
+                    'User-Agent': 'Mozilla/5.0',
+                },
+                body: ssml,
+            });
+            if (!response.ok) throw new Error('TTS请求失败');
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            if (ttsState.audio) {
+                ttsState.audio.pause();
+                URL.revokeObjectURL(ttsState.audio.src);
+            }
+            ttsState.audio = new Audio(url);
+            ttsState.audio.onended = () => {
+                ttsState.speaking = false;
+                URL.revokeObjectURL(url);
+            };
+            ttsState.audio.onerror = () => {
+                ttsState.speaking = false;
+            };
+            await ttsState.audio.play();
+        } catch (e) {
+            console.warn('TTS失败:', e);
+            ttsState.speaking = false;
+        }
+    }
+
+    function stopTts() {
+        if (ttsState.audio) {
+            ttsState.audio.pause();
+            ttsState.audio.currentTime = 0;
+            if (ttsState.audio.src) URL.revokeObjectURL(ttsState.audio.src);
+            ttsState.audio = null;
+        }
+        ttsState.speaking = false;
+    }
+
+    function toggleTts() {
+        ttsState.enabled = !ttsState.enabled;
+        state.settings.ttsEnabled = ttsState.enabled;
+        saveSettings();
+        if (!ttsState.enabled) stopTts();
+        showToast(ttsState.enabled ? '🔊 AI配音已开启' : '🔇 AI配音已关闭', 'info');
     }
 
     document.addEventListener('DOMContentLoaded', init);
