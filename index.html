@@ -99,12 +99,19 @@
                 <div id="dialog-click-hint">▼</div>
             </div>
             <div id="ai-generating" class="hidden">
-                <div class="ai-spinner"></div>
-                <span>AI 正在构思中...</span>
+                <div class="ai-thinking-indicator">
+                    <div class="thinking-dots">
+                        <span class="thinking-dot"></span>
+                        <span class="thinking-dot"></span>
+                        <span class="thinking-dot"></span>
+                    </div>
+                    <span class="thinking-text">正在思考</span>
+                </div>
             </div>
         </div>
 
         <div id="chat-screen" class="screen">
+            <div id="chat-screen-bg"></div>
             <div id="chat-header">
                 <button class="toolbar-btn" data-action="back-title" title="返回标题">🏠</button>
                 <div id="chat-header-info">
@@ -434,6 +441,13 @@
                             <small>AI模式自动生成新背景图，每隔一段时间或剧情变化时切换</small>
                         </div>
                         <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="chat-show-bg">
+                                聊天模式显示背景图
+                            </label>
+                            <small>在聊天模式下也显示当前场景背景图</small>
+                        </div>
+                        <div class="form-group">
                             <label for="bg-switch-interval">背景切换间隔（秒）</label>
                             <input type="number" id="bg-switch-interval" min="30" max="600" value="120" step="10">
                             <small>自动切换背景的最小间隔时间</small>
@@ -526,6 +540,28 @@
                 </div>
                 <div class="modal-body">
                     <div id="api-status-content"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="continue-dialog-modal" class="modal hidden">
+            <div class="modal-backdrop"></div>
+            <div class="modal-content continue-dialog-panel">
+                <div class="modal-header">
+                    <h2>💬 继续对话</h2>
+                </div>
+                <div class="modal-body">
+                    <p class="continue-dialog-desc">检测到上次的对话记录，你想怎么做？</p>
+                    <div class="continue-dialog-actions">
+                        <button class="menu-btn primary continue-btn" data-action="continue-conversation">
+                            <span class="btn-icon">▶️</span> 继续当前对话
+                            <small>从上次离开的地方继续</small>
+                        </button>
+                        <button class="menu-btn restart-btn" data-action="restart-conversation">
+                            <span class="btn-icon">🔄</span> 重新开始
+                            <small>清除对话记录，开始新故事</small>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

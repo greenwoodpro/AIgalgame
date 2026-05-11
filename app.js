@@ -215,6 +215,7 @@
             autoGenScene: true,
             enableThinking: false,
             autoSwitchBg: false,
+            chatShowBg: true,
             bgSwitchInterval: 120,
             imageCooldown: 60,
             maxResponseLength: 500,
@@ -426,6 +427,7 @@
     }
 
     function init() {
+        sessionStorage.setItem('galgame_session_active', '1');
         loadSettings();
         applyTheme(state.theme);
         applyDayNightMode(state.dayNightMode || state.settings.dayNightMode || 'day');
@@ -635,6 +637,12 @@
         $('#auto-gen-scene').addEventListener('change', e => { state.settings.autoGenScene = e.target.checked; saveSettings(); });
         $('#enable-thinking').addEventListener('change', e => { state.settings.enableThinking = e.target.checked; saveSettings(); });
         $('#auto-switch-bg').addEventListener('change', e => { state.settings.autoSwitchBg = e.target.checked; saveSettings(); if (e.target.checked) startBgAutoSwitch(); else stopBgAutoSwitch(); });
+        $('#chat-show-bg').addEventListener('change', e => {
+            state.settings.chatShowBg = e.target.checked;
+            saveSettings();
+            const chatBg = $('#chat-screen-bg');
+            if (chatBg) chatBg.style.display = e.target.checked ? '' : 'none';
+        });
         $('#bg-switch-interval').addEventListener('change', e => { state.settings.bgSwitchInterval = Math.max(30, parseInt(e.target.value) || 120); saveSettings(); if (state.settings.autoSwitchBg) { stopBgAutoSwitch(); startBgAutoSwitch(); } });
         $('#image-cooldown').addEventListener('change', e => { state.settings.imageCooldown = parseInt(e.target.value) || 60; saveSettings(); });
         $('#day-night-toggle').addEventListener('change', e => {
@@ -719,7 +727,7 @@
             case 'ai-expand-outline': aiExpandOutline(); break;
             case 'random-outline': startFromRandomOutline(); break;
             case 'close-outline-preview': { const pm = $('#outline-preview-modal'); if (pm) pm.classList.add('hidden'); } break;
-            case 'load': openSaveModal('load'); break;
+            case 'load': state._saveModalMode = 'load'; openSaveModal('load'); break;
             case 'settings': showModal('settings-modal'); break;
             case 'close-settings': hideModal('settings-modal'); break;
             case 'save-settings': collectSettingsForm(); hideModal('settings-modal'); showToast('设置已保存', 'success'); break;
@@ -730,8 +738,10 @@
             case 'close-history': hideModal('history-modal'); break;
             case 'close-gallery': hideModal('gallery-modal'); break;
             case 'close-api-status': hideModal('api-status-modal'); break;
+            case 'continue-conversation': continueConversation(); break;
+            case 'restart-conversation': restartConversation(); break;
             case 'back-title': backToTitle(); break;
-            case 'save': openSaveModal('save'); break;
+            case 'save': state._saveModalMode = 'save'; openSaveModal('save'); break;
             case 'auto': toggleAutoPlay(); break;
             case 'history': openHistory(); break;
             case 'gallery': openGallery(); break;
@@ -810,6 +820,7 @@
         state.settings.autoGenScene = $('#auto-gen-scene').checked;
         state.settings.enableThinking = $('#enable-thinking').checked;
         state.settings.autoSwitchBg = $('#auto-switch-bg').checked;
+        state.settings.chatShowBg = $('#chat-show-bg').checked;
         state.settings.bgSwitchInterval = parseInt($('#bg-switch-interval').value) || 120;
         state.settings.imageCooldown = parseInt($('#image-cooldown').value) || 60;
         state.settings.dayNightMode = $('#day-night-toggle').checked ? 'night' : 'day';
@@ -834,6 +845,7 @@
             autoGenScene: true,
             enableThinking: false,
             autoSwitchBg: false,
+            chatShowBg: true,
             bgSwitchInterval: 120,
             imageCooldown: 60,
             maxResponseLength: 500,
@@ -903,6 +915,11 @@
         if (s.autoGenScene !== undefined) $('#auto-gen-scene').checked = s.autoGenScene;
         if (s.enableThinking !== undefined) $('#enable-thinking').checked = s.enableThinking;
         if (s.autoSwitchBg !== undefined) $('#auto-switch-bg').checked = s.autoSwitchBg;
+        if (s.chatShowBg !== undefined) {
+            $('#chat-show-bg').checked = s.chatShowBg;
+            const chatBg = $('#chat-screen-bg');
+            if (chatBg) chatBg.style.display = s.chatShowBg ? '' : 'none';
+        }
         if (s.bgSwitchInterval !== undefined) $('#bg-switch-interval').value = s.bgSwitchInterval;
         if (s.imageCooldown !== undefined) $('#image-cooldown').value = s.imageCooldown;
         if (s.dayNightMode) {
@@ -1035,18 +1052,25 @@
 
     async function startGame(mode) {
         if (state.game.dialogHistory.length > 0) {
-            if (confirm('是否继续上次的对话？\n\n确定 = 继续\n取消 = 重新开始')) {
-                stopTitleParticles();
-                switchScreen('game-screen');
-                const lastDialog = state.game.dialogHistory[state.game.dialogHistory.length - 1];
-                if (lastDialog) showDialog(lastDialog.name, lastDialog.text);
-                if (state.game.currentSceneUrl) setSceneBackground(state.game.currentSceneUrl);
-                else setSceneBackground('background.png');
-                if (state.mode === 'ai' && state.settings.autoSwitchBg) startBgAutoSwitch();
-                showToast('已恢复上次对话', 'success');
+            // 页面刷新后直接重新开始，不弹框
+            if (!sessionStorage.getItem('galgame_session_active')) {
+                state.game.dialogHistory = [];
+                state.game.aiContext = [];
+                state.game.variables = {};
+                state.game.currentSceneUrl = null;
+                state.game.currentScene = '';
+                Storage.set(STORAGE_KEYS.currentGame, state.game);
+            } else {
+                // 同一会话内，弹出自定义模态框
+                state._pendingGameMode = mode;
+                showModal('continue-dialog-modal');
                 return;
             }
         }
+        doStartGame(mode);
+    }
+
+    async function doStartGame(mode) {
         state.mode = mode;
         stopTitleParticles();
         switchScreen('game-screen');
@@ -1067,6 +1091,33 @@
             startNormalStory();
         }
         if (bgmState.enabled) playBgm('daily');
+    }
+
+    function continueConversation() {
+        hideModal('continue-dialog-modal');
+        const mode = state._pendingGameMode || state.mode || 'ai';
+        state.mode = mode;
+        stopTitleParticles();
+        switchScreen('game-screen');
+        const lastDialog = state.game.dialogHistory[state.game.dialogHistory.length - 1];
+        if (lastDialog) showDialog(lastDialog.name, lastDialog.text);
+        if (state.game.currentSceneUrl) setSceneBackground(state.game.currentSceneUrl);
+        else setSceneBackground('background.png');
+        if (state.mode === 'ai' && state.settings.autoSwitchBg) startBgAutoSwitch();
+        showToast('已恢复上次对话', 'success');
+        if (bgmState.enabled) playBgm('daily');
+    }
+
+    function restartConversation() {
+        hideModal('continue-dialog-modal');
+        const mode = state._pendingGameMode || 'ai';
+        state.game.dialogHistory = [];
+        state.game.aiContext = [];
+        state.game.variables = {};
+        state.game.currentSceneUrl = null;
+        state.game.currentScene = '';
+        Storage.set(STORAGE_KEYS.currentGame, state.game);
+        doStartGame(mode);
     }
 
     async function startAiStory() {
@@ -2208,15 +2259,18 @@
     function setSceneBackground(imageUrl) {
         const bg = $('#scene-bg');
         const bgNext = $('#scene-bg-next');
+        const chatBg = $('#chat-screen-bg');
         if (!imageUrl) {
             bgNext.classList.remove('active');
             bg.style.backgroundImage = "url('background.png')";
+            if (chatBg) chatBg.style.backgroundImage = "url('background.png')";
             return;
         }
         const img = new Image();
         img.onload = () => {
             setBgStyle(bgNext, imageUrl);
             bgNext.classList.add('active');
+            if (chatBg) setBgStyle(chatBg, imageUrl);
             setTimeout(() => {
                 setBgStyle(bg, imageUrl);
                 bgNext.classList.remove('active');
@@ -2439,9 +2493,29 @@
         }
     }
 
+    let chatThinkingMsg = null;
+
     function showAiGenerating(show) {
         const el = $('#ai-generating');
-        if (show) el.classList.remove('hidden'); else el.classList.add('hidden');
+        if (show) {
+            el.classList.remove('hidden');
+            if (state.uiMode === 'chat') {
+                const container = $('#chat-messages');
+                if (container && !chatThinkingMsg) {
+                    chatThinkingMsg = document.createElement('div');
+                    chatThinkingMsg.className = 'chat-msg ai chat-thinking';
+                    chatThinkingMsg.innerHTML = '<div class="msg-name">星酱</div><div class="thinking-inline"><div class="thinking-dots"><span class="thinking-dot"></span><span class="thinking-dot"></span><span class="thinking-dot"></span></div><span class="thinking-text">正在思考</span></div>';
+                    container.appendChild(chatThinkingMsg);
+                    container.scrollTop = container.scrollHeight;
+                }
+            }
+        } else {
+            el.classList.add('hidden');
+            if (chatThinkingMsg) {
+                chatThinkingMsg.remove();
+                chatThinkingMsg = null;
+            }
+        }
     }
 
     function addDialogHistory(name, text) {
@@ -2513,11 +2587,44 @@
                 const dlBtn = document.createElement('button');
                 dlBtn.textContent = '💾 下载';
                 dlBtn.addEventListener('click', (e) => { e.stopPropagation(); downloadImage(imgSrc, `scene_${i}.png`); });
+                const delBtn = document.createElement('button');
+                delBtn.textContent = '🗑️ 删除';
+                delBtn.className = 'gallery-delete-btn';
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (item.persisted && item.id) {
+                        try { IDB.deleteImage(item.id); } catch {}
+                    }
+                    state.gallery.splice(i, 1);
+                    saveGallery();
+                    openGallery();
+                    showToast('图片已删除', 'info');
+                });
                 overlay.appendChild(dlBtn);
+                overlay.appendChild(delBtn);
                 div.appendChild(img);
                 div.appendChild(overlay);
                 grid.appendChild(div);
             }
+            const clearAllDiv = document.createElement('div');
+            clearAllDiv.style.cssText = 'text-align:center;margin-top:1rem;';
+            const clearAllBtn = document.createElement('button');
+            clearAllBtn.className = 'menu-btn';
+            clearAllBtn.style.cssText = 'border-color:rgba(255,100,100,0.3);color:#ff6666;';
+            clearAllBtn.textContent = '🗑️ 一键清空画廊';
+            clearAllBtn.addEventListener('click', () => {
+                state.gallery.forEach(item => {
+                    if (item.persisted && item.id) {
+                        try { IDB.deleteImage(item.id); } catch {}
+                    }
+                });
+                state.gallery = [];
+                saveGallery();
+                openGallery();
+                showToast('画廊已清空', 'info');
+            });
+            clearAllDiv.appendChild(clearAllBtn);
+            grid.appendChild(clearAllDiv);
         }
         showModal('gallery-modal');
     }
@@ -2566,7 +2673,6 @@
         state.game.isTyping = false;
         stopBgAutoSwitch();
         stopTts();
-        if (state.game.dialogHistory.length > 0) saveCurrentGame();
         switchScreen('title-screen');
         state.game.isAutoPlay = false;
         const outlineBtn = $('#outline-select-btn');
@@ -2581,43 +2687,67 @@
         const container = $('#save-slots');
         container.innerHTML = '';
         const saves = Storage.get(STORAGE_KEYS.saves) || {};
-        for (let i = 1; i <= 8; i++) {
-            const save = saves[i];
+        const saveCount = Object.keys(saves).length;
+        if (mode === 'load' && saveCount === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);">暂无存档</div>';
+            showModal('save-modal');
+            return;
+        }
+        const existingSlots = Object.keys(saves).map(Number).sort((a, b) => a - b);
+        existingSlots.forEach(slotNum => {
+            const save = saves[slotNum];
+            if (!save) return;
             const slot = document.createElement('div');
             slot.className = 'save-slot';
             const numDiv = document.createElement('div');
             numDiv.className = 'slot-number';
-            numDiv.textContent = i;
+            numDiv.textContent = slotNum;
             const infoDiv = document.createElement('div');
             infoDiv.className = 'slot-info';
             const titleDiv = document.createElement('div');
             titleDiv.className = 'slot-title';
-            titleDiv.textContent = save ? save.title : '空存档';
+            titleDiv.textContent = save.title || '存档';
             const detailDiv = document.createElement('div');
             detailDiv.className = 'slot-detail';
-            detailDiv.textContent = save ? new Date(save.timestamp).toLocaleString('zh-CN') : '——';
+            detailDiv.textContent = new Date(save.timestamp).toLocaleString('zh-CN');
             infoDiv.appendChild(titleDiv);
             infoDiv.appendChild(detailDiv);
             slot.appendChild(numDiv);
             slot.appendChild(infoDiv);
             const actionsDiv = document.createElement('div');
             actionsDiv.className = 'slot-actions';
-            if (save) {
+            if (mode === 'load') {
                 const loadBtn = document.createElement('button');
                 loadBtn.className = 'slot-load';
                 loadBtn.textContent = '读取';
-                loadBtn.addEventListener('click', e => { e.stopPropagation(); loadFromSlot(i); });
-                const delBtn = document.createElement('button');
-                delBtn.className = 'slot-delete';
-                delBtn.textContent = '删除';
-                delBtn.addEventListener('click', e => { e.stopPropagation(); deleteSlot(i); });
+                loadBtn.addEventListener('click', e => { e.stopPropagation(); loadFromSlot(slotNum); });
                 actionsDiv.appendChild(loadBtn);
-                actionsDiv.appendChild(delBtn);
-                if (mode === 'load') { slot.addEventListener('click', () => loadFromSlot(i)); }
             }
+            if (mode === 'save') {
+                const saveBtn = document.createElement('button');
+                saveBtn.className = 'slot-load';
+                saveBtn.textContent = '覆盖';
+                saveBtn.addEventListener('click', e => { e.stopPropagation(); saveToSlot(slotNum); });
+                actionsDiv.appendChild(saveBtn);
+            }
+            const delBtn = document.createElement('button');
+            delBtn.className = 'slot-delete';
+            delBtn.textContent = '删除';
+            delBtn.addEventListener('click', e => { e.stopPropagation(); deleteSlot(slotNum); });
+            actionsDiv.appendChild(delBtn);
             slot.appendChild(actionsDiv);
-            if (mode === 'save') { slot.addEventListener('click', () => saveToSlot(i)); }
+            if (mode === 'load') { slot.addEventListener('click', () => loadFromSlot(slotNum)); }
             container.appendChild(slot);
+        });
+        if (mode === 'save') {
+            const addSlot = document.createElement('div');
+            addSlot.className = 'save-slot save-slot-new';
+            addSlot.innerHTML = '<div style="text-align:center;width:100%;color:var(--primary);cursor:pointer;">+ 新建存档</div>';
+            addSlot.addEventListener('click', () => {
+                const newNum = existingSlots.length > 0 ? Math.max(...existingSlots) + 1 : 1;
+                saveToSlot(newNum);
+            });
+            container.appendChild(addSlot);
         }
         showModal('save-modal');
     }
@@ -2692,7 +2822,7 @@
         delete saves[slotNum];
         Storage.set(STORAGE_KEYS.saves, saves);
         showToast(`存档 ${slotNum} 已删除`, 'info');
-        openSaveModal('load');
+        openSaveModal(state._saveModalMode || 'save');
     }
 
     async function exportData() {

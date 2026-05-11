@@ -739,17 +739,54 @@ html, body {
     font-size: 0.95rem;
 }
 
-.ai-spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--border);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+.ai-thinking-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
+.thinking-dots {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.thinking-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--primary);
+    animation: thinkingBounce 1.4s ease-in-out infinite;
+}
+
+.thinking-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.thinking-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+.thinking-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    animation: thinkingFade 2s ease-in-out infinite;
+}
+
+@keyframes thinkingBounce {
+    0%, 80%, 100% {
+        transform: scale(0.6);
+        opacity: 0.4;
+    }
+    40% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+@keyframes thinkingFade {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
 }
 
 /* ==================== 模态框 ==================== */
@@ -1117,6 +1154,21 @@ html, body {
 .save-slot .slot-actions button:hover {
     border-color: var(--primary);
     color: var(--primary);
+}
+
+.save-slot-new {
+    border: 2px dashed var(--border);
+    background: transparent;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+}
+
+.save-slot-new:hover {
+    border-color: var(--primary);
+    background: rgba(0, 210, 255, 0.05);
 }
 
 /* ==================== 对话历史 ==================== */
@@ -1722,17 +1774,68 @@ html, body {
 .gallery-panel { max-width: 800px; }
 .api-status-panel { max-width: 500px; }
 
+/* ==================== 继续对话模态框 ==================== */
+.continue-dialog-panel {
+    max-width: 440px;
+}
+
+.continue-dialog-desc {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.continue-dialog-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.continue-dialog-actions .menu-btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    padding: 1.1rem 1.5rem;
+}
+
+.continue-dialog-actions .menu-btn .btn-icon {
+    font-size: 1.4rem;
+}
+
+.continue-dialog-actions .restart-btn {
+    border-color: rgba(255, 100, 100, 0.3);
+    background: rgba(255, 60, 60, 0.06);
+}
+
+.continue-dialog-actions .restart-btn:hover {
+    border-color: #ff4040;
+    background: rgba(255, 60, 60, 0.12);
+}
+
+.continue-dialog-actions .restart-btn small {
+    color: var(--text-muted);
+}
+
 .api-label {
     font-size: 0.7rem;
     color: var(--text-muted);
 }
 
 [data-day-night="night"] {
-    filter: brightness(0.7) saturate(0.85);
+    --bg: rgba(10, 10, 20, 0.85);
+    --bg-card: rgba(15, 15, 30, 0.8);
+    --bg-secondary: rgba(20, 20, 40, 0.7);
+    --text: #e0e0e0;
+    --text-secondary: #b0b0b0;
+    --text-muted: #707070;
+    --border: rgba(100, 100, 140, 0.25);
 }
 
-[data-day-night="night"] #scene-overlay {
-    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.1) 70%, rgba(0,0,0,0.4) 100%);
+[data-day-night="night"] #dialog-box {
+    background: rgba(10, 10, 25, 0.85);
+    border-color: rgba(100, 100, 140, 0.3);
 }
 
 [data-day-night="night"] #dialog-box::before {
@@ -1741,10 +1844,48 @@ html, body {
 
 [data-day-night="night"] .menu-btn {
     background: rgba(5, 5, 15, 0.8);
+    border-color: rgba(100, 100, 140, 0.3);
+    color: #e0e0e0;
 }
 
 [data-day-night="night"] #title-screen::before {
     opacity: 0.2;
+}
+
+[data-day-night="night"] .modal-content {
+    background: rgba(15, 15, 30, 0.92);
+    border-color: rgba(100, 100, 140, 0.3);
+}
+
+[data-day-night="night"] .form-group input,
+[data-day-night="night"] .form-group select,
+[data-day-night="night"] .form-group textarea {
+    background: rgba(20, 20, 40, 0.8);
+    border-color: rgba(100, 100, 140, 0.3);
+    color: #e0e0e0;
+}
+
+[data-day-night="night"] .settings-tab {
+    background: rgba(15, 15, 30, 0.9);
+}
+
+[data-day-night="night"] .save-slot {
+    background: rgba(15, 15, 30, 0.8);
+    border-color: rgba(100, 100, 140, 0.3);
+}
+
+[data-day-night="night"] #chat-header,
+[data-day-night="night"] #chat-input-area {
+    background: rgba(10, 10, 25, 0.9);
+    border-color: rgba(100, 100, 140, 0.3);
+}
+
+[data-day-night="night"] .chat-msg {
+    background: rgba(15, 15, 30, 0.8);
+}
+
+[data-day-night="night"] #scene-overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.05) 70%, rgba(0,0,0,0.3) 100%);
 }
 
 /* ==================== 聊天模式 ==================== */
@@ -1754,6 +1895,38 @@ html, body {
     height: 100vh;
     height: 100dvh;
     background: var(--bg);
+    position: relative;
+}
+
+#chat-screen-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+#chat-screen-bg::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.3) 100%);
+}
+
+#chat-header,
+#chat-input-area,
+#chat-messages {
+    position: relative;
+    z-index: 1;
 }
 
 #chat-screen:not(.active) { display: none; }
@@ -1865,6 +2038,45 @@ html, body {
 .chat-msg .msg-choice-btn:hover {
     background: var(--primary);
     color: #fff;
+}
+
+.chat-thinking {
+    opacity: 0.8;
+}
+
+.thinking-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0;
+}
+
+.thinking-inline .thinking-dots {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+}
+
+.thinking-inline .thinking-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--primary);
+    animation: thinkingBounce 1.4s ease-in-out infinite;
+}
+
+.thinking-inline .thinking-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.thinking-inline .thinking-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+.thinking-inline .thinking-text {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    animation: thinkingFade 2s ease-in-out infinite;
 }
 
 #chat-input-area {
