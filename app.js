@@ -437,6 +437,7 @@
         updateStorageUsage();
         initBgm();
         initTts();
+        loadStoryVars();
     }
 
     function loadSettings() {
@@ -474,10 +475,12 @@
             state.game.aiContext = state.game.aiContext.slice(-maxContext);
         }
         Storage.set(STORAGE_KEYS.currentGame, state.game);
+        updateStorageUsage();
     }
 
     function saveGallery() {
         Storage.set(STORAGE_KEYS.gallery, state.gallery);
+        updateStorageUsage();
     }
 
     function applyTheme(themeName) {
@@ -672,8 +675,6 @@
             if (e.key === 'Enter') { e.preventDefault(); sendCustomInput(); }
         });
         $('#chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') handleChatSend(); });
-        $('#chat-send-btn').addEventListener('click', handleChatSend);
-        $$('.quick-action-btn').forEach(btn => btn.addEventListener('click', () => handleChatQuickAction(btn.dataset.action)));
         $('#back-to-choices-btn').addEventListener('click', () => {
             hideCustomInput();
             if (lastChoices) showChoices(lastChoices);
@@ -762,6 +763,7 @@
 
     function handleKeyDown(e) {
         if (state.currentScreen !== 'game') return;
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleDialogClick(); }
         if (e.key === 'Escape') {
             if (!$('#settings-modal').classList.contains('hidden')) hideModal('settings-modal');
@@ -1098,7 +1100,20 @@
         }, 800);
     }
 
-    let storyVars = { courage: 0, trust: 0, curiosity: 0, kindness: 0, mystery: 0, visited: new Set() };
+    let storyVars = { courage: 0, trust: 0, curiosity: 0, kindness: 0, mystery: 0, visited: [] };
+
+    function saveStoryVars() {
+        try { Storage.set('galgame_storyVars', storyVars); } catch {}
+    }
+
+    function loadStoryVars() {
+        try {
+            const saved = Storage.get('galgame_storyVars');
+            if (saved) {
+                storyVars = { ...storyVars, ...saved, visited: Array.isArray(saved.visited) ? saved.visited : [] };
+            }
+        } catch {}
+    }
 
     function normalNext(branch) {
         const B = {
@@ -1134,7 +1149,8 @@
         };
         const b = B[branch];
         if (b) {
-            storyVars.visited.add(branch);
+            storyVars.visited.push(branch);
+            saveStoryVars();
             showDialog(b.name, b.dialog);
             addDialogHistory(b.name, b.dialog);
             if (b.choices) setTimeout(() => showChoices(b.choices), 800);
@@ -1202,10 +1218,10 @@
             const original = state.settings._fallbackFrom;
             delete state.settings._fallbackFrom;
             state.settings.textApiProvider = original;
-            state.settings.textModel = API_CONFIGS[original].models.text[0]?.id || state.settings.textModel;
+            state.settings.textModel = API_CONFIGS[original]?.models?.text?.[0]?.id || state.settings.textModel;
             updateModelOptions();
             restoreSettingsUI();
-            showToast(`已恢复使用${API_CONFIGS[original].name}`, 'info');
+            if (API_CONFIGS[original]) showToast(`已恢复使用${API_CONFIGS[original].name}`, 'info');
         }
     }
 
@@ -1620,8 +1636,10 @@
                 current.pause();
                 current.currentTime = 0;
                 current.src = next.src;
-                next.src = '';
                 current.volume = bgmState.volume;
+                current.play().catch(() => {});
+                next.pause();
+                next.src = '';
             }
             if (current.volume - step >= 0) {
                 current.volume -= step;
@@ -2032,33 +2050,31 @@
             if (scene) state.game.currentScene = scene;
             if (scene && state.settings.autoGenScene) generateSceneImage(scene);
             if (choices.length > 0) {
-                setTimeout(() => showChoices(choices.map(c => ({ text: c.text, action: () => handleAiChoice(c.text) }))), 1000);
-                if (state.uiMode === 'chat') {
-                    addChatChoices(choices.map(c => ({ text: c.text })));
-                }
-            }
-            if (state.game.activeOutline && state.game.outlineChapterIndex !== undefined) {
-                const outline = state.game.activeOutline;
-                const chapterIdx = state.game.outlineChapterIndex;
-                if (chapterIdx < outline.chapters.length - 1) {
-                    const nextChapter = outline.chapters[chapterIdx + 1];
-                    const hasProgressionHint = choices.some(c => c.text && (c.text.includes('继续') || c.text.includes('前进') || c.text.includes('深入') || c.text.includes('下一章')));
-                    if (hasProgressionHint || state.game.dialogHistory.length % 5 === 0) {
-                        const existingChoices = choices.map(c => ({ text: c.text, action: () => handleAiChoice(c.text) }));
-                        existingChoices.push({
-                            text: `→ 进入下一章：${nextChapter.title}`,
-                            action: () => {
-                                state.game.outlineChapterIndex = chapterIdx + 1;
-                                updateOutlineChapterDisplay(outline, chapterIdx + 1);
-                                if (bgmState.enabled && nextChapter.mood) playBgm(nextChapter.mood);
-                                handleAiChoice(`[进入下一章] ${nextChapter.title}：${nextChapter.summary}`);
-                            }
-                        });
-                        setTimeout(() => showChoices(existingChoices), 1000);
-                        return;
+                let finalChoices = choices.map(c => ({ text: c.text, action: () => handleAiChoice(c.text) }));
+                if (state.game.activeOutline && state.game.outlineChapterIndex !== undefined) {
+                    const outline = state.game.activeOutline;
+                    const chapterIdx = state.game.outlineChapterIndex;
+                    if (chapterIdx < outline.chapters.length - 1) {
+                        const nextChapter = outline.chapters[chapterIdx + 1];
+                        const hasProgressionHint = choices.some(c => c.text && (c.text.includes('继续') || c.text.includes('前进') || c.text.includes('深入') || c.text.includes('下一章')));
+                        if (hasProgressionHint || state.game.dialogHistory.length % 5 === 0) {
+                            finalChoices.push({
+                                text: `→ 进入下一章：${nextChapter.title}`,
+                                action: () => {
+                                    state.game.outlineChapterIndex = chapterIdx + 1;
+                                    updateOutlineChapterDisplay(outline, chapterIdx + 1);
+                                    if (bgmState.enabled && nextChapter.mood) playBgm(nextChapter.mood);
+                                    handleAiChoice(`[进入下一章] ${nextChapter.title}：${nextChapter.summary}`);
+                                }
+                            });
+                        }
                     }
+                    updateOutlineChapterDisplay(outline, chapterIdx);
                 }
-                updateOutlineChapterDisplay(outline, chapterIdx);
+                setTimeout(() => showChoices(finalChoices), 1000);
+                if (state.uiMode === 'chat') {
+                    addChatChoices(finalChoices.map(c => ({ text: c.text })));
+                }
             }
         } else {
             let content = rawContent;
@@ -2131,6 +2147,7 @@
         if (now - lastImageGenTime < getImageCooldown()) {
             pendingSceneDescription = sceneDescription;
             showToast(`场景图将在${Math.ceil((getImageCooldown() - (now - lastImageGenTime)) / 1000)}秒后生成`, 'info');
+            schedulePendingImage();
             return;
         }
         lastImageGenTime = now;
@@ -2180,7 +2197,12 @@
     }
 
     function setBgStyle(el, imageUrl) {
-        el.style.backgroundImage = `url("${imageUrl}")`;
+        if (imageUrl && imageUrl.startsWith('data:')) {
+            el.style.backgroundImage = `url("${imageUrl}")`;
+        } else if (imageUrl) {
+            const safeUrl = imageUrl.replace(/"/g, '%22').replace(/[()]/g, '');
+            el.style.backgroundImage = `url("${safeUrl}")`;
+        }
     }
 
     function setSceneBackground(imageUrl) {
@@ -2318,6 +2340,7 @@
                     textEl.appendChild(span);
                 }
                 index++;
+                textEl.scrollTop = textEl.scrollHeight;
             } else {
                 clearInterval(typewriterTimer); typewriterTimer = null;
                 state.game.isTyping = false;
@@ -2625,6 +2648,12 @@
         state.game = JSON.parse(JSON.stringify(save.game));
         if (save.theme) applyTheme(save.theme);
         if (save.dayNightMode) applyDayNightMode(save.dayNightMode);
+        if (save.uiMode) switchUiMode(save.uiMode);
+        if (state.game.activeOutline) {
+            const outlineBtn = $('#outline-select-btn');
+            if (outlineBtn) outlineBtn.classList.remove('hidden');
+            updateOutlineChapterDisplay(state.game.activeOutline, state.game.outlineChapterIndex || 0);
+        }
         if (state.game.currentSceneUrl) {
             setSceneBackground(state.game.currentSceneUrl);
         } else {
