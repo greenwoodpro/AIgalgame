@@ -31,7 +31,7 @@ async function proxyApi(request, env, provider, apiPath) {
     const apiKey = getApiKey(env, provider);
     const baseUrl = API_BASES[provider];
     if (!apiKey || !baseUrl) {
-        return errorResponse(`Provider ${provider} not configured: ${!apiKey ? 'API key missing' : 'base URL missing'}`, 500);
+        return errorResponse(`Provider ${provider} not configured`, 500);
     }
 
     const targetUrl = `${baseUrl}/${apiPath}`;

@@ -166,7 +166,7 @@
                             <textarea id="outline-characters" rows="2" placeholder="描述主要角色的性格和外貌..." maxlength="200"></textarea>
                         </div>
                         <div class="form-group">
-                            <label>章节大纲</label>
+                            <label id="outline-chapters-label">章节大纲</label>
                             <div id="outline-chapters"></div>
                             <button class="choice-btn" data-action="add-chapter" style="margin-top:0.5rem;">+ 添加章节</button>
                         </div>
@@ -300,7 +300,7 @@
                     </div>
                     <div class="tab-content" id="tab-theme">
                         <div class="form-group">
-                            <label>显示模式</label>
+                            <label id="theme-mode-label">显示模式</label>
                             <div class="theme-grid" style="grid-template-columns: 1fr 1fr;">
                                                     <div class="theme-card active" data-theme="dark-star">
                                                         <div class="theme-preview dark-star-preview"></div>
@@ -416,7 +416,7 @@
                             <small>两次AI生图之间的最小间隔，避免频繁调用触发限流</small>
                         </div>
                         <div class="form-group">
-                            <label>存储空间</label>
+                            <label id="storage-label">存储空间</label>
                             <div class="storage-bar-wrap">
                                 <div class="storage-bar"><div id="storage-bar-fill" class="storage-bar-fill"></div></div>
                                 <span id="storage-usage">0 KB</span>

@@ -25,7 +25,7 @@
         set(key, value) {
             this._cache[key] = value;
             try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {
-                console.warn('存储写入失败:', e);
+                console.warn('存储写入失败');
                 if (e.name === 'QuotaExceededError') {
                     showToast('存储空间不足！请清理旧存档或图片', 'error');
                 }
@@ -449,15 +449,15 @@
                 if (saved.customTheme) state.settings.customTheme = { ...state.settings.customTheme, ...saved.customTheme };
                 if (saved.dayNightMode) state.dayNightMode = saved.dayNightMode;
             }
-        } catch (e) { console.warn('加载设置失败:', e); }
+        } catch (e) { console.warn('加载设置失败'); }
         try {
             const game = Storage.get(STORAGE_KEYS.currentGame);
             if (game) state.game = { ...state.game, ...game };
-        } catch (e) { console.warn('加载游戏存档失败:', e); }
+        } catch (e) { console.warn('加载游戏存档失败'); }
         try {
             const gallery = Storage.get(STORAGE_KEYS.gallery);
             if (gallery) state.gallery = gallery;
-        } catch (e) { console.warn('加载画廊失败:', e); }
+        } catch (e) { console.warn('加载画廊失败'); }
     }
 
     function saveSettings() {
@@ -2142,7 +2142,12 @@
                 let base64Data = null;
                 if (result.type === 'url') {
                     imageUrl = result.value;
-                    base64Data = await IDB.urlToBase64(result.value);
+                    try {
+                        base64Data = await IDB.urlToBase64(result.value);
+                        imageUrl = base64Data;
+                    } catch {
+                        base64Data = null;
+                    }
                 } else if (result.type === 'base64') {
                     imageUrl = `data:image/png;base64,${result.value}`;
                     base64Data = imageUrl;
@@ -2153,23 +2158,23 @@
                     const imgId = `scene_${Date.now()}`;
                     if (base64Data) {
                         try {
-                            await IDB.saveImage(imgId, { base64: base64Data, prompt: sceneDescription, url: result.type === 'url' ? result.value : null });
+                            await IDB.saveImage(imgId, { base64: base64Data, prompt: sceneDescription });
                             state.gallery.push({ id: imgId, prompt: sceneDescription, timestamp: Date.now(), persisted: true });
                         } catch (e) {
-                            console.warn('IndexedDB保存失败:', e);
-                            state.gallery.push({ url: result.type === 'url' ? result.value : null, prompt: sceneDescription, timestamp: Date.now(), note: '图片可能无法持久保存' });
+                            console.warn('IndexedDB保存失败');
+                            state.gallery.push({ prompt: sceneDescription, timestamp: Date.now(), note: '图片可能无法持久保存' });
                         }
                     } else {
-                        state.gallery.push({ url: result.type === 'url' ? result.value : null, prompt: sceneDescription, timestamp: Date.now(), note: '图片可能无法持久保存' });
+                        state.gallery.push({ prompt: sceneDescription, timestamp: Date.now(), note: '图片可能无法持久保存' });
                     }
                     if (state.gallery.length > 30) state.gallery = state.gallery.slice(-30);
-                    try { saveGallery(); } catch (e) { console.warn('画廊保存失败:', e); }
+                    try { saveGallery(); } catch (e) { console.warn('画廊保存失败'); }
                     try { await IDB.clearOldImages(30); } catch {}
                     showToast('场景图生成完成！', 'success');
                 }
             }
         } catch (e) {
-            console.warn('场景图生成失败:', e);
+            console.warn('场景图生成失败');
             showToast('场景图生成失败: ' + e.message, 'error');
         }
     }
@@ -2196,7 +2201,6 @@
             }, 1300);
         };
         img.onerror = () => {
-            console.warn('背景图加载失败:', imageUrl);
         };
         img.src = imageUrl;
     }
@@ -2239,12 +2243,17 @@
                 try {
                     const prompt = `${state.game.currentScene}, cinematic lighting, detailed background, anime style`;
                     const result = await callImageApi(prompt);
-                    const imageUrl = result.type === 'url' ? result.value : `data:image/png;base64,${result.value}`;
-                    setSceneBackground(imageUrl);
-                    const imgId = `bg_${Date.now()}`;
+                    let imageUrl;
                     let base64Data = null;
-                    if (result.type === 'url') base64Data = await IDB.urlToBase64(result.value);
-                    else if (result.type === 'base64') base64Data = `data:image/png;base64,${result.value}`;
+                    if (result.type === 'url') {
+                        try { base64Data = await IDB.urlToBase64(result.value); } catch {}
+                        imageUrl = base64Data || result.value;
+                    } else if (result.type === 'base64') {
+                        base64Data = `data:image/png;base64,${result.value}`;
+                        imageUrl = base64Data;
+                    }
+                    if (imageUrl) setSceneBackground(imageUrl);
+                    const imgId = `bg_${Date.now()}`;
                     if (base64Data) {
                         try { await IDB.saveImage(imgId, { base64: base64Data, prompt, autoSwitch: true }); } catch {}
                     }
@@ -2923,7 +2932,7 @@
             };
             await ttsState.audio.play();
         } catch (e) {
-            console.warn('TTS失败:', e);
+            console.warn('TTS失败');
             ttsState.speaking = false;
         }
     }
