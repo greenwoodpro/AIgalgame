@@ -1081,10 +1081,10 @@
                 return;
             }
             state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, currentSceneUrl: null, currentScene: '' };
-            setSceneBackground('background.png');
+            setSceneBackground(DEFAULT_BG);
             const outlineBtn = $('#outline-select-btn');
             if (outlineBtn) outlineBtn.classList.remove('hidden');
-            showSprite('char_1', 'normal');
+            showSprite('char_1', '高兴');
             await startAiStory();
         } else {
             state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, currentSceneUrl: null, currentScene: '' };
@@ -1102,7 +1102,7 @@
         const lastDialog = state.game.dialogHistory[state.game.dialogHistory.length - 1];
         if (lastDialog) showDialog(lastDialog.name, lastDialog.text);
         if (state.game.currentSceneUrl) setSceneBackground(state.game.currentSceneUrl);
-        else setSceneBackground('background.png');
+        else setSceneBackground(DEFAULT_BG);
         if (state.mode === 'ai' && state.settings.autoSwitchBg) startBgAutoSwitch();
         showToast('已恢复上次对话', 'success');
         if (bgmState.enabled) playBgm('daily');
@@ -1140,7 +1140,7 @@
     }
 
     function startNormalStory() {
-        setSceneBackground('background.png');
+        setSceneBackground(DEFAULT_BG);
         showDialog('旁白', '你睁开眼，发现自己身处一个陌生的房间。窗外的星空与你记忆中的完全不同……');
         setTimeout(() => {
             showChoices([
@@ -2000,7 +2000,7 @@
         const outlineBtn = $('#outline-select-btn');
         if (outlineBtn) outlineBtn.classList.remove('hidden');
         updateOutlineChapterDisplay(outline, 0);
-        setSceneBackground('background.png');
+        setSceneBackground(DEFAULT_BG);
         handleAiChoice(outlinePrompt);
         showToast(`开始剧情：${outline.title}`, 'success');
     }
@@ -2093,7 +2093,7 @@
             updateEmotionIndicator(emotion);
             if (ttsState.enabled) speakText(dialog, emotion);
             if (spriteState.visible === false && name !== '旁白' && name !== '系统') {
-                showSprite('char_1', SPRITE_CONFIG.emotionMap[emotion] || 'normal');
+                showSprite('char_1', SPRITE_CONFIG.emotionMap[emotion] || '高兴');
             }
             if (state.uiMode === 'chat') {
                 addChatMessage(name, dialog, 'ai');
@@ -2262,8 +2262,8 @@
         const chatBg = $('#chat-screen-bg');
         if (!imageUrl) {
             bgNext.classList.remove('active');
-            bg.style.backgroundImage = "url('background.png')";
-            if (chatBg) chatBg.style.backgroundImage = "url('background.png')";
+            bg.style.backgroundImage = `url('${DEFAULT_BG}')`;
+            if (chatBg) chatBg.style.backgroundImage = `url('${DEFAULT_BG}')`;
             return;
         }
         const img = new Image();
@@ -2787,7 +2787,7 @@
         if (state.game.currentSceneUrl) {
             setSceneBackground(state.game.currentSceneUrl);
         } else {
-            setSceneBackground('background.png');
+            setSceneBackground(DEFAULT_BG);
         }
         switchScreen('game-screen');
         hideModal('save-modal');
@@ -2961,25 +2961,36 @@
 
     const SPRITE_CONFIG = {
         characters: [
-            { id: 'char_1', name: '星酱', folder: 'sprites/char1', defaultExpr: 'normal' },
-            { id: 'char_2', name: '角色2', folder: 'sprites/char2', defaultExpr: 'normal' },
-            { id: 'char_3', name: '角色3', folder: 'sprites/char3', defaultExpr: 'normal' },
-            { id: 'char_4', name: '角色4', folder: 'sprites/char4', defaultExpr: 'normal' },
-            { id: 'char_5', name: '角色5', folder: 'sprites/char5', defaultExpr: 'normal' },
+            { id: 'char_1', name: '星酱', folder: 'sprites/char1', defaultExpr: '高兴', extMap: { '高兴': 'jpeg' } },
+            { id: 'char_2', name: '角色2', folder: 'sprites/char2', defaultExpr: '高兴' },
+            { id: 'char_3', name: '角色3', folder: 'sprites/char3', defaultExpr: '高兴' },
+            { id: 'char_4', name: '角色4', folder: 'sprites/char4', defaultExpr: '高兴' },
         ],
-        expressions: ['normal', 'surprised', 'shy', 'shocked', 'confused', 'angry'],
+        expressions: ['高兴', '害羞', '生气', '疑惑'],
         emotionMap: {
-            happy: 'surprised', sad: 'confused', angry: 'angry', surprised: 'shocked',
-            shy: 'shy', neutral: 'normal', scared: 'shocked', excited: 'surprised',
-            worried: 'confused', tsundere: 'angry',
+            happy: '高兴', sad: '疑惑', angry: '生气', surprised: '害羞',
+            shy: '害羞', neutral: '高兴', scared: '疑惑', excited: '高兴',
+            worried: '疑惑', tsundere: '生气',
         },
+        defaultBackgrounds: [
+            'sprites/background/pic1.png',
+            'sprites/background/pic2.png',
+            'sprites/background/pic3.jpeg',
+        ],
     };
+
+    const DEFAULT_BG = SPRITE_CONFIG.defaultBackgrounds[0];
 
     let spriteState = {
         currentChar: null,
-        currentExpr: 'normal',
+        currentExpr: '高兴',
         visible: false,
     };
+
+    function getSpriteImagePath(char, expr) {
+        const ext = (char.extMap && char.extMap[expr]) || 'jpg';
+        return `${char.folder}/${expr}.${ext}`;
+    }
 
     function showSprite(charId, expression) {
         const char = SPRITE_CONFIG.characters.find(c => c.id === charId);
@@ -2990,7 +3001,7 @@
         spriteState.visible = true;
         const spriteEl = $('#character-sprite');
         if (!spriteEl) return;
-        const imgSrc = `${char.folder}/${expr}.png`;
+        const imgSrc = getSpriteImagePath(char, expr);
         spriteEl.style.backgroundImage = `url('${imgSrc}')`;
         spriteEl.classList.remove('hidden');
         spriteEl.classList.add('sprite-enter');
@@ -3010,14 +3021,14 @@
 
     function switchSpriteExpression(emotion) {
         if (!spriteState.visible || !spriteState.currentChar) return;
-        const expr = SPRITE_CONFIG.emotionMap[emotion] || 'normal';
+        const expr = SPRITE_CONFIG.emotionMap[emotion] || '高兴';
         if (expr !== spriteState.currentExpr) {
             spriteState.currentExpr = expr;
             const char = SPRITE_CONFIG.characters.find(c => c.id === spriteState.currentChar);
             if (!char) return;
             const spriteEl = $('#character-sprite');
             if (!spriteEl) return;
-            const imgSrc = `${char.folder}/${expr}.png`;
+            const imgSrc = getSpriteImagePath(char, expr);
             spriteEl.style.backgroundImage = `url('${imgSrc}')`;
             spriteEl.classList.add('sprite-switch');
             setTimeout(() => spriteEl.classList.remove('sprite-switch'), 300);

@@ -135,7 +135,7 @@ html, body {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('background.png') center bottom/cover no-repeat;
+    background: url('sprites/background/pic1.png') center bottom/cover no-repeat;
     opacity: 0.35;
     z-index: 0;
 }
@@ -307,7 +307,7 @@ html, body {
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
-    background-image: url('background.png');
+    background-image: url('sprites/background/pic1.png');
     transition: opacity 1.2s ease;
 }
 
