@@ -51,6 +51,15 @@
             <button id="outline-select-btn" class="hidden" data-action="show-outline-select" title="从大纲开始">📋 大纲</button>
             <div id="outline-chapter-display" class="hidden"></div>
             <div id="character-sprite" class="hidden"></div>
+            <div id="sprite-selector" class="hidden">
+                <div id="sprite-selector-header">
+                    <span>立绘切换</span>
+                    <button id="sprite-selector-close" data-action="close-sprite-selector">✕</button>
+                </div>
+                <div id="sprite-char-list"></div>
+                <div id="sprite-expr-list"></div>
+            </div>
+            <button id="sprite-toggle-btn" class="hidden" data-action="toggle-sprite-selector" title="切换立绘">🎭</button>
             <div id="scene-layer">
                 <button id="scene-download-btn" data-action="download-scene">💾 下载场景图</button>
                 <div id="scene-bg"></div>
@@ -485,8 +494,7 @@
                 </div>
                 <div class="settings-footer">
                     <button class="action-btn" data-action="reset-defaults">🔄 恢复默认</button>
-                    <button class="action-btn secondary" data-action="close-settings">取消</button>
-                    <button class="action-btn primary" data-action="save-settings">💾 保存设置</button>
+                    <button class="action-btn secondary" data-action="close-settings">关闭</button>
                 </div>
             </div>
         </div>

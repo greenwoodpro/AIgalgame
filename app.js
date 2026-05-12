@@ -353,6 +353,7 @@
 
     function switchUiMode(mode) {
         state.uiMode = mode;
+        closeSpriteSelector();
         if (mode === 'chat') {
             $('#game-screen').classList.remove('active');
             $('#chat-screen').classList.add('active');
@@ -729,8 +730,7 @@
             case 'close-outline-preview': { const pm = $('#outline-preview-modal'); if (pm) pm.classList.add('hidden'); } break;
             case 'load': state._saveModalMode = 'load'; openSaveModal('load'); break;
             case 'settings': showModal('settings-modal'); break;
-            case 'close-settings': hideModal('settings-modal'); break;
-            case 'save-settings': collectSettingsForm(); hideModal('settings-modal'); showToast('设置已保存', 'success'); break;
+            case 'close-settings': collectSettingsForm(); hideModal('settings-modal'); break;
             case 'reset-defaults': resetToDefaults(); break;
             case 'send-custom-input': sendCustomInput(); break;
             case 'toggle-info': toggleInfoBadge(); break;
@@ -766,6 +766,8 @@
             case 'toggle-ui-mode': switchUiMode(state.uiMode === 'chat' ? 'game' : 'chat'); break;
             case 'toggle-bgm': toggleBgm(); break;
             case 'toggle-tts': toggleTts(); break;
+            case 'toggle-sprite-selector': toggleSpriteSelector(); break;
+            case 'close-sprite-selector': closeSpriteSelector(); break;
             case 'chat-send': handleChatSend(); break;
             case 'chat-continue': case 'chat-explore': case 'chat-interact': handleChatQuickAction(act); break;
         }
@@ -3006,6 +3008,16 @@
         spriteEl.classList.remove('hidden');
         spriteEl.classList.add('sprite-enter');
         setTimeout(() => spriteEl.classList.remove('sprite-enter'), 500);
+        const toggleBtn = $('#sprite-toggle-btn');
+        if (toggleBtn) toggleBtn.classList.remove('hidden');
+        const selector = $('#sprite-selector');
+        if (selector && !selector.classList.contains('hidden')) {
+            const charList = $('#sprite-char-list');
+            if (charList) charList.querySelectorAll('.sprite-char-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.charId === charId);
+            });
+            updateExprButtons(charId);
+        }
     }
 
     function hideSprite() {
@@ -3017,6 +3029,9 @@
             spriteEl.classList.remove('sprite-exit');
             spriteState.visible = false;
         }, 400);
+        const toggleBtn = $('#sprite-toggle-btn');
+        if (toggleBtn) toggleBtn.classList.add('hidden');
+        closeSpriteSelector();
     }
 
     function switchSpriteExpression(emotion) {
@@ -3032,7 +3047,70 @@
             spriteEl.style.backgroundImage = `url('${imgSrc}')`;
             spriteEl.classList.add('sprite-switch');
             setTimeout(() => spriteEl.classList.remove('sprite-switch'), 300);
+            const exprList = $('#sprite-expr-list');
+            if (exprList) {
+                exprList.querySelectorAll('.sprite-expr-btn').forEach(b => {
+                    b.classList.toggle('active', b.textContent === expr);
+                });
+            }
         }
+    }
+
+    function initSpriteSelector() {
+        const charList = $('#sprite-char-list');
+        const exprList = $('#sprite-expr-list');
+        if (!charList || !exprList) return;
+        charList.innerHTML = '';
+        exprList.innerHTML = '';
+        SPRITE_CONFIG.characters.forEach(ch => {
+            const btn = document.createElement('button');
+            btn.className = 'sprite-char-btn' + (spriteState.currentChar === ch.id ? ' active' : '');
+            btn.textContent = ch.name;
+            btn.dataset.charId = ch.id;
+            btn.addEventListener('click', () => {
+                charList.querySelectorAll('.sprite-char-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                showSprite(ch.id, ch.defaultExpr);
+                updateExprButtons(ch.id);
+            });
+            charList.appendChild(btn);
+        });
+        if (spriteState.currentChar) updateExprButtons(spriteState.currentChar);
+    }
+
+    function updateExprButtons(charId) {
+        const exprList = $('#sprite-expr-list');
+        if (!exprList) return;
+        exprList.innerHTML = '';
+        const char = SPRITE_CONFIG.characters.find(c => c.id === charId);
+        if (!char) return;
+        SPRITE_CONFIG.expressions.forEach(expr => {
+            const btn = document.createElement('button');
+            btn.className = 'sprite-expr-btn' + (spriteState.currentExpr === expr ? ' active' : '');
+            btn.textContent = expr;
+            btn.addEventListener('click', () => {
+                exprList.querySelectorAll('.sprite-expr-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                showSprite(charId, expr);
+            });
+            exprList.appendChild(btn);
+        });
+    }
+
+    function toggleSpriteSelector() {
+        const sel = $('#sprite-selector');
+        if (!sel) return;
+        if (sel.classList.contains('hidden')) {
+            sel.classList.remove('hidden');
+            initSpriteSelector();
+        } else {
+            sel.classList.add('hidden');
+        }
+    }
+
+    function closeSpriteSelector() {
+        const sel = $('#sprite-selector');
+        if (sel) sel.classList.add('hidden');
     }
 
     const TTS_CONFIG = {
