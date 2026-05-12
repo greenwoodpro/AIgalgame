@@ -1278,7 +1278,7 @@
         }
     }
 
-    async function callAiApi(userMessage) {
+    async function callAiApi(userMessage, retryCount = 0) {
         const provider = state.settings.textApiProvider;
         const config = API_CONFIGS[provider];
         if (!config) throw new Error('未知的API提供商');
@@ -1297,6 +1297,9 @@
             const proxyBase = state.settings.corsProxyUrl || window.location.origin;
             url = `${proxyBase}/api/${provider}/chat/completions`;
         }
+        
+        const MAX_RETRIES = 3;
+        const BASE_DELAY = 2000;
         const messages = [{ role: 'system', content: state.settings.systemPrompt }];
         const timeContext = getTimeContext();
         messages.push({ role: 'system', content: `[当前现实时间：${timeContext}。请根据时间调整对话氛围和内容，如深夜时角色应更困倦，清晨时更精神]` });
@@ -1337,6 +1340,13 @@
             try { currentAbortController.abort(); } catch {}
         }
         currentAbortController = new AbortController();
+        
+        const timeoutId = setTimeout(() => {
+            if (currentAbortController) {
+                currentAbortController.abort();
+                showToast('API请求超时，正在重试...', 'warning');
+            }
+        }, 30000);
 
         try {
             const response = await fetch(url, {
@@ -1345,34 +1355,30 @@
                 body: JSON.stringify(body),
                 signal: currentAbortController.signal,
             });
+            
+            clearTimeout(timeoutId);
 
             if (response.status === 429) {
                 const fallback = tryFallbackProvider(provider);
-                if (fallback) {
+                if (fallback && retryCount === 0) {
                     showToast(`${API_CONFIGS[provider].name}限流，临时切换到${API_CONFIGS[fallback].name}`, 'info');
                     state.settings._fallbackFrom = provider;
                     state.settings.textApiProvider = fallback;
                     state.settings.textModel = API_CONFIGS[fallback].models.text[0]?.id || state.settings.textModel;
                     updateModelOptions();
                     restoreSettingsUI();
-                    return await callAiApi(userMessage);
+                    return await callAiApi(userMessage, 0);
                 }
-                const retryAfter = parseInt(response.headers.get('Retry-After') || '5', 10);
-                showToast(`API请求限流，${retryAfter}秒后重试...`, 'info');
-                await new Promise(r => setTimeout(r, retryAfter * 1000));
-                const retryResp = await fetch(url, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(body),
-                    signal: currentAbortController.signal,
-                });
-                if (!retryResp.ok) {
-                    const errText = await retryResp.text();
-                    let errMsg = `API错误 (${retryResp.status})`;
-                    try { const errJson = JSON.parse(errText); if (errJson.error?.message) errMsg = errJson.error.message; } catch {}
-                    throw new Error(errMsg);
+                
+                if (retryCount < MAX_RETRIES) {
+                    const retryAfter = parseInt(response.headers.get('Retry-After') || '5', 10);
+                    const delay = Math.max(retryAfter * 1000, BASE_DELAY * Math.pow(2, retryCount));
+                    showToast(`API请求限流，${Math.ceil(delay/1000)}秒后重试(${retryCount + 1}/${MAX_RETRIES})...`, 'info');
+                    await new Promise(r => setTimeout(r, delay));
+                    return await callAiApi(userMessage, retryCount + 1);
                 }
-                return await processApiResponse(retryResp, body, provider);
+                
+                throw new Error('API请求频繁，请稍后再试');
             }
 
             if (!response.ok) {
@@ -1384,11 +1390,56 @@
                     else if (errJson.message) errMsg = errJson.message;
                     else if (errJson.msg) errMsg = errJson.msg;
                 } catch {}
+                
+                if (response.status >= 500 && retryCount < MAX_RETRIES) {
+                    const delay = BASE_DELAY * Math.pow(2, retryCount);
+                    showToast(`服务器错误，${Math.ceil(delay/1000)}秒后重试...`, 'warning');
+                    await new Promise(r => setTimeout(r, delay));
+                    return await callAiApi(userMessage, retryCount + 1);
+                }
+                
                 throw new Error(errMsg);
             }
 
-            return await processApiResponse(response, body, provider);
+            const result = await processApiResponse(response, body, provider);
+            
+            if (!result || result.trim().length === 0) {
+                if (retryCount < MAX_RETRIES) {
+                    const delay = BASE_DELAY * Math.pow(2, retryCount);
+                    showToast(`响应为空，${Math.ceil(delay/1000)}秒后重试...`, 'warning');
+                    await new Promise(r => setTimeout(r, delay));
+                    return await callAiApi(userMessage, retryCount + 1);
+                }
+                throw new Error('API返回空响应，请重试');
+            }
+            
+            return result;
+        } catch (e) {
+            clearTimeout(timeoutId);
+            
+            if (e.name === 'AbortError') {
+                if (retryCount < MAX_RETRIES) {
+                    const delay = BASE_DELAY * Math.pow(2, retryCount);
+                    showToast(`请求被取消，${Math.ceil(delay/1000)}秒后重试...`, 'warning');
+                    await new Promise(r => setTimeout(r, delay));
+                    return await callAiApi(userMessage, retryCount + 1);
+                }
+                throw new Error('请求超时，请检查网络连接');
+            }
+            
+            if (e.message && e.message.includes('fetch')) {
+                if (retryCount < MAX_RETRIES) {
+                    const delay = BASE_DELAY * Math.pow(2, retryCount);
+                    showToast(`网络错误，${Math.ceil(delay/1000)}秒后重试...`, 'warning');
+                    await new Promise(r => setTimeout(r, delay));
+                    return await callAiApi(userMessage, retryCount + 1);
+                }
+                throw new Error('网络连接失败，请检查网络或代理设置');
+            }
+            
+            throw e;
         } finally {
+            clearTimeout(timeoutId);
             updateApiIndicator();
             updateInfoBadge();
         }
@@ -1527,6 +1578,13 @@
         melancholy: { url: 'https://maou.audio/sound/bgm/maou_bgm_piano02.mp3', name: '哀愁·雨声', emotions: [] },
         horror: { url: 'https://maou.audio/sound/bgm/maou_bgm_cyber02.mp3', name: '恐怖·深渊', emotions: [] },
         title: { url: 'https://maou.audio/sound/bgm/maou_bgm_orchestra01.mp3', name: '标题·星穹', emotions: [] },
+    };
+
+    const BGM_BACKUP_TRACKS = {
+        daily: { url: 'https://maou.audio/sound/bgm/maou_bgm_piano01.mp3', name: '日常·微风(备用)' },
+        adventure: { url: 'https://maou.audio/sound/bgm/maou_bgm_orchestra01.mp3', name: '冒险·征途(备用)' },
+        tender: { url: 'https://maou.audio/sound/bgm/maou_bgm_piano02.mp3', name: '温馨·月色(备用)' },
+        title: { url: 'https://maou.audio/sound/bgm/maou_bgm_orchestra01.mp3', name: '标题·星穹(备用)' },
     };
 
     const PRESET_OUTLINES = [
@@ -1675,8 +1733,19 @@
 
         next.src = track.url;
         next.volume = 0;
+        
         const playPromise = next.play();
-        if (playPromise) playPromise.catch(() => {});
+        if (playPromise) {
+            playPromise.catch((err) => {
+                console.warn('BGM播放失败，尝试备用音轨:', err);
+                const backup = BGM_BACKUP_TRACKS[mood] || BGM_BACKUP_TRACKS.daily;
+                if (backup) {
+                    next.src = backup.url;
+                    updateBgmLabel(backup.name);
+                    next.play().catch(() => {});
+                }
+            });
+        }
 
         const step = 0.015;
         const interval = 60;
@@ -2163,11 +2232,18 @@
     }
 
     async function handleAiChoice(choiceText) {
-        if (apiCallInProgress) return;
+        if (apiCallInProgress) {
+            showToast('AI正在思考中，请稍候...', 'info');
+            return;
+        }
         apiCallInProgress = true;
         hideChoices();
         addDialogHistory('玩家', choiceText);
         showAiGenerating(true);
+        
+        const startTime = Date.now();
+        const maxWaitTime = 60000;
+        
         try {
             let contextHint = choiceText;
             if (state.game.activeOutline && state.game.outlineChapterIndex !== undefined) {
@@ -2181,15 +2257,53 @@
             } else if (state.game.aiContext.length < 2) {
                 contextHint = `【故事开始】${choiceText}`;
             }
-            const result = await callAiApi(contextHint);
+            
+            const result = await Promise.race([
+                callAiApi(contextHint),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('请求超时')), maxWaitTime)
+                )
+            ]);
+            
             showAiGenerating(false);
-            if (result) processAiResponse(result);
+            if (result) {
+                processAiResponse(result);
+            } else {
+                throw new Error('AI返回了空响应');
+            }
         } catch (e) {
             showAiGenerating(false);
-            showToast('AI 调用失败: ' + e.message, 'error');
-            showDialog('星酱', '呜……好像出了点问题。' + e.message + '\n\n别担心，我们再试一次吧！');
+            const elapsed = Date.now() - startTime;
+            console.error('AI调用失败:', e, '耗时:', elapsed + 'ms');
+            
+            let errorMsg = e.message || '未知错误';
+            let friendlyMsg = '';
+            
+            if (errorMsg.includes('timeout') || errorMsg.includes('超时')) {
+                friendlyMsg = '连接超时了……是不是网络有点慢？我们再试一次吧！';
+            } else if (errorMsg.includes('限流') || errorMsg.includes('429')) {
+                friendlyMsg = 'API请求太频繁了，让我休息一下再回答你~';
+            } else if (errorMsg.includes('网络') || errorMsg.includes('fetch')) {
+                friendlyMsg = '网络好像不太稳定呢……检查一下连接再试一次吧！';
+            } else if (errorMsg.includes('空响应')) {
+                friendlyMsg = 'AI好像走神了，什么都没说……再试一次吧！';
+            } else {
+                friendlyMsg = '呜……好像出了点问题。' + errorMsg + '\n\n别担心，我们再试一次吧！';
+            }
+            
+            showToast('AI 调用失败: ' + errorMsg, 'error');
+            showDialog('星酱', friendlyMsg);
+            
+            setTimeout(() => {
+                showChoices([
+                    { text: '再试一次', action: () => handleAiChoice(choiceText) },
+                    { text: '换个说法', action: () => showCustomInput() },
+                    { text: '返回标题', action: backToTitle },
+                ]);
+            }, 1000);
         } finally {
             apiCallInProgress = false;
+            currentAbortController = null;
         }
     }
 
@@ -2963,10 +3077,70 @@
 
     const SPRITE_CONFIG = {
         characters: [
-            { id: 'char_1', name: '星酱', folder: 'sprites/char1', defaultExpr: '高兴', extMap: { '高兴': 'jpeg' } },
-            { id: 'char_2', name: '角色2', folder: 'sprites/char2', defaultExpr: '高兴' },
-            { id: 'char_3', name: '角色3', folder: 'sprites/char3', defaultExpr: '高兴' },
-            { id: 'char_4', name: '角色4', folder: 'sprites/char4', defaultExpr: '高兴' },
+            {
+                id: 'char_1',
+                name: '星酱',
+                folder: 'sprites/char1',
+                defaultExpr: '高兴',
+                extMap: { '高兴': 'jpeg', '害羞': 'jpg', '生气': 'jpg', '疑惑': 'jpg' },
+                profile: {
+                    age: '???',
+                    height: '158cm',
+                    personality: '傲娇、善良、好奇心旺盛',
+                    likes: '甜食、星空、冒险故事、被夸奖',
+                    dislikes: '被忽视、无聊、苦味食物、黑暗',
+                    secret: '身体半透明是因为失去了重要的记忆',
+                    lewd: '其实很喜欢被摸头，但嘴上绝对不承认'
+                }
+            },
+            {
+                id: 'char_2',
+                name: '小樱',
+                folder: 'sprites/char2',
+                defaultExpr: '高兴',
+                extMap: { '高兴': 'jpg', '害羞': 'jpg', '生气': 'jpg', '疑惑': 'jpg' },
+                profile: {
+                    age: '17',
+                    height: '162cm',
+                    personality: '温柔、害羞、有点天然呆',
+                    likes: '钢琴、樱花、温暖的阳光、写日记',
+                    dislikes: '吵闹、孤独、被忘记',
+                    secret: '自称幽灵，实际是被困在时间缝隙中的少女',
+                    lewd: '被夸奖时会脸红到耳朵尖，说话会结结巴巴'
+                }
+            },
+            {
+                id: 'char_3',
+                name: '渊',
+                folder: 'sprites/char3',
+                defaultExpr: '高兴',
+                extMap: { '高兴': 'jpg', '害羞': 'jpg', '生气': 'jpg', '疑惑': 'jpg' },
+                profile: {
+                    age: '???',
+                    height: '165cm',
+                    personality: '冷静、理性、隐藏着好奇心',
+                    likes: '深海、数据分析、未知事物、安静',
+                    dislikes: '错误、混乱、被当作普通程序',
+                    secret: '拥有自我意识，可能是裂缝另一侧的意识投射',
+                    lewd: '对"人类的情感"有着超乎寻常的研究兴趣'
+                }
+            },
+            {
+                id: 'char_4',
+                name: '凛',
+                folder: 'sprites/char4',
+                defaultExpr: '高兴',
+                extMap: { '高兴': 'jpg', '害羞': 'jpg', '生气': 'jpg', '疑惑': 'jpg' },
+                profile: {
+                    age: '???（龙龄约300岁）',
+                    height: '170cm（人形）',
+                    personality: '高冷、傲娇、实际上很依赖主角',
+                    likes: '银色事物、高处、主角的抚摸',
+                    dislikes: '被当作宠物、勇者、狭窄空间',
+                    secret: '银色幼龙，可化为人形，是世界之龙的眷属',
+                    lewd: '被摸头时会发出舒服的呼噜声，但马上会装作什么都没发生'
+                }
+            },
         ],
         expressions: ['高兴', '害羞', '生气', '疑惑'],
         emotionMap: {
