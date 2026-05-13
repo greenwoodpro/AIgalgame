@@ -98,14 +98,18 @@
                 <button id="back-to-choices-btn" class="choice-btn" style="background: rgba(255,255,255,0.1); border: 1px dashed var(--primary);">返回选项</button>
             </div>
             <div id="dialog-box" class="hidden">
-                <div id="dialog-nameplate">
-                    <span id="dialog-name"></span>
+                <div id="dialog-inner">
+                    <div id="dialog-nameplate">
+                        <span id="dialog-name"></span>
+                        <span id="dialog-subtitle"></span>
+                        <span id="emotion-indicator"></span>
+                    </div>
+                    <div id="dialog-content">
+                        <span id="dialog-text"></span>
+                        <span id="dialog-cursor" class="cursor-blink">▎</span>
+                    </div>
+                    <div id="dialog-click-hint">▼</div>
                 </div>
-                <div id="dialog-content">
-                    <span id="dialog-text"></span>
-                    <span id="dialog-cursor" class="cursor-blink">▎</span>
-                </div>
-                <div id="dialog-click-hint">▼</div>
             </div>
             <div id="ai-generating" class="hidden">
                 <div class="ai-thinking-indicator">

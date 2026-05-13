@@ -5,21 +5,25 @@
     --text: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.7);
     --text-muted: rgba(255, 255, 255, 0.4);
-    --primary: #00d2ff;
-    --accent: #7b2ff7;
-    --gradient: linear-gradient(135deg, #00d2ff, #7b2ff7);
+    --primary: #79d9ff;
+    --accent: #5d7eb6;
+    --gradient: linear-gradient(135deg, #79d9ff, #5d7eb6);
     --border: rgba(255, 255, 255, 0.12);
     --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     --radius: 16px;
     --radius-sm: 8px;
     --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --font-main: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-main: 'TanukiMagic', '方正喵呜', 'Microsoft YaHei', 'Segoe UI', sans-serif;
     --font-display: 'Georgia', 'Noto Serif SC', serif;
-    --dialog-bg: rgba(10, 10, 30, 0.85);
+    --dialog-bg: rgba(0, 14, 39, 0.7);
     --dialog-border: rgba(255, 255, 255, 0.15);
     --nameplate-bg: var(--gradient);
     --input-bg: rgba(255, 255, 255, 0.06);
     --input-border: rgba(255, 255, 255, 0.15);
+    --accent-color: #79d9ff;
+    --name-color: #6eb4ff;
+    --emotion-color: #ff77dd;
+    --send-color: #04bcff;
 }
 
 [data-theme="sakura"] {
@@ -183,13 +187,13 @@ html, body {
     font-size: 3rem;
     display: block;
     margin-bottom: 0.5rem;
-    filter: drop-shadow(0 0 20px var(--primary));
+    filter: drop-shadow(0 0 20px var(--accent-color));
     animation: iconPulse 3s ease-in-out infinite;
 }
 
 @keyframes iconPulse {
-    0%, 100% { filter: drop-shadow(0 0 20px var(--primary)); }
-    50% { filter: drop-shadow(0 0 40px var(--accent)); }
+    0%, 100% { filter: drop-shadow(0 0 20px var(--accent-color)); }
+    50% { filter: drop-shadow(0 0 40px var(--accent-color)); }
 }
 
 .title-logo h1 {
@@ -213,7 +217,7 @@ html, body {
 
 .title-tag {
     font-size: 0.75rem;
-    color: var(--primary);
+    color: var(--accent-color);
     opacity: 0.6;
     margin-top: 0.2rem;
     letter-spacing: 0.2em;
@@ -231,19 +235,21 @@ html, body {
     align-items: center;
     gap: 0.8rem;
     padding: 1rem 1.5rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: rgba(10, 10, 30, 0.6);
+    border: 1px solid rgba(121, 217, 255, 0.15);
+    border-radius: 30px;
+    background: rgba(0, 14, 39, 0.6);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     color: var(--text);
     font-size: 1.05rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: all 0.3s ease;
     font-family: var(--font-main);
     text-align: left;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
 }
 
 .menu-btn .btn-icon {
@@ -261,26 +267,27 @@ html, body {
 }
 
 .menu-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: var(--primary);
+    background: rgba(0, 14, 39, 0.8);
+    border-color: var(--accent-color);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 15px rgba(121, 217, 255, 0.1);
+    color: var(--accent-color);
 }
 
 .menu-btn.primary {
-    background: var(--gradient);
+    background: linear-gradient(135deg, #79d9ff, #5d7eb6);
     border-color: transparent;
     color: white;
 }
 
 .menu-btn.primary:hover {
-    box-shadow: 0 12px 32px rgba(123, 47, 247, 0.4);
+    box-shadow: 0 12px 32px rgba(93, 126, 182, 0.4);
     transform: translateY(-3px);
 }
 
 .menu-btn[data-action="toggle-bgm"].bgm-active {
-    background: rgba(0, 210, 255, 0.2);
-    border-color: var(--primary);
+    background: rgba(121, 217, 255, 0.15);
+    border-color: var(--accent-color);
 }
 
 .title-footer {
@@ -438,17 +445,18 @@ html, body {
     justify-content: center;
     border: none;
     border-radius: var(--radius-sm);
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 14, 39, 0.5);
     color: white;
     font-size: 1rem;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: all 0.3s ease;
     backdrop-filter: blur(8px);
 }
 
 .toolbar-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(121, 217, 255, 0.15);
     transform: scale(1.1);
+    color: var(--accent-color);
 }
 
 #api-indicator {
@@ -482,57 +490,63 @@ html, body {
     left: 0;
     right: 0;
     z-index: 5;
-    padding: 0 2rem 1.5rem;
-    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
-    max-height: 45vh;
     display: flex;
-    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(to top, rgba(0, 14, 39, 0.7) 0%, rgba(0, 14, 39, 0.6) 100%);
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+#dialog-box::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent 0%, rgba(0, 14, 39, 0.3) 50%, rgba(0, 14, 39, 0.6) 100%);
+    pointer-events: none;
 }
 
 #dialog-box.clickable {
     cursor: pointer;
 }
 
-#dialog-box::before {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
-    background: var(--dialog-bg);
-    opacity: 0.7;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid var(--dialog-border);
-    z-index: -1;
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
+#dialog-inner {
+    width: 60%;
+    display: flex;
+    flex-direction: column;
 }
 
 #dialog-nameplate {
-    display: inline-block;
-    padding: 0.35rem 1.2rem;
-    background: var(--nameplate-bg);
-    border-radius: 20px 20px 0 0;
-    margin-bottom: -1px;
-    position: relative;
-    z-index: 1;
-    padding-right: 2rem;
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 10px;
 }
 
 #dialog-name {
-    font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 24px;
+    font-weight: bold;
     color: white;
-    letter-spacing: 0.1em;
+    margin-right: 15px;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+#dialog-subtitle {
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--name-color);
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
 #emotion-indicator {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    font-size: 1.2rem;
-    z-index: 10;
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--emotion-color);
+    margin-left: auto;
     transition: transform 0.3s ease;
     filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
 }
@@ -568,17 +582,18 @@ html, body {
     min-height: 60px;
     max-height: 25vh;
     overflow-y: auto;
-    font-size: 1.05rem;
+    font-size: 20px;
     line-height: 1.8;
     color: var(--text);
     letter-spacing: 0.03em;
     -webkit-overflow-scrolling: touch;
     flex-shrink: 1;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
 .cursor-blink {
     animation: cursorBlink 1s step-end infinite;
-    color: var(--primary);
+    color: var(--accent-color);
     font-weight: 300;
 }
 
@@ -588,7 +603,7 @@ html, body {
 
 #dialog-click-hint {
     text-align: center;
-    color: var(--text-muted);
+    color: var(--accent-color);
     font-size: 0.7rem;
     animation: hintBounce 2s ease-in-out infinite;
     letter-spacing: 0.2em;
@@ -688,18 +703,19 @@ html, body {
 
 .choice-btn {
     padding: 0.9rem 1.5rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--dialog-bg);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    background: rgba(0, 14, 39, 0.6);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     color: var(--text);
     font-size: 1rem;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: all 0.3s ease;
     font-family: var(--font-main);
     text-align: left;
     animation: choiceAppear 0.4s ease-out backwards;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .choice-btn:nth-child(1) { animation-delay: 0.1s; }
@@ -713,15 +729,16 @@ html, body {
 }
 
 .choice-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: var(--primary);
+    background: rgba(0, 14, 39, 0.8);
+    border-color: var(--accent-color);
     transform: translateX(8px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 10px rgba(121, 217, 255, 0.1);
+    color: var(--accent-color);
 }
 
 .choice-btn::before {
     content: '▸ ';
-    color: var(--primary);
+    color: var(--accent-color);
 }
 
 /* ==================== AI生成中 ==================== */
@@ -816,13 +833,15 @@ html, body {
     width: 90%;
     max-width: 600px;
     max-height: 85vh;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
+    background: rgba(0, 14, 39, 0.95);
+    border: 1px solid rgba(121, 217, 255, 0.15);
     border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
     animation: modalIn 0.3s ease-out;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 }
 
 @keyframes modalIn {
@@ -835,7 +854,7 @@ html, body {
     align-items: center;
     justify-content: space-between;
     padding: 1.2rem 1.5rem;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid rgba(121, 217, 255, 0.1);
 }
 
 .modal-header h2 {
@@ -874,7 +893,7 @@ html, body {
     display: flex;
     gap: 0.3rem;
     margin-bottom: 1.5rem;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid rgba(121, 217, 255, 0.1);
     padding-bottom: 0.5rem;
 }
 
@@ -886,18 +905,18 @@ html, body {
     color: var(--text-muted);
     font-size: 0.85rem;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: all 0.3s ease;
     font-family: var(--font-main);
     border-bottom: 2px solid transparent;
 }
 
 .tab-btn:hover {
-    color: var(--text);
+    color: var(--accent-color);
 }
 
 .tab-btn.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
 }
 
 .tab-content {
@@ -958,20 +977,20 @@ html, body {
 .form-group textarea {
     width: 100%;
     padding: 0.6rem 0.8rem;
-    border: 1px solid var(--input-border, var(--border));
+    border: 1px solid rgba(121, 217, 255, 0.2);
     border-radius: var(--radius-sm);
-    background: var(--input-bg, var(--bg));
+    background: rgba(0, 14, 39, 0.5);
     color: var(--text);
     font-size: 0.9rem;
     font-family: var(--font-main);
-    transition: border-color var(--transition), background-color var(--transition);
+    transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: var(--primary);
+    border-color: var(--accent-color);
 }
 
 .form-group small {
@@ -983,12 +1002,12 @@ html, body {
 
 .form-group input[type="range"] {
     width: 100%;
-    accent-color: var(--primary);
+    accent-color: var(--accent-color);
 }
 
 .form-group input[type="checkbox"] {
     margin-right: 0.5rem;
-    accent-color: var(--primary);
+    accent-color: var(--accent-color);
 }
 
 .form-group input[type="color"] {
@@ -1261,19 +1280,19 @@ html, body {
 .toast {
     padding: 0.7rem 1.5rem;
     border-radius: var(--radius);
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
+    background: rgba(0, 14, 39, 0.9);
+    border: 1px solid rgba(121, 217, 255, 0.15);
     color: var(--text);
     font-size: 0.85rem;
     backdrop-filter: blur(16px);
-    box-shadow: var(--shadow);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     animation: toastIn 0.3s ease-out, toastOut 0.3s ease-in 2.7s forwards;
     pointer-events: auto;
 }
 
 .toast.success { border-left: 3px solid #00ff41; }
 .toast.error { border-left: 3px solid #ff0040; }
-.toast.info { border-left: 3px solid var(--primary); }
+.toast.info { border-left: 3px solid var(--accent-color); }
 
 @keyframes toastIn {
     from { opacity: 0; transform: translateY(-10px); }
@@ -1708,9 +1727,9 @@ html, body {
 
 #character-sprite {
     position: absolute;
-    bottom: 280px;
+    bottom: 0;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) scale(1.9);
     z-index: 3;
     width: 280px;
     height: 460px;
@@ -1719,6 +1738,8 @@ html, body {
     background-position: center bottom;
     pointer-events: none;
     transition: opacity 0.4s ease, transform 0.4s ease;
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.5));
+    transform-origin: bottom center;
 }
 
 #character-sprite.sprite-enter {
@@ -1734,13 +1755,13 @@ html, body {
 }
 
 @keyframes spriteEnter {
-    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    from { opacity: 0; transform: translateX(-50%) scale(1.9) translateY(20px); }
+    to { opacity: 1; transform: translateX(-50%) scale(1.9) translateY(0); }
 }
 
 @keyframes spriteExit {
-    from { opacity: 1; transform: translateX(-50%) translateY(0); }
-    to { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    from { opacity: 1; transform: translateX(-50%) scale(1.9) translateY(0); }
+    to { opacity: 0; transform: translateX(-50%) scale(1.9) translateY(20px); }
 }
 
 @keyframes spriteSwitch {
@@ -2144,8 +2165,8 @@ html, body {
     align-items: center;
     gap: 0.5rem;
     padding: 0.6rem 1rem;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border);
+    background: rgba(0, 14, 39, 0.8);
+    border-bottom: 1px solid rgba(121, 217, 255, 0.1);
     flex-shrink: 0;
 }
 
@@ -2163,7 +2184,7 @@ html, body {
 
 #chat-char-status {
     font-size: 0.7rem;
-    color: var(--primary);
+    color: var(--accent-color);
 }
 
 #chat-messages {
@@ -2193,28 +2214,33 @@ html, body {
 
 .chat-msg.ai {
     align-self: flex-start;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: rgba(0, 14, 39, 0.6);
+    border: 1px solid rgba(121, 217, 255, 0.15);
     color: var(--text);
     border-bottom-left-radius: 4px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .chat-msg.user {
     align-self: flex-end;
-    background: var(--primary);
-    color: #fff;
+    background: linear-gradient(135deg, #79d9ff, #5d7eb6);
+    color: #000;
     border-bottom-right-radius: 4px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .chat-msg .msg-name {
     font-size: 0.75rem;
-    color: var(--primary);
+    color: var(--name-color);
     margin-bottom: 0.3rem;
     font-weight: 600;
 }
 
 .chat-msg.user .msg-name {
-    color: rgba(255,255,255,0.8);
+    color: rgba(0,0,0,0.6);
 }
 
 .chat-msg .msg-scene {
@@ -2233,18 +2259,18 @@ html, body {
 
 .chat-msg .msg-choice-btn {
     padding: 0.3rem 0.8rem;
-    border: 1px solid var(--primary);
+    border: 1px solid var(--accent-color);
     border-radius: 20px;
     background: transparent;
-    color: var(--primary);
+    color: var(--accent-color);
     font-size: 0.8rem;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: all 0.3s ease;
 }
 
 .chat-msg .msg-choice-btn:hover {
-    background: var(--primary);
-    color: #fff;
+    background: var(--accent-color);
+    color: #000;
 }
 
 .chat-thinking {
@@ -2289,8 +2315,8 @@ html, body {
 #chat-input-area {
     flex-shrink: 0;
     padding: 0.8rem 1rem;
-    background: var(--bg-secondary);
-    border-top: 1px solid var(--border);
+    background: rgba(0, 14, 39, 0.8);
+    border-top: 1px solid rgba(121, 217, 255, 0.1);
 }
 
 #chat-quick-actions {
@@ -2303,20 +2329,20 @@ html, body {
 
 .quick-action-btn {
     padding: 0.3rem 0.7rem;
-    border: 1px solid var(--border);
+    border: 1px solid rgba(121, 217, 255, 0.2);
     border-radius: 20px;
     background: transparent;
-    color: var(--text-secondary);
+    color: var(--accent-color);
     font-size: 0.75rem;
     cursor: pointer;
     white-space: nowrap;
-    transition: all var(--transition);
+    transition: all 0.3s ease;
 }
 
 .quick-action-btn:hover, .quick-action-btn:active {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
+    background: var(--accent-color);
+    color: #000;
+    border-color: var(--accent-color);
 }
 
 #chat-input-row {
@@ -2327,27 +2353,28 @@ html, body {
 #chat-input {
     flex: 1;
     padding: 0.7rem 1rem;
-    border: 1px solid var(--input-border, var(--border));
+    border: 1px solid rgba(121, 217, 255, 0.2);
     border-radius: 24px;
-    background: var(--input-bg, var(--bg));
+    background: rgba(0, 14, 39, 0.5);
     color: var(--text);
     font-size: 0.9rem;
     font-family: var(--font-main);
     outline: none;
-    transition: border-color var(--transition);
+    transition: border-color 0.3s ease;
 }
 
-#chat-input:focus { border-color: var(--primary); }
+#chat-input:focus { border-color: var(--accent-color); }
 
 #chat-send-btn {
     padding: 0.7rem 1.2rem;
     border: none;
     border-radius: 24px;
-    background: var(--primary);
+    background: var(--send-color);
     color: #fff;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: opacity var(--transition);
+    transition: opacity 0.3s ease;
+    box-shadow: 0 2px 8px rgba(4, 188, 255, 0.3);
 }
 
 #chat-send-btn:hover { opacity: 0.85; }
