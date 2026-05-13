@@ -51,6 +51,42 @@
     --menu-header-bg: #5d7eb6;
     --big-button-bg: #5d7eb6;
 
+    /* LingChat Title/Cover Tokens */
+    --title-panel-bg: rgba(255, 255, 255, 0.7);
+    --title-panel-border: 1px solid rgba(255, 255, 255, 0.3);
+    --title-panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    --title-panel-hover-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+    --title-panel-blur: blur(10px);
+    --title-panel-radius: 16px;
+    --title-text-color: #333;
+    --title-subtitle-color: #555;
+    --title-tag-color: #4a86cf;
+    --title-btn-primary-bg: #4a86cf;
+    --title-btn-primary-hover-bg: #3a76bf;
+    --title-btn-primary-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    --title-btn-bg: #d2e5ff;
+    --title-btn-color: #3d8dff;
+    --title-btn-border: 0.5px solid #e5ecf1;
+    --title-btn-hover-bg: #b8d7ff;
+    --title-btn-secondary-bg: #e0e0e0;
+    --title-btn-secondary-color: #333;
+
+    /* LingChat Settings/Menu Tokens */
+    --settings-panel-bg: #fff;
+    --settings-panel-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+    --settings-tab-color: #555;
+    --settings-tab-active-color: #4a86cf;
+    --settings-tab-indicator: #4a86cf;
+    --settings-input-bg: rgba(255, 255, 255, 0.9);
+    --settings-input-border: rgba(0, 0, 0, 0.1);
+    --settings-input-focus-border: #4a86cf;
+    --settings-input-focus-shadow: 0 0 5px rgba(74, 134, 207, 0.3);
+    --settings-input-color: #333;
+    --settings-label-color: #444;
+    --settings-divider: #eee;
+    --settings-item-bg: rgba(255, 255, 255, 0.05);
+    --settings-item-border: rgba(255, 255, 255, 0.1);
+
     /* LingChat Slider Tokens */
     --slider-track: linear-gradient(to left, #3d8dff, #a8caff);
     --slider-thumb-bg: #ffffff;
@@ -91,6 +127,37 @@
     --big-button-bg: #d63384;
     --slider-track: linear-gradient(to left, #d63384, #ff8ec4);
     --slider-thumb-border: 2px solid #d63384;
+    /* LingChat Title Tokens - Sakura */
+    --title-panel-bg: rgba(255, 220, 235, 0.75);
+    --title-panel-border: 1px solid rgba(255, 182, 220, 0.4);
+    --title-panel-shadow: 0 8px 32px rgba(100, 0, 50, 0.2);
+    --title-panel-hover-shadow: 0 12px 40px rgba(100, 0, 50, 0.25);
+    --title-text-color: #5c1a3a;
+    --title-subtitle-color: #8a4060;
+    --title-tag-color: #d63384;
+    --title-btn-primary-bg: #d63384;
+    --title-btn-primary-hover-bg: #b82a70;
+    --title-btn-primary-shadow: 0 4px 12px rgba(214, 51, 132, 0.3);
+    --title-btn-bg: #ffd6e8;
+    --title-btn-color: #d63384;
+    --title-btn-hover-bg: #ffb8d4;
+    --title-btn-secondary-bg: #f0d0dd;
+    --title-btn-secondary-color: #5c1a3a;
+    /* LingChat Settings Tokens - Sakura */
+    --settings-panel-bg: #fff5f8;
+    --settings-panel-shadow: 0 5px 30px rgba(100, 0, 50, 0.2);
+    --settings-tab-color: #8a4060;
+    --settings-tab-active-color: #d63384;
+    --settings-tab-indicator: #d63384;
+    --settings-input-bg: rgba(255, 245, 248, 0.9);
+    --settings-input-border: rgba(214, 51, 132, 0.15);
+    --settings-input-focus-border: #d63384;
+    --settings-input-focus-shadow: 0 0 5px rgba(214, 51, 132, 0.3);
+    --settings-input-color: #5c1a3a;
+    --settings-label-color: #6b2a4a;
+    --settings-divider: #f0d0dd;
+    --settings-item-bg: rgba(255, 214, 232, 0.15);
+    --settings-item-border: rgba(214, 51, 132, 0.12);
 }
 
 /* ==================== Theme: Cyberpunk ==================== */
@@ -118,6 +185,37 @@
     --big-button-bg: #00cc33;
     --slider-track: linear-gradient(to left, #00ff41, #a8ffca);
     --slider-thumb-border: 2px solid #00ff41;
+    /* LingChat Title Tokens - Cyberpunk */
+    --title-panel-bg: rgba(13, 26, 13, 0.8);
+    --title-panel-border: 1px solid rgba(0, 255, 65, 0.25);
+    --title-panel-shadow: 0 8px 32px rgba(0, 255, 65, 0.15);
+    --title-panel-hover-shadow: 0 12px 40px rgba(0, 255, 65, 0.2);
+    --title-text-color: #00ff41;
+    --title-subtitle-color: #80ff80;
+    --title-tag-color: #00ff41;
+    --title-btn-primary-bg: #00cc33;
+    --title-btn-primary-hover-bg: #00aa2a;
+    --title-btn-primary-shadow: 0 4px 12px rgba(0, 255, 65, 0.3);
+    --title-btn-bg: #0d2b0d;
+    --title-btn-color: #00ff41;
+    --title-btn-hover-bg: #1a4a1a;
+    --title-btn-secondary-bg: #1a1a1a;
+    --title-btn-secondary-color: #00ff41;
+    /* LingChat Settings Tokens - Cyberpunk */
+    --settings-panel-bg: #0d1a0d;
+    --settings-panel-shadow: 0 5px 30px rgba(0, 255, 65, 0.15);
+    --settings-tab-color: #80ff80;
+    --settings-tab-active-color: #00ff41;
+    --settings-tab-indicator: #00ff41;
+    --settings-input-bg: rgba(13, 26, 13, 0.9);
+    --settings-input-border: rgba(0, 255, 65, 0.2);
+    --settings-input-focus-border: #00ff41;
+    --settings-input-focus-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+    --settings-input-color: #00ff41;
+    --settings-label-color: #80ff80;
+    --settings-divider: rgba(0, 255, 65, 0.15);
+    --settings-item-bg: rgba(0, 255, 65, 0.05);
+    --settings-item-border: rgba(0, 255, 65, 0.12);
 }
 
 /* ==================== Theme: Ink Wash ==================== */
@@ -152,6 +250,37 @@
     --slider-track: linear-gradient(to left, #8b4513, #c4956a);
     --slider-thumb-border: 2px solid #8b4513;
     --text-shadow: none;
+    /* LingChat Title Tokens - Ink Wash */
+    --title-panel-bg: rgba(245, 240, 232, 0.85);
+    --title-panel-border: 1px solid rgba(139, 69, 19, 0.2);
+    --title-panel-shadow: 0 8px 32px rgba(92, 58, 30, 0.12);
+    --title-panel-hover-shadow: 0 12px 40px rgba(92, 58, 30, 0.18);
+    --title-text-color: #2c2c2c;
+    --title-subtitle-color: #5c3a1e;
+    --title-tag-color: #8b4513;
+    --title-btn-primary-bg: #5c3a1e;
+    --title-btn-primary-hover-bg: #4a2e16;
+    --title-btn-primary-shadow: 0 4px 12px rgba(92, 58, 30, 0.25);
+    --title-btn-bg: #e8dcc8;
+    --title-btn-color: #5c3a1e;
+    --title-btn-hover-bg: #d8ccb8;
+    --title-btn-secondary-bg: #d8d0c0;
+    --title-btn-secondary-color: #3c2a1e;
+    /* LingChat Settings Tokens - Ink Wash */
+    --settings-panel-bg: #f5f0e8;
+    --settings-panel-shadow: 0 5px 30px rgba(92, 58, 30, 0.15);
+    --settings-tab-color: #5c3a1e;
+    --settings-tab-active-color: #8b4513;
+    --settings-tab-indicator: #8b4513;
+    --settings-input-bg: rgba(255, 255, 255, 0.7);
+    --settings-input-border: rgba(139, 69, 19, 0.2);
+    --settings-input-focus-border: #8b4513;
+    --settings-input-focus-shadow: 0 0 5px rgba(139, 69, 19, 0.25);
+    --settings-input-color: #2c2c2c;
+    --settings-label-color: #5c3a1e;
+    --settings-divider: #e0d8c8;
+    --settings-item-bg: rgba(232, 220, 200, 0.3);
+    --settings-item-border: rgba(139, 69, 19, 0.12);
 }
 
 /* ==================== Theme: Vaporwave ==================== */
@@ -179,6 +308,37 @@
     --big-button-bg: #7b68ee;
     --slider-track: linear-gradient(to left, #ff6ec7, #c8a2ff);
     --slider-thumb-border: 2px solid #ff6ec7;
+    /* LingChat Title Tokens - Vaporwave */
+    --title-panel-bg: rgba(42, 0, 80, 0.8);
+    --title-panel-border: 1px solid rgba(255, 110, 199, 0.25);
+    --title-panel-shadow: 0 8px 32px rgba(123, 104, 238, 0.2);
+    --title-panel-hover-shadow: 0 12px 40px rgba(123, 104, 238, 0.25);
+    --title-text-color: #ff6ec7;
+    --title-subtitle-color: #c8a2ff;
+    --title-tag-color: #ff6ec7;
+    --title-btn-primary-bg: #7b68ee;
+    --title-btn-primary-hover-bg: #6a58dd;
+    --title-btn-primary-shadow: 0 4px 12px rgba(123, 104, 238, 0.3);
+    --title-btn-bg: #2d1048;
+    --title-btn-color: #ff6ec7;
+    --title-btn-hover-bg: #3d1868;
+    --title-btn-secondary-bg: #1a0030;
+    --title-btn-secondary-color: #c8a2ff;
+    /* LingChat Settings Tokens - Vaporwave */
+    --settings-panel-bg: #1a0030;
+    --settings-panel-shadow: 0 5px 30px rgba(123, 104, 238, 0.2);
+    --settings-tab-color: #c8a2ff;
+    --settings-tab-active-color: #ff6ec7;
+    --settings-tab-indicator: #ff6ec7;
+    --settings-input-bg: rgba(42, 0, 80, 0.9);
+    --settings-input-border: rgba(255, 110, 199, 0.2);
+    --settings-input-focus-border: #ff6ec7;
+    --settings-input-focus-shadow: 0 0 5px rgba(255, 110, 199, 0.3);
+    --settings-input-color: #e8c8ff;
+    --settings-label-color: #c8a2ff;
+    --settings-divider: rgba(255, 110, 199, 0.15);
+    --settings-item-bg: rgba(255, 0, 200, 0.06);
+    --settings-item-border: rgba(255, 110, 199, 0.12);
 }
 
 /* ==================== Reset & Base ==================== */
@@ -227,7 +387,7 @@ html, body {
     display: none !important;
 }
 
-/* ==================== Title Screen ==================== */
+/* ==================== Title Screen (LingChat Login Style) ==================== */
 #title-screen {
     flex-direction: column;
     align-items: center;
@@ -262,60 +422,79 @@ html, body {
     z-index: 0;
 }
 
+/* LingChat login-panel style */
 .title-content {
     position: relative;
     z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2rem;
-    padding: 2rem;
-    max-width: 500px;
+    gap: 1.5rem;
+    padding: 30px;
+    max-width: 400px;
     width: 90%;
+    background-color: var(--title-panel-bg);
+    border-radius: var(--title-panel-radius);
+    box-shadow: var(--title-panel-shadow);
+    backdrop-filter: var(--title-panel-blur);
+    -webkit-backdrop-filter: var(--title-panel-blur);
+    border: var(--title-panel-border);
+    color: var(--title-text-color);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.title-content:hover {
+    box-shadow: var(--title-panel-hover-shadow);
+    transform: translateY(-5px);
 }
 
 .title-logo {
     text-align: center;
     animation: breathing 4s ease-in-out infinite;
-    filter: drop-shadow(0 4px 30px rgba(0, 0, 0, 0.6));
 }
 
 .title-icon {
     font-size: 3rem;
     display: block;
     margin-bottom: 0.5rem;
-    filter: drop-shadow(0 0 20px var(--accent-color));
+    filter: drop-shadow(0 2px 8px rgba(74, 134, 207, 0.3));
     animation: iconPulse 3s ease-in-out infinite;
 }
 
 @keyframes iconPulse {
-    0%, 100% { filter: drop-shadow(0 0 20px var(--accent-color)); }
-    50% { filter: drop-shadow(0 0 40px var(--accent-color)); }
+    0%, 100% { filter: drop-shadow(0 2px 8px rgba(74, 134, 207, 0.3)); }
+    50% { filter: drop-shadow(0 2px 16px rgba(74, 134, 207, 0.5)); }
 }
 
-.title-logo h1 {
+/* LingChat title style: font-size 30px, color #333, font-weight 600 */
+.title-logo h1,
+.title-text {
     font-family: var(--font-display);
-    font-size: clamp(2.5rem, 8vw, 4rem);
-    font-weight: 700;
-    background: var(--gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: 0.15em;
-    line-height: 1.2;
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--title-text-color);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.1em;
+    line-height: 1.3;
+    background: none;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: unset;
+    background-clip: unset;
 }
 
-.title-sub {
-    font-size: 0.9rem;
-    letter-spacing: 0.5em;
-    color: var(--text-muted);
+/* LingChat subtitle style: font-size 16px, color #555 */
+.title-sub,
+.title-subtitle {
+    font-size: 16px;
+    color: var(--title-subtitle-color);
+    letter-spacing: 0.15em;
     margin-top: 0.3rem;
 }
 
 .title-tag {
     font-size: 0.75rem;
-    color: var(--accent-color);
-    opacity: 0.6;
+    color: var(--title-tag-color);
+    opacity: 0.7;
     margin-top: 0.2rem;
     letter-spacing: 0.2em;
 }
@@ -327,28 +506,25 @@ html, body {
     width: 100%;
 }
 
-/* LingChat-style menu buttons */
+/* LingChat menu-button style */
 .menu-btn {
     display: flex;
     align-items: center;
     gap: 0.8rem;
-    padding: 1rem 1.5rem;
-    border: 1px solid rgba(121, 217, 255, 0.15);
-    border-radius: 30px;
-    background: rgba(0, 14, 39, 0.6);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    color: var(--text);
-    font-size: 1.05rem;
-    font-weight: 600;
+    padding: 12px 20px;
+    background-color: var(--title-btn-bg);
+    color: var(--title-btn-color);
+    font-size: 20px;
+    font-weight: bold;
+    border: var(--title-btn-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     cursor: pointer;
     transition: all 0.3s ease;
     font-family: var(--font-main);
     text-align: left;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     position: relative;
     overflow: hidden;
-    text-shadow: var(--text-shadow);
 }
 
 .menu-btn .btn-icon {
@@ -361,38 +537,63 @@ html, body {
     display: block;
     font-size: 0.75rem;
     font-weight: 400;
-    color: var(--text-muted);
+    color: var(--title-subtitle-color);
     margin-top: 0.15rem;
 }
 
+/* LingChat menu-button hover */
 .menu-btn:hover {
-    background: rgba(0, 14, 39, 0.8);
-    border-color: var(--accent-color);
+    background-color: var(--title-btn-hover-bg);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 15px rgba(121, 217, 255, 0.1);
-    color: var(--accent-color);
 }
 
+/* LingChat primary button: #4a86cf */
 .menu-btn.primary {
-    background: linear-gradient(135deg, #79d9ff, #5d7eb6);
-    border-color: transparent;
+    background-color: var(--title-btn-primary-bg);
     color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    width: 100%;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(74, 134, 207, 0.3);
 }
 
 .menu-btn.primary:hover {
-    box-shadow: 0 12px 32px rgba(93, 126, 182, 0.4);
-    transform: translateY(-3px);
+    background-color: var(--title-btn-primary-hover-bg);
+    transform: translateY(-2px);
+    box-shadow: var(--title-btn-primary-shadow);
+}
+
+.menu-btn.primary small {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Secondary button style */
+.menu-btn.secondary {
+    background-color: var(--title-btn-secondary-bg);
+    color: var(--title-btn-secondary-color);
+    border: none;
+}
+
+.menu-btn.secondary:hover {
+    background-color: #d0d0d0;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
 }
 
 .menu-btn[data-action="toggle-bgm"].bgm-active {
-    background: rgba(121, 217, 255, 0.15);
-    border-color: var(--accent-color);
+    background-color: var(--title-btn-hover-bg);
+    border-color: var(--title-btn-color);
 }
 
 .title-footer {
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: var(--title-subtitle-color);
     letter-spacing: 0.1em;
+    opacity: 0.6;
 }
 
 /* ==================== Game Screen ==================== */
@@ -1048,7 +1249,7 @@ html, body {
     50% { opacity: 1; }
 }
 
-/* ==================== Modal ==================== */
+/* ==================== Modal (LingChat Menu Style) ==================== */
 .modal {
     position: fixed;
     inset: 0;
@@ -1058,36 +1259,39 @@ html, body {
     justify-content: center;
 }
 
-.modal-backdrop {
+.modal-backdrop,
+.modal-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
 }
 
+/* LingChat menu panel: fixed center, white bg, shadow */
 .modal-content {
-    position: relative;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 1;
     width: 90%;
     max-width: 600px;
     max-height: 85vh;
-    background: rgba(0, 14, 39, 0.95);
-    border: 1px solid rgba(121, 217, 255, 0.15);
+    background-color: var(--settings-panel-bg);
+    box-shadow: var(--settings-panel-shadow);
     border-radius: var(--radius);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
     animation: modalIn 0.3s ease-out;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    overflow: hidden;
 }
 
 @keyframes modalIn {
-    from { opacity: 0; transform: scale(0.95) translateY(10px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
-/* LingChat menu-header style */
+/* LingChat menu-header: padding 15px 20px, bg #5d7eb6, color white, height 57px */
 .modal-header {
     display: flex;
     align-items: center;
@@ -1096,7 +1300,7 @@ html, body {
     background-color: var(--menu-header-bg);
     color: white;
     height: 57px;
-    border-radius: var(--radius) var(--radius) 0 0;
+    flex-shrink: 0;
 }
 
 .modal-header h2 {
@@ -1129,37 +1333,42 @@ html, body {
     padding: 1.5rem;
     overflow-y: auto;
     flex: 1;
+    color: var(--settings-input-color);
 }
 
-/* ==================== Settings Panel ==================== */
+/* ==================== Settings Panel (LingChat Menu Style) ==================== */
+/* LingChat tab style: color #555, font-size 16px; active: color #4a86cf, font-weight 500 */
 .settings-tabs {
     display: flex;
-    gap: 0.3rem;
+    gap: 0;
     margin-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(121, 217, 255, 0.1);
-    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--settings-divider);
+    padding-bottom: 0;
 }
 
 .tab-btn {
-    padding: 0.5rem 1rem;
+    padding: 0.6rem 1.2rem;
     border: none;
-    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    border-radius: 0;
     background: transparent;
-    color: var(--text-muted);
-    font-size: 0.85rem;
+    color: var(--settings-tab-color);
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-family: var(--font-main);
-    border-bottom: 2px solid transparent;
+    border-bottom: 3px solid transparent;
+    position: relative;
 }
 
 .tab-btn:hover {
-    color: var(--accent-color);
+    color: var(--settings-tab-active-color);
 }
 
+/* LingChat active tab: color #4a86cf, font-weight 500, bottom indicator height 3px */
 .tab-btn.active {
-    color: var(--accent-color);
-    border-bottom-color: var(--accent-color);
+    color: var(--settings-tab-active-color);
+    font-weight: 500;
+    border-bottom-color: var(--settings-tab-indicator);
 }
 
 .tab-content {
@@ -1176,84 +1385,93 @@ html, body {
     to { opacity: 1; }
 }
 
+/* LingChat menu-item style */
 .api-provider {
-    padding: 1rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    padding: 10px;
+    border-radius: 12px;
     margin-bottom: 1rem;
-    background: var(--bg-card);
+    background: var(--settings-item-bg);
+    backdrop-filter: blur(5px);
+    border: 1px solid var(--settings-item-border);
 }
 
 .api-provider h3 {
     font-size: 0.95rem;
     margin-bottom: 0.8rem;
     font-weight: 600;
+    color: var(--settings-input-color);
 }
 
 .direct-tag {
     font-size: 0.7rem;
     padding: 2px 6px;
     border-radius: 4px;
-    background: rgba(0, 210, 100, 0.2);
-    color: #00d264;
+    background: rgba(0, 210, 100, 0.15);
+    color: #00a854;
     font-weight: 500;
     vertical-align: middle;
     margin-left: 4px;
 }
 
+/* LingChat form-group: label font-size 14px, color #444, font-weight 500 */
 .form-group {
     margin-bottom: 1rem;
 }
 
 .form-group label {
     display: block;
-    font-size: 0.85rem;
-    color: var(--text-secondary);
+    font-size: 14px;
+    color: var(--settings-label-color);
     margin-bottom: 0.4rem;
     font-weight: 500;
 }
 
+/* LingChat form input: padding 12px, border 1px solid rgba(0,0,0,0.1), border-radius 8px, bg rgba(255,255,255,0.9), color #333, font-size 16px */
 .form-group input[type="text"],
 .form-group input[type="password"],
 .form-group input[type="number"],
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 0.6rem 0.8rem;
-    border: 1px solid rgba(121, 217, 255, 0.2);
-    border-radius: var(--radius-sm);
-    background: rgba(0, 14, 39, 0.5);
-    color: var(--text);
-    font-size: 0.9rem;
+    padding: 12px;
+    border: 1px solid var(--settings-input-border);
+    border-radius: 8px;
+    background-color: var(--settings-input-bg);
+    color: var(--settings-input-color);
+    font-size: 16px;
     font-family: var(--font-main);
-    transition: border-color 0.3s ease, background-color 0.3s ease;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
 }
 
+/* LingChat form input focus: border-color #4a86cf, box-shadow 0 0 5px rgba(74,134,207,0.3), bg #fff */
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: var(--accent-color);
+    border-color: var(--settings-input-focus-border);
+    box-shadow: var(--settings-input-focus-shadow);
+    background-color: #fff;
 }
 
 .form-group small {
     display: block;
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: var(--settings-tab-color);
     margin-top: 0.3rem;
 }
 
-/* LingChat slider track style */
+/* LingChat slider track: height 8px, border-radius 4px */
 .form-group input[type="range"] {
     width: 100%;
     -webkit-appearance: none;
     appearance: none;
-    height: 6px;
-    border-radius: 3px;
+    height: 8px;
+    border-radius: 4px;
     background: var(--slider-track);
     outline: none;
 }
 
+/* LingChat slider thumb: 22x22, white bg, 2px solid #3d8dff, shadow */
 .form-group input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -1263,7 +1481,7 @@ html, body {
     background: var(--slider-thumb-bg);
     border: var(--slider-thumb-border);
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(61, 141, 255, 0.3);
 }
 
 .form-group input[type="range"]::-moz-range-thumb {
@@ -1273,7 +1491,7 @@ html, body {
     background: var(--slider-thumb-bg);
     border: var(--slider-thumb-border);
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(61, 141, 255, 0.3);
 }
 
 .form-group input[type="checkbox"] {
@@ -1575,8 +1793,8 @@ html, body {
     to { opacity: 0; transform: translateY(-10px); }
 }
 
-/* ==================== Action Buttons ==================== */
-/* LingChat big-button style */
+/* ==================== Action Buttons (LingChat big-button) ==================== */
+/* LingChat big-button: padding 8px 15px, bg #5d7eb6, color white, border-radius 6px, font-size 0.9em */
 .action-btn {
     padding: 8px 15px;
     background-color: var(--big-button-bg);
@@ -1591,6 +1809,7 @@ html, body {
 
 .action-btn:hover {
     filter: brightness(1.15);
+    transform: translateY(-1px);
 }
 
 .action-btn.danger {
@@ -1603,24 +1822,25 @@ html, body {
 }
 
 .action-btn.primary {
-    background: var(--primary);
-    color: #000;
-    font-weight: 600;
+    background-color: var(--title-btn-primary-bg);
+    color: white;
+    font-weight: 500;
 }
 
 .action-btn.primary:hover {
-    filter: brightness(1.15);
+    background-color: var(--title-btn-primary-hover-bg);
+    filter: none;
 }
 
 .action-btn.secondary {
-    background: transparent;
-    color: var(--text-muted);
-    border: 1px solid var(--border);
+    background-color: var(--title-btn-secondary-bg);
+    color: var(--title-btn-secondary-color);
+    border: none;
 }
 
 .action-btn.secondary:hover {
-    color: var(--text);
-    border-color: var(--text-muted);
+    background-color: #d0d0d0;
+    color: var(--title-btn-secondary-color);
 }
 
 .settings-footer {
@@ -1628,8 +1848,8 @@ html, body {
     justify-content: flex-end;
     gap: 0.8rem;
     padding: 1rem 1.5rem;
-    border-top: 1px solid var(--border);
-    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid var(--settings-divider);
+    background: rgba(245, 245, 245, 0.5);
 }
 
 .storage-bar-wrap {
@@ -2072,17 +2292,21 @@ html, body {
 }
 
 .continue-dialog-actions .restart-btn {
-    border-color: rgba(255, 100, 100, 0.3);
-    background: rgba(255, 60, 60, 0.06);
+    background-color: #ffe0e0;
+    color: #cc0033;
+    border: 0.5px solid #ffcccc;
 }
 
 .continue-dialog-actions .restart-btn:hover {
-    border-color: #ff4040;
-    background: rgba(255, 60, 60, 0.12);
+    background-color: #ffd0d0;
+    border-color: #ff9999;
+    box-shadow: 0 6px 12px rgba(204, 0, 51, 0.15);
+    transform: translateY(-2px);
 }
 
 .continue-dialog-actions .restart-btn small {
-    color: var(--text-muted);
+    color: #cc0033;
+    opacity: 0.7;
 }
 
 .api-label {
@@ -2099,6 +2323,36 @@ html, body {
     --text-secondary: #b0b0b0;
     --text-muted: #707070;
     --border: rgba(100, 100, 140, 0.25);
+    /* LingChat Title/Settings Tokens - Night */
+    --title-panel-bg: rgba(15, 15, 35, 0.85);
+    --title-panel-border: 1px solid rgba(100, 100, 140, 0.25);
+    --title-panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --title-panel-hover-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    --title-text-color: #e0e0e0;
+    --title-subtitle-color: #a0a0b0;
+    --title-tag-color: #79d9ff;
+    --title-btn-primary-bg: #4a86cf;
+    --title-btn-primary-hover-bg: #3a76bf;
+    --title-btn-primary-shadow: 0 4px 12px rgba(74, 134, 207, 0.25);
+    --title-btn-bg: rgba(30, 30, 60, 0.8);
+    --title-btn-color: #79d9ff;
+    --title-btn-hover-bg: rgba(40, 40, 80, 0.9);
+    --title-btn-secondary-bg: rgba(40, 40, 60, 0.6);
+    --title-btn-secondary-color: #c0c0d0;
+    --settings-panel-bg: #12122a;
+    --settings-panel-shadow: 0 5px 30px rgba(0, 0, 0, 0.5);
+    --settings-tab-color: #a0a0b0;
+    --settings-tab-active-color: #79d9ff;
+    --settings-tab-indicator: #79d9ff;
+    --settings-input-bg: rgba(20, 20, 40, 0.8);
+    --settings-input-border: rgba(100, 100, 140, 0.3);
+    --settings-input-focus-border: #4a86cf;
+    --settings-input-focus-shadow: 0 0 5px rgba(74, 134, 207, 0.3);
+    --settings-input-color: #e0e0e0;
+    --settings-label-color: #a0a0b0;
+    --settings-divider: rgba(100, 100, 140, 0.2);
+    --settings-item-bg: rgba(30, 30, 60, 0.5);
+    --settings-item-border: rgba(100, 100, 140, 0.2);
 }
 
 [data-day-night="night"] #dialog-box {
@@ -2110,31 +2364,8 @@ html, body {
     opacity: 0.85;
 }
 
-[data-day-night="night"] .menu-btn {
-    background: rgba(5, 5, 15, 0.8);
-    border-color: rgba(100, 100, 140, 0.3);
-    color: #e0e0e0;
-}
-
 [data-day-night="night"] #title-screen::before {
     opacity: 0.2;
-}
-
-[data-day-night="night"] .modal-content {
-    background: rgba(15, 15, 30, 0.92);
-    border-color: rgba(100, 100, 140, 0.3);
-}
-
-[data-day-night="night"] .form-group input,
-[data-day-night="night"] .form-group select,
-[data-day-night="night"] .form-group textarea {
-    background: rgba(20, 20, 40, 0.8);
-    border-color: rgba(100, 100, 140, 0.3);
-    color: #e0e0e0;
-}
-
-[data-day-night="night"] .settings-tab {
-    background: rgba(15, 15, 30, 0.9);
 }
 
 [data-day-night="night"] .save-slot {
@@ -2168,6 +2399,36 @@ html, body {
     --input-bg: rgba(255, 255, 255, 0.7);
     --input-border: rgba(0, 0, 0, 0.12);
     --text-shadow: none;
+    /* LingChat Title/Settings Tokens - Day */
+    --title-panel-bg: rgba(255, 255, 255, 0.85);
+    --title-panel-border: 1px solid rgba(0, 0, 0, 0.08);
+    --title-panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --title-panel-hover-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    --title-text-color: #333;
+    --title-subtitle-color: #555;
+    --title-tag-color: #4a86cf;
+    --title-btn-primary-bg: #4a86cf;
+    --title-btn-primary-hover-bg: #3a76bf;
+    --title-btn-primary-shadow: 0 4px 12px rgba(74, 134, 207, 0.2);
+    --title-btn-bg: #d2e5ff;
+    --title-btn-color: #3d8dff;
+    --title-btn-hover-bg: #b8d7ff;
+    --title-btn-secondary-bg: #e0e0e0;
+    --title-btn-secondary-color: #333;
+    --settings-panel-bg: #fff;
+    --settings-panel-shadow: 0 5px 30px rgba(0, 0, 0, 0.15);
+    --settings-tab-color: #555;
+    --settings-tab-active-color: #4a86cf;
+    --settings-tab-indicator: #4a86cf;
+    --settings-input-bg: rgba(255, 255, 255, 0.9);
+    --settings-input-border: rgba(0, 0, 0, 0.1);
+    --settings-input-focus-border: #4a86cf;
+    --settings-input-focus-shadow: 0 0 5px rgba(74, 134, 207, 0.3);
+    --settings-input-color: #333;
+    --settings-label-color: #444;
+    --settings-divider: #eee;
+    --settings-item-bg: rgba(0, 0, 0, 0.02);
+    --settings-item-border: rgba(0, 0, 0, 0.06);
 }
 
 [data-day-night="day"] #dialog-box::before {
@@ -2176,43 +2437,12 @@ html, body {
     box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06);
 }
 
-[data-day-night="day"] .menu-btn {
-    background: rgba(255, 255, 255, 0.8);
-    border-color: rgba(0, 0, 0, 0.08);
-    color: #1a1a2e;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+[data-day-night="day"] #title-screen::before {
+    opacity: 0.4;
 }
 
-[data-day-night="day"] .modal-content {
-    background: rgba(255, 255, 255, 0.92);
-    border-color: rgba(0, 0, 0, 0.08);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-}
-
-[data-day-night="day"] .form-group input,
-[data-day-night="day"] .form-group select,
-[data-day-night="day"] .form-group textarea {
-    background: rgba(255, 255, 255, 0.8);
-    border-color: rgba(0, 0, 0, 0.1);
-    color: #1a1a2e;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-}
-
-[data-day-night="day"] .settings-tab {
-    background: rgba(248, 249, 252, 0.95);
-    color: #1a1a2e;
-}
-
-[data-day-night="day"] .tab-btn {
-    color: rgba(26, 26, 46, 0.6);
-}
-
-[data-day-night="day"] .tab-btn.active {
-    color: var(--primary);
-    background: rgba(0, 210, 255, 0.08);
+[data-day-night="day"] .title-footer {
+    color: rgba(26, 26, 46, 0.5);
 }
 
 [data-day-night="day"] .save-slot {
@@ -2252,14 +2482,6 @@ html, body {
 [data-day-night="day"] .toolbar-btn {
     background: rgba(255, 255, 255, 0.6);
     border-color: rgba(0, 0, 0, 0.06);
-}
-
-[data-day-night="day"] #title-screen::before {
-    opacity: 0.4;
-}
-
-[data-day-night="day"] .title-footer {
-    color: rgba(26, 26, 46, 0.5);
 }
 
 [data-day-night="day"] .api-dot {
@@ -2566,24 +2788,6 @@ html, body {
     color: var(--primary);
 }
 
-[data-theme="ink-wash"] .form-group input,
-[data-theme="ink-wash"] .form-group select,
-[data-theme="ink-wash"] .form-group textarea {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-
-[data-theme="ink-wash"] .settings-panel {
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-}
-
-[data-theme="ink-wash"] .modal-content {
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    background: rgba(245, 240, 232, 0.85);
-}
-
 /* Vaporwave */
 [data-theme="vaporwave"] #scene-overlay {
     background: linear-gradient(to top, rgba(26, 0, 48, 0.7) 0%, transparent 40%, rgba(255, 110, 199, 0.05) 70%, rgba(123, 104, 238, 0.1) 100%);
@@ -2631,9 +2835,12 @@ html, body {
 
 /* ==================== Responsive ==================== */
 @media (max-width: 768px) {
-    .title-content { gap: 1.5rem; padding: 1.5rem; }
-    .title-logo h1 { font-size: 2.2rem; }
-    .title-sub { font-size: 0.75rem; letter-spacing: 0.3em; }
+    .title-content { gap: 1.2rem; padding: 20px; max-width: 360px; }
+    .title-logo h1,
+    .title-text { font-size: 24px; }
+    .title-sub,
+    .title-subtitle { font-size: 14px; letter-spacing: 0.1em; }
+    .menu-btn { padding: 10px 16px; font-size: 16px; }
     #dialog-box { padding: 0 1rem 1rem; max-height: 40vh; }
     #dialog-content { font-size: 0.95rem; line-height: 1.7; max-height: 20vh; }
     #dialog-text-area { font-size: 0.95rem; line-height: 1.7; max-height: 20vh; }
@@ -2641,8 +2848,8 @@ html, body {
     .choice-btn { padding: 0.8rem 1.2rem; font-size: 0.9rem; }
     .modal-content { width: 95%; max-height: 90vh; }
     .theme-grid { grid-template-columns: repeat(2, 1fr); }
-    .settings-tabs { flex-wrap: wrap; gap: 0.3rem; }
-    .settings-tabs .tab-btn { flex: 1; min-width: 0; padding: 0.5rem 0.4rem; font-size: 0.78rem; }
+    .settings-tabs { flex-wrap: wrap; gap: 0; }
+    .settings-tabs .tab-btn { flex: 1; min-width: 0; padding: 0.5rem 0.6rem; font-size: 14px; }
     #dialog-nameplate { padding: 0.3rem 1rem; }
     #dialog-name { font-size: 0.8rem; }
     #dialog-subtitle { font-size: 0.75rem; }
@@ -2666,9 +2873,12 @@ html, body {
 }
 
 @media (max-width: 480px) {
-    .title-content { gap: 1rem; padding: 1rem; }
-    .title-logo h1 { font-size: 1.8rem; }
-    .menu-btn { padding: 0.8rem 1rem; font-size: 0.95rem; }
+    .title-content { gap: 0.8rem; padding: 16px; max-width: 320px; }
+    .title-logo h1,
+    .title-text { font-size: 22px; }
+    .title-sub,
+    .title-subtitle { font-size: 13px; }
+    .menu-btn { padding: 8px 12px; font-size: 14px; }
     .menu-btn small { display: none; }
     .toolbar-btn { width: 30px; height: 30px; font-size: 0.85rem; }
     #game-toolbar { gap: 0.15rem; padding: 0.3rem; }
