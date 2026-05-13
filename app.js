@@ -2602,14 +2602,12 @@
         const nameEl = $('#dialog-name');
         const textEl = $('#dialog-text');
         const cursor = $('#dialog-cursor');
-        const hint = $('#dialog-click-hint');
 
         hideCustomInput();
         dialogBox.classList.remove('hidden');
         dialogBox.classList.add('clickable');
         nameEl.textContent = name;
         state.game.characterName = name;
-        hint.style.display = 'none';
 
         if (typewriterTimer) { clearInterval(typewriterTimer); typewriterTimer = null; }
 
@@ -2622,7 +2620,7 @@
             textEl.style.transition = 'opacity 0.5s ease';
             textEl.style.opacity = '1';
             state.game.isTyping = false;
-            cursor.style.display = 'none'; hint.style.display = 'block';
+            cursor.style.display = 'none';
             triggerAutoPlay();
             return;
         }
@@ -2653,7 +2651,7 @@
             } else {
                 clearInterval(typewriterTimer); typewriterTimer = null;
                 state.game.isTyping = false;
-                cursor.style.display = 'none'; hint.style.display = 'block';
+                cursor.style.display = 'none';
                 triggerAutoPlay();
             }
         }, state.settings.textSpeed);
@@ -2676,6 +2674,7 @@
     }
 
     function showChoices(choices) {
+        if (!choices || choices.length === 0) return;
         const box = $('#choices-box');
         const dialogBox = $('#dialog-box');
         box.innerHTML = '';
@@ -2694,16 +2693,6 @@
             });
             box.appendChild(btn);
         });
-        const customBtn = document.createElement('button');
-        customBtn.className = 'choice-btn custom-choice-btn';
-        customBtn.textContent = '✏️ 自定义输入';
-        customBtn.style.animationDelay = (choices.length * 0.1 + 0.1) + 's';
-        customBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            box.classList.add('hidden');
-            showCustomInput();
-        });
-        box.appendChild(customBtn);
     }
 
     function hideChoices() { $('#choices-box').classList.add('hidden'); }
