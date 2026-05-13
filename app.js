@@ -684,6 +684,31 @@
             if (e.key === 'Enter') { e.preventDefault(); sendCustomInput(); }
         });
         $('#chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') handleChatSend(); });
+        
+        const dialogInput = $('#dialog-input');
+        if (dialogInput) {
+            dialogInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (dialogSegmentState.isWaitingForContinue || dialogSegmentState.isTyping) {
+                        continueDialog();
+                    } else if (!dialogInput.readOnly && dialogInput.value.trim()) {
+                        sendDialogInput();
+                    }
+                }
+            });
+        }
+        
+        const dialogSendBtn = $('#dialog-send-btn');
+        if (dialogSendBtn) {
+            dialogSendBtn.addEventListener('click', () => {
+                if (dialogSegmentState.isWaitingForContinue || dialogSegmentState.isTyping) {
+                    continueDialog();
+                } else {
+                    sendDialogInput();
+                }
+            });
+        }
         $('#back-to-choices-btn').addEventListener('click', () => {
             hideCustomInput();
             if (lastChoices) showChoices(lastChoices);
@@ -784,22 +809,8 @@
     }
 
     function handleDialogClick() {
-        if (state.game.isTyping) {
-            clearInterval(typewriterTimer); typewriterTimer = null;
-            state.game.isTyping = false;
-            const textEl = $('#dialog-text');
-            const name = state.game.characterName;
-            const dialogBox = $('#dialog-box');
-            const nameEl = $('#dialog-name');
-            const cursor = $('#dialog-cursor');
-            const hint = $('#dialog-click-hint');
-            const lastDialog = state.game.dialogHistory.filter(d => d.name === name).pop();
-            if (lastDialog) {
-                textEl.textContent = lastDialog.text;
-            }
-            textEl.style.opacity = '1'; textEl.style.transition = '';
-            cursor.style.display = 'none'; hint.style.display = 'block';
-            triggerAutoPlay();
+        if (dialogSegmentState.isTyping || dialogSegmentState.isWaitingForContinue) {
+            continueDialog();
             return;
         }
         if (!$('#choices-box').classList.contains('hidden')) return;
@@ -2152,14 +2163,15 @@
             const emotion = normalizeEmotion(parsed.emotion);
             const action = parsed.action || '';
             const scene = parsed.scene || '';
-            const choices = parsed.choices || [];
             dialog = dialog.replace(/作为(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
             dialog = dialog.replace(/我是(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
             dialog = dialog.replace(/作为人工智能[，,。.]/g, '');
             if (action) {
                 dialog = `（${action}）\n${dialog}`;
             }
-            showDialog(name, dialog);
+            
+            const segments = splitDialogIntoSegments(dialog);
+            showSegmentedDialog(name, segments, emotion);
             addDialogHistory(name, dialog);
             updateEmotionIndicator(emotion);
             if (ttsState.enabled) speakText(dialog, emotion);
@@ -2171,45 +2183,171 @@
             }
             if (scene) state.game.currentScene = scene;
             if (scene && state.settings.autoGenScene) generateSceneImage(scene);
-            if (choices.length > 0) {
-                let finalChoices = choices.map(c => ({ text: c.text, action: () => handleAiChoice(c.text) }));
-                if (state.game.activeOutline && state.game.outlineChapterIndex !== undefined) {
-                    const outline = state.game.activeOutline;
-                    const chapterIdx = state.game.outlineChapterIndex;
-                    if (chapterIdx < outline.chapters.length - 1) {
-                        const nextChapter = outline.chapters[chapterIdx + 1];
-                        const hasProgressionHint = choices.some(c => c.text && (c.text.includes('继续') || c.text.includes('前进') || c.text.includes('深入') || c.text.includes('下一章')));
-                        if (hasProgressionHint || state.game.dialogHistory.length % 5 === 0) {
-                            finalChoices.push({
-                                text: `→ 进入下一章：${nextChapter.title}`,
-                                action: () => {
-                                    state.game.outlineChapterIndex = chapterIdx + 1;
-                                    updateOutlineChapterDisplay(outline, chapterIdx + 1);
-                                    if (bgmState.enabled && nextChapter.mood) playBgm(nextChapter.mood);
-                                    handleAiChoice(`[进入下一章] ${nextChapter.title}：${nextChapter.summary}`);
-                                }
-                            });
-                        }
-                    }
-                    updateOutlineChapterDisplay(outline, chapterIdx);
-                }
-                setTimeout(() => showChoices(finalChoices), 1000);
-                if (state.uiMode === 'chat') {
-                    addChatChoices(finalChoices.map(c => ({ text: c.text })));
-                }
-            }
         } else {
             let content = rawContent;
             content = content.replace(/作为(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
             content = content.replace(/我是(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
-            showDialog('星酱', content);
+            
+            const segments = splitDialogIntoSegments(content);
+            showSegmentedDialog('星酱', segments, 'neutral');
             addDialogHistory('星酱', content);
             updateEmotionIndicator('neutral');
-            setTimeout(() => showChoices([
-                { text: '继续', action: () => handleAiChoice('请继续推进剧情') },
-                { text: '换个方向', action: () => handleAiChoice('我想尝试不同的方向，请给我新的选择') },
-            ]), 1000);
         }
+    }
+
+    function splitDialogIntoSegments(dialog) {
+        const parts = dialog.split(/\n{2,}/);
+        const segments = [];
+        for (const part of parts) {
+            const trimmed = part.trim();
+            if (trimmed) segments.push(trimmed);
+        }
+        if (segments.length === 0) segments.push(dialog);
+        return segments;
+    }
+
+    let dialogSegmentState = {
+        segments: [],
+        currentIndex: 0,
+        name: '',
+        emotion: '',
+        isWaitingForContinue: false,
+        isTyping: false,
+        typingTimer: null,
+    };
+
+    function showSegmentedDialog(name, segments, emotion) {
+        dialogSegmentState.segments = segments;
+        dialogSegmentState.currentIndex = 0;
+        dialogSegmentState.name = name;
+        dialogSegmentState.emotion = emotion;
+        dialogSegmentState.isWaitingForContinue = false;
+        
+        const dialogBox = $('#dialog-box');
+        if (dialogBox) dialogBox.classList.remove('hidden');
+        
+        const dialogName = $('#dialog-name');
+        if (dialogName) dialogName.textContent = name;
+        
+        const dialogInput = $('#dialog-input');
+        if (dialogInput) {
+            dialogInput.readOnly = true;
+            dialogInput.value = '';
+            dialogInput.placeholder = '';
+        }
+        
+        showCurrentSegment();
+    }
+
+    function showCurrentSegment() {
+        const { segments, currentIndex, name } = dialogSegmentState;
+        if (currentIndex >= segments.length) {
+            enableDialogInput();
+            return;
+        }
+        
+        const text = segments[currentIndex];
+        const dialogTextArea = $('#dialog-text-area');
+        const dialogText = $('#dialog-text');
+        const dialogCursor = $('#dialog-cursor');
+        
+        if (dialogText) dialogText.textContent = '';
+        if (dialogCursor) dialogCursor.style.display = 'inline';
+        
+        typeText(text, dialogText, dialogCursor, () => {
+            dialogSegmentState.isTyping = false;
+            if (currentIndex < segments.length - 1) {
+                dialogSegmentState.isWaitingForContinue = true;
+                const dialogInput = $('#dialog-input');
+                if (dialogInput) {
+                    dialogInput.readOnly = true;
+                    dialogInput.placeholder = '按 Enter 继续...';
+                }
+            } else {
+                enableDialogInput();
+            }
+        });
+    }
+
+    function typeText(text, element, cursor, callback) {
+        if (!element) { if (callback) callback(); return; }
+        
+        dialogSegmentState.isTyping = true;
+        let i = 0;
+        element.textContent = '';
+        
+        const speed = 50;
+        
+        function typeNext() {
+            if (i < text.length) {
+                element.textContent += text.charAt(i);
+                i++;
+                const baseDelay = speed * 0.8;
+                const randomVariation = speed * 0.4;
+                const delay = baseDelay + Math.random() * randomVariation;
+                dialogSegmentState.typingTimer = setTimeout(typeNext, delay);
+            } else {
+                if (cursor) cursor.style.display = 'none';
+                dialogSegmentState.isTyping = false;
+                if (callback) callback();
+            }
+        }
+        
+        typeNext();
+    }
+
+    function continueDialog() {
+        if (dialogSegmentState.isTyping) {
+            clearTimeout(dialogSegmentState.typingTimer);
+            const { segments, currentIndex } = dialogSegmentState;
+            const dialogText = $('#dialog-text');
+            const dialogCursor = $('#dialog-cursor');
+            if (dialogText) dialogText.textContent = segments[currentIndex];
+            if (dialogCursor) dialogCursor.style.display = 'none';
+            dialogSegmentState.isTyping = false;
+            
+            if (currentIndex < segments.length - 1) {
+                dialogSegmentState.isWaitingForContinue = true;
+                const dialogInput = $('#dialog-input');
+                if (dialogInput) {
+                    dialogInput.readOnly = true;
+                    dialogInput.placeholder = '按 Enter 继续...';
+                }
+            } else {
+                enableDialogInput();
+            }
+            return;
+        }
+        
+        if (!dialogSegmentState.isWaitingForContinue) return;
+        
+        dialogSegmentState.isWaitingForContinue = false;
+        dialogSegmentState.currentIndex++;
+        showCurrentSegment();
+    }
+
+    function enableDialogInput() {
+        const dialogInput = $('#dialog-input');
+        if (dialogInput) {
+            dialogInput.readOnly = false;
+            dialogInput.value = '';
+            dialogInput.placeholder = '在这里输入消息...';
+            dialogInput.focus();
+        }
+    }
+
+    function sendDialogInput() {
+        const dialogInput = $('#dialog-input');
+        if (!dialogInput || dialogInput.readOnly) return;
+        
+        const text = dialogInput.value.trim();
+        if (!text) return;
+        
+        dialogInput.value = '';
+        dialogInput.readOnly = true;
+        dialogInput.placeholder = '等待回应中...';
+        
+        handleAiChoice(text);
     }
 
     function updateEmotionIndicator(emotion) {
@@ -2292,14 +2430,15 @@
             }
             
             showToast('AI 调用失败: ' + errorMsg, 'error');
-            showDialog('星酱', friendlyMsg);
+            const segments = splitDialogIntoSegments(friendlyMsg);
+            showSegmentedDialog('星酱', segments, 'neutral');
             
             setTimeout(() => {
-                showChoices([
-                    { text: '再试一次', action: () => handleAiChoice(choiceText) },
-                    { text: '换个说法', action: () => showCustomInput() },
-                    { text: '返回标题', action: backToTitle },
-                ]);
+                enableDialogInput();
+                const dialogInput = $('#dialog-input');
+                if (dialogInput) {
+                    dialogInput.placeholder = '输入消息重试...';
+                }
             }, 1000);
         } finally {
             apiCallInProgress = false;

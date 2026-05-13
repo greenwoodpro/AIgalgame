@@ -591,6 +591,83 @@ html, body {
     text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
+#dialog-text-area {
+    padding: 0.8rem 0;
+    min-height: 60px;
+    max-height: 25vh;
+    overflow-y: auto;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1.8;
+    color: white;
+    letter-spacing: 0.03em;
+    -webkit-overflow-scrolling: touch;
+    flex-shrink: 1;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+#dialog-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.3);
+    margin: 6px 0;
+}
+
+#dialog-input-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+#dialog-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    outline: none;
+    resize: none;
+    min-height: 40px;
+    padding: 4px 0;
+    font-family: var(--font-main);
+    transition: all 0.3s ease;
+}
+
+#dialog-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    text-shadow: none;
+}
+
+#dialog-input:read-only {
+    opacity: 0.6;
+    cursor: default;
+}
+
+#dialog-send-btn {
+    align-self: flex-end;
+    background: transparent;
+    color: var(--send-color);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+    transform: scaleX(1.5);
+    transition: all 0.3s ease;
+}
+
+#dialog-send-btn:hover {
+    color: rgba(136, 255, 251, 0.83);
+}
+
+#dialog-send-btn:disabled {
+    background: #333;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
 .cursor-blink {
     animation: cursorBlink 1s step-end infinite;
     color: var(--accent-color);
