@@ -2196,13 +2196,18 @@
     }
 
     function splitDialogIntoSegments(dialog) {
-        const parts = dialog.split(/\n{2,}/);
+        let text = dialog.replace(/\\n/g, '\n');
+        text = text.replace(/\r\n/g, '\n');
+        const paragraphs = text.split(/\n{2,}/);
         const segments = [];
-        for (const part of parts) {
-            const trimmed = part.trim();
-            if (trimmed) segments.push(trimmed);
+        for (const para of paragraphs) {
+            const trimmed = para.trim();
+            if (trimmed) {
+                const cleaned = trimmed.replace(/\n/g, ' ');
+                segments.push(cleaned);
+            }
         }
-        if (segments.length === 0) segments.push(dialog);
+        if (segments.length === 0) segments.push(text.trim() || dialog);
         return segments;
     }
 
