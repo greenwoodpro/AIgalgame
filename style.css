@@ -102,244 +102,7 @@
     --text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
-/* ==================== Theme: Sakura ==================== */
-[data-theme="sakura"] {
-    --bg: #1a0a14;
-    --bg-secondary: #2a1225;
-    --bg-card: rgba(255, 150, 180, 0.08);
-    --primary: #ff69b4;
-    --accent: #ff1493;
-    --gradient: linear-gradient(135deg, #ff69b4, #ff1493);
-    --border: rgba(255, 105, 180, 0.2);
-    --dialog-bg: rgba(26, 10, 20, 0.88);
-    --dialog-bg-top: rgba(26, 10, 20, 0.75);
-    --dialog-border: rgba(255, 105, 180, 0.25);
-    --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(26, 10, 20, 0.4) 50%, rgba(26, 10, 20, 0.7) 100%);
-    --nameplate-bg: linear-gradient(135deg, #ff69b4, #ff1493);
-    --accent-color: #ff69b4;
-    --name-color: #ff8ec4;
-    --emotion-color: #ff77dd;
-    --send-color: #ff69b4;
-    --send-hover-color: rgba(255, 182, 230, 0.827);
-    --menu-btn-bg: #ffd6e8;
-    --menu-btn-color: #d63384;
-    --menu-header-bg: #d63384;
-    --big-button-bg: #d63384;
-    --slider-track: linear-gradient(to left, #d63384, #ff8ec4);
-    --slider-thumb-border: 2px solid #d63384;
-    /* LingChat Title Tokens - Sakura */
-    --title-panel-bg: rgba(255, 220, 235, 0.75);
-    --title-panel-border: 1px solid rgba(255, 182, 220, 0.4);
-    --title-panel-shadow: 0 8px 32px rgba(100, 0, 50, 0.2);
-    --title-panel-hover-shadow: 0 12px 40px rgba(100, 0, 50, 0.25);
-    --title-text-color: #5c1a3a;
-    --title-subtitle-color: #8a4060;
-    --title-tag-color: #d63384;
-    --title-btn-primary-bg: #d63384;
-    --title-btn-primary-hover-bg: #b82a70;
-    --title-btn-primary-shadow: 0 4px 12px rgba(214, 51, 132, 0.3);
-    --title-btn-bg: #ffd6e8;
-    --title-btn-color: #d63384;
-    --title-btn-hover-bg: #ffb8d4;
-    --title-btn-secondary-bg: #f0d0dd;
-    --title-btn-secondary-color: #5c1a3a;
-    /* LingChat Settings Tokens - Sakura */
-    --settings-panel-bg: #fff5f8;
-    --settings-panel-shadow: 0 5px 30px rgba(100, 0, 50, 0.2);
-    --settings-tab-color: #8a4060;
-    --settings-tab-active-color: #d63384;
-    --settings-tab-indicator: #d63384;
-    --settings-input-bg: rgba(255, 245, 248, 0.9);
-    --settings-input-border: rgba(214, 51, 132, 0.15);
-    --settings-input-focus-border: #d63384;
-    --settings-input-focus-shadow: 0 0 5px rgba(214, 51, 132, 0.3);
-    --settings-input-color: #5c1a3a;
-    --settings-label-color: #6b2a4a;
-    --settings-divider: #f0d0dd;
-    --settings-item-bg: rgba(255, 214, 232, 0.15);
-    --settings-item-border: rgba(214, 51, 132, 0.12);
-}
 
-/* ==================== Theme: Cyberpunk ==================== */
-[data-theme="cyberpunk"] {
-    --bg: #0d0d0d;
-    --bg-secondary: #1a1a1a;
-    --bg-card: rgba(0, 255, 65, 0.05);
-    --primary: #00ff41;
-    --accent: #ff0090;
-    --gradient: linear-gradient(135deg, #00ff41, #ff0090);
-    --border: rgba(0, 255, 65, 0.2);
-    --dialog-bg: rgba(13, 13, 13, 0.9);
-    --dialog-bg-top: rgba(13, 13, 13, 0.8);
-    --dialog-border: rgba(0, 255, 65, 0.25);
-    --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(0, 255, 65, 0.15) 50%, rgba(13, 13, 13, 0.7) 100%);
-    --nameplate-bg: linear-gradient(135deg, #00ff41, #ff0090);
-    --accent-color: #00ff41;
-    --name-color: #00ff41;
-    --emotion-color: #ff0090;
-    --send-color: #00ff41;
-    --send-hover-color: rgba(0, 255, 136, 0.827);
-    --menu-btn-bg: #0d2b0d;
-    --menu-btn-color: #00ff41;
-    --menu-header-bg: #1a3a1a;
-    --big-button-bg: #00cc33;
-    --slider-track: linear-gradient(to left, #00ff41, #a8ffca);
-    --slider-thumb-border: 2px solid #00ff41;
-    /* LingChat Title Tokens - Cyberpunk */
-    --title-panel-bg: rgba(13, 26, 13, 0.8);
-    --title-panel-border: 1px solid rgba(0, 255, 65, 0.25);
-    --title-panel-shadow: 0 8px 32px rgba(0, 255, 65, 0.15);
-    --title-panel-hover-shadow: 0 12px 40px rgba(0, 255, 65, 0.2);
-    --title-text-color: #00ff41;
-    --title-subtitle-color: #80ff80;
-    --title-tag-color: #00ff41;
-    --title-btn-primary-bg: #00cc33;
-    --title-btn-primary-hover-bg: #00aa2a;
-    --title-btn-primary-shadow: 0 4px 12px rgba(0, 255, 65, 0.3);
-    --title-btn-bg: #0d2b0d;
-    --title-btn-color: #00ff41;
-    --title-btn-hover-bg: #1a4a1a;
-    --title-btn-secondary-bg: #1a1a1a;
-    --title-btn-secondary-color: #00ff41;
-    /* LingChat Settings Tokens - Cyberpunk */
-    --settings-panel-bg: #0d1a0d;
-    --settings-panel-shadow: 0 5px 30px rgba(0, 255, 65, 0.15);
-    --settings-tab-color: #80ff80;
-    --settings-tab-active-color: #00ff41;
-    --settings-tab-indicator: #00ff41;
-    --settings-input-bg: rgba(13, 26, 13, 0.9);
-    --settings-input-border: rgba(0, 255, 65, 0.2);
-    --settings-input-focus-border: #00ff41;
-    --settings-input-focus-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
-    --settings-input-color: #00ff41;
-    --settings-label-color: #80ff80;
-    --settings-divider: rgba(0, 255, 65, 0.15);
-    --settings-item-bg: rgba(0, 255, 65, 0.05);
-    --settings-item-border: rgba(0, 255, 65, 0.12);
-}
-
-/* ==================== Theme: Ink Wash ==================== */
-[data-theme="ink-wash"] {
-    --bg: #f5f0e8;
-    --bg-secondary: #e8e0d0;
-    --bg-card: rgba(255, 255, 255, 0.45);
-    --text: #2c2c2c;
-    --text-secondary: rgba(44, 44, 44, 0.7);
-    --text-muted: rgba(44, 44, 44, 0.4);
-    --primary: #8b4513;
-    --accent: #2c2c2c;
-    --gradient: linear-gradient(135deg, #8b4513, #2c2c2c);
-    --border: rgba(139, 69, 19, 0.2);
-    --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --dialog-bg: rgba(245, 240, 232, 0.75);
-    --dialog-bg-top: rgba(245, 240, 232, 0.65);
-    --dialog-border: rgba(139, 69, 19, 0.25);
-    --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(245, 240, 232, 0.4) 50%, rgba(245, 240, 232, 0.7) 100%);
-    --nameplate-bg: linear-gradient(135deg, #8b4513, #2c2c2c);
-    --input-bg: rgba(255, 255, 255, 0.5);
-    --input-border: rgba(139, 69, 19, 0.3);
-    --accent-color: #8b4513;
-    --name-color: #6b5b3a;
-    --emotion-color: #a0522d;
-    --send-color: #8b4513;
-    --send-hover-color: rgba(139, 69, 19, 0.7);
-    --menu-btn-bg: #e8dcc8;
-    --menu-btn-color: #5c3a1e;
-    --menu-header-bg: #5c3a1e;
-    --big-button-bg: #5c3a1e;
-    --slider-track: linear-gradient(to left, #8b4513, #c4956a);
-    --slider-thumb-border: 2px solid #8b4513;
-    --text-shadow: none;
-    /* LingChat Title Tokens - Ink Wash */
-    --title-panel-bg: rgba(245, 240, 232, 0.85);
-    --title-panel-border: 1px solid rgba(139, 69, 19, 0.2);
-    --title-panel-shadow: 0 8px 32px rgba(92, 58, 30, 0.12);
-    --title-panel-hover-shadow: 0 12px 40px rgba(92, 58, 30, 0.18);
-    --title-text-color: #2c2c2c;
-    --title-subtitle-color: #5c3a1e;
-    --title-tag-color: #8b4513;
-    --title-btn-primary-bg: #5c3a1e;
-    --title-btn-primary-hover-bg: #4a2e16;
-    --title-btn-primary-shadow: 0 4px 12px rgba(92, 58, 30, 0.25);
-    --title-btn-bg: #e8dcc8;
-    --title-btn-color: #5c3a1e;
-    --title-btn-hover-bg: #d8ccb8;
-    --title-btn-secondary-bg: #d8d0c0;
-    --title-btn-secondary-color: #3c2a1e;
-    /* LingChat Settings Tokens - Ink Wash */
-    --settings-panel-bg: #f5f0e8;
-    --settings-panel-shadow: 0 5px 30px rgba(92, 58, 30, 0.15);
-    --settings-tab-color: #5c3a1e;
-    --settings-tab-active-color: #8b4513;
-    --settings-tab-indicator: #8b4513;
-    --settings-input-bg: rgba(255, 255, 255, 0.7);
-    --settings-input-border: rgba(139, 69, 19, 0.2);
-    --settings-input-focus-border: #8b4513;
-    --settings-input-focus-shadow: 0 0 5px rgba(139, 69, 19, 0.25);
-    --settings-input-color: #2c2c2c;
-    --settings-label-color: #5c3a1e;
-    --settings-divider: #e0d8c8;
-    --settings-item-bg: rgba(232, 220, 200, 0.3);
-    --settings-item-border: rgba(139, 69, 19, 0.12);
-}
-
-/* ==================== Theme: Vaporwave ==================== */
-[data-theme="vaporwave"] {
-    --bg: #1a0030;
-    --bg-secondary: #2a0050;
-    --bg-card: rgba(255, 0, 200, 0.06);
-    --primary: #ff6ec7;
-    --accent: #7b68ee;
-    --gradient: linear-gradient(135deg, #ff6ec7, #7b68ee, #00ffff);
-    --border: rgba(255, 110, 199, 0.2);
-    --dialog-bg: rgba(26, 0, 48, 0.88);
-    --dialog-bg-top: rgba(26, 0, 48, 0.75);
-    --dialog-border: rgba(255, 110, 199, 0.25);
-    --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(26, 0, 48, 0.4) 50%, rgba(26, 0, 48, 0.7) 100%);
-    --nameplate-bg: linear-gradient(135deg, #ff6ec7, #7b68ee);
-    --accent-color: #ff6ec7;
-    --name-color: #c8a2ff;
-    --emotion-color: #ff77dd;
-    --send-color: #ff6ec7;
-    --send-hover-color: rgba(255, 182, 230, 0.827);
-    --menu-btn-bg: #2d1048;
-    --menu-btn-color: #ff6ec7;
-    --menu-header-bg: #4a1a7a;
-    --big-button-bg: #7b68ee;
-    --slider-track: linear-gradient(to left, #ff6ec7, #c8a2ff);
-    --slider-thumb-border: 2px solid #ff6ec7;
-    /* LingChat Title Tokens - Vaporwave */
-    --title-panel-bg: rgba(42, 0, 80, 0.8);
-    --title-panel-border: 1px solid rgba(255, 110, 199, 0.25);
-    --title-panel-shadow: 0 8px 32px rgba(123, 104, 238, 0.2);
-    --title-panel-hover-shadow: 0 12px 40px rgba(123, 104, 238, 0.25);
-    --title-text-color: #ff6ec7;
-    --title-subtitle-color: #c8a2ff;
-    --title-tag-color: #ff6ec7;
-    --title-btn-primary-bg: #7b68ee;
-    --title-btn-primary-hover-bg: #6a58dd;
-    --title-btn-primary-shadow: 0 4px 12px rgba(123, 104, 238, 0.3);
-    --title-btn-bg: #2d1048;
-    --title-btn-color: #ff6ec7;
-    --title-btn-hover-bg: #3d1868;
-    --title-btn-secondary-bg: #1a0030;
-    --title-btn-secondary-color: #c8a2ff;
-    /* LingChat Settings Tokens - Vaporwave */
-    --settings-panel-bg: #1a0030;
-    --settings-panel-shadow: 0 5px 30px rgba(123, 104, 238, 0.2);
-    --settings-tab-color: #c8a2ff;
-    --settings-tab-active-color: #ff6ec7;
-    --settings-tab-indicator: #ff6ec7;
-    --settings-input-bg: rgba(42, 0, 80, 0.9);
-    --settings-input-border: rgba(255, 110, 199, 0.2);
-    --settings-input-focus-border: #ff6ec7;
-    --settings-input-focus-shadow: 0 0 5px rgba(255, 110, 199, 0.3);
-    --settings-input-color: #e8c8ff;
-    --settings-label-color: #c8a2ff;
-    --settings-divider: rgba(255, 110, 199, 0.15);
-    --settings-item-bg: rgba(255, 0, 200, 0.06);
-    --settings-item-border: rgba(255, 110, 199, 0.12);
-}
 
 /* ==================== Reset & Base ==================== */
 * {
@@ -741,25 +504,26 @@ html, body {
 
 /* LingChat-style toolbar buttons */
 .toolbar-btn {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: none;
-    border-radius: var(--menu-btn-radius);
-    background: rgba(0, 14, 39, 0.5);
-    color: white;
-    font-size: 1rem;
+    border: 1px solid rgba(121, 217, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(5, 10, 25, 0.5);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
     cursor: pointer;
     transition: all 0.3s ease;
     backdrop-filter: blur(8px);
 }
 
 .toolbar-btn:hover {
-    background: rgba(121, 217, 255, 0.15);
-    transform: scale(1.1);
+    background: rgba(121, 217, 255, 0.12);
+    border-color: rgba(121, 217, 255, 0.3);
     color: var(--accent-color);
+    transform: scale(1.05);
 }
 
 #api-indicator {
@@ -788,19 +552,15 @@ html, body {
 
 /* ==================== Dialog Box (LingChat chatbox-box) ==================== */
 #dialog-box {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    z-index: 2;
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 15px;
-    background: linear-gradient(to top, var(--dialog-bg) 0%, var(--dialog-bg-top) 100%);
-    backdrop-filter: var(--dialog-blur);
-    -webkit-backdrop-filter: var(--dialog-blur);
+    z-index: 2;
+    padding: 20px 24px;
+    background: linear-gradient(to top, rgba(5, 10, 25, 0.92) 0%, rgba(5, 10, 25, 0.78) 70%, transparent 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -808,11 +568,11 @@ html, body {
 #dialog-box::before {
     content: '';
     position: absolute;
-    top: -40px;
+    top: -60px;
     left: 0;
     right: 0;
-    height: 40px;
-    background: var(--dialog-gradient-mask);
+    height: 60px;
+    background: linear-gradient(to top, rgba(5, 10, 25, 0.5) 0%, transparent 100%);
     pointer-events: none;
 }
 
@@ -822,25 +582,30 @@ html, body {
 
 /* LingChat chatbox-main: 60% width */
 #dialog-inner {
-    width: 60%;
+    width: 75%;
+    max-width: 800px;
     display: flex;
     flex-direction: column;
+    margin: 0 auto;
 }
 
 /* LingChat chatbox-title */
 #dialog-nameplate {
     display: flex;
     align-items: baseline;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(121, 217, 255, 0.15);
 }
 
 /* LingChat: font-size 24px, bold, white, margin-right 15px */
 #dialog-name {
-    font-size: 24px;
-    font-weight: bold;
-    color: white;
-    margin-right: 15px;
-    text-shadow: var(--text-shadow);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin-right: 12px;
+    text-shadow: 0 0 8px rgba(121, 217, 255, 0.3);
+    letter-spacing: 0.05em;
 }
 
 /* LingChat chatbox-subtitle: font-size 20px, bold, #6eb4ff */
@@ -891,17 +656,16 @@ html, body {
 
 /* LingChat chatbox-text: 20px bold white */
 #dialog-text-area {
-    padding: 0.8rem 0;
-    height: 120px;
+    padding: 8px 0;
+    height: 100px;
     overflow-y: auto;
-    font-size: 20px;
-    font-weight: bold;
+    font-size: 18px;
+    font-weight: 500;
     line-height: 1.8;
-    color: white;
-    letter-spacing: 0.03em;
+    color: rgba(255, 255, 255, 0.92);
+    letter-spacing: 0.04em;
     -webkit-overflow-scrolling: touch;
     flex-shrink: 1;
-    text-shadow: var(--text-shadow);
 }
 
 /* LingChat chatbox-line */
@@ -923,48 +687,55 @@ html, body {
 #dialog-input {
     flex: 1;
     width: 100%;
-    min-height: 40px;
-    background: transparent;
-    border: none;
+    min-height: 36px;
+    background: rgba(121, 217, 255, 0.06);
+    border: 1px solid rgba(121, 217, 255, 0.15);
+    border-radius: 8px;
     color: white;
-    font-size: 20px;
-    font-weight: bold;
+    font-size: 16px;
+    font-weight: 500;
     resize: none;
-    margin: 5px 0;
+    margin: 8px 0 0;
     outline: none;
-    padding: 4px 0;
+    padding: 8px 12px;
     font-family: var(--font-main);
     transition: all 0.3s ease;
-    text-shadow: var(--text-shadow);
+}
+
+#dialog-input:focus {
+    border-color: rgba(121, 217, 255, 0.4);
+    background: rgba(121, 217, 255, 0.1);
 }
 
 #dialog-input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-    text-shadow: none;
+    color: rgba(255, 255, 255, 0.35);
 }
 
 #dialog-input:read-only {
-    opacity: 0.6;
+    opacity: 0.7;
     cursor: default;
+    background: transparent;
+    border-color: transparent;
 }
 
 /* LingChat #sendButton style */
 #dialog-send-btn {
     align-self: flex-end;
-    background: transparent;
-    color: var(--send-color);
-    border: none;
-    padding: 4px 10px;
-    border-radius: 5px;
+    background: rgba(121, 217, 255, 0.15);
+    color: var(--accent-color);
+    border: 1px solid rgba(121, 217, 255, 0.25);
+    padding: 8px 14px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 20px;
-    font-weight: bold;
-    transform: scaleX(1.5);
+    font-size: 14px;
+    font-weight: 600;
     transition: all 0.3s ease;
+    margin-top: 8px;
 }
 
 #dialog-send-btn:hover {
-    color: var(--send-hover-color);
+    background: rgba(121, 217, 255, 0.25);
+    border-color: rgba(121, 217, 255, 0.4);
 }
 
 #dialog-send-btn:disabled {
@@ -1003,14 +774,17 @@ html, body {
     left: 50%;
     transform: translateX(-50%);
     z-index: 1;
-    width: 320px;
-    height: 520px;
+    max-width: 45vw;
+    max-height: 75vh;
+    width: auto;
+    height: auto;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center bottom;
     pointer-events: none;
     transition: opacity 0.4s ease, transform 0.4s ease;
-    filter: drop-shadow(0 0 12px rgba(121, 217, 255, 0.3));
+    filter: drop-shadow(0 0 10px rgba(121, 217, 255, 0.25));
+    aspect-ratio: auto;
 }
 
 #character-sprite.sprite-enter {
@@ -1129,21 +903,20 @@ html, body {
 }
 
 .choice-btn {
-    padding: 0.9rem 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 30px;
-    background: rgba(0, 14, 39, 0.6);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    color: var(--text);
-    font-size: 1rem;
+    padding: 12px 20px;
+    border: 1px solid rgba(121, 217, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(5, 10, 25, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 15px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-family: var(--font-main);
     text-align: left;
     animation: choiceAppear 0.4s ease-out backwards;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    text-shadow: var(--text-shadow);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .choice-btn:nth-child(1) { animation-delay: 0.1s; }
@@ -1157,16 +930,17 @@ html, body {
 }
 
 .choice-btn:hover {
-    background: rgba(0, 14, 39, 0.8);
-    border-color: var(--accent-color);
-    transform: translateX(8px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 10px rgba(121, 217, 255, 0.1);
+    background: rgba(121, 217, 255, 0.12);
+    border-color: rgba(121, 217, 255, 0.4);
+    transform: translateX(6px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     color: var(--accent-color);
 }
 
 .choice-btn::before {
     content: '\25B8 ';
     color: var(--accent-color);
+    opacity: 0.7;
 }
 
 /* ==================== AI Generating ==================== */
@@ -1552,36 +1326,13 @@ html, body {
 }
 
 .dark-star-preview {
-    background: linear-gradient(135deg, #0a0a1a, #1a1a3a);
-    box-shadow: inset 0 0 20px rgba(0, 210, 255, 0.3);
+    background: linear-gradient(135deg, #0a0e1a, #141c30);
+    box-shadow: inset 0 0 20px rgba(121, 217, 255, 0.3);
 }
 
-.sakura-preview {
-    background: linear-gradient(135deg, #1a0a14, #2a1225);
-    box-shadow: inset 0 0 20px rgba(255, 105, 180, 0.3);
-}
-
-.cyberpunk-preview {
-    background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
-    box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.3);
-}
-
-.ink-wash-preview {
-    background: linear-gradient(135deg, #f5f0e8, #e8e0d0);
-    box-shadow: inset 0 0 20px rgba(139, 69, 19, 0.2);
-}
-
-.vaporwave-preview {
-    background: linear-gradient(135deg, #1a0030, #2a0050);
-    box-shadow: inset 0 0 20px rgba(255, 110, 199, 0.3);
-}
-
-.custom-preview {
-    background: var(--bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
+.light-preview {
+    background: linear-gradient(135deg, #f8f9fc, #e8e0d0);
+    box-shadow: inset 0 0 20px rgba(139, 69, 19, 0.15);
 }
 
 /* ==================== Save Slots ==================== */
@@ -2745,47 +2496,7 @@ html, body {
     background: rgba(0, 0, 0, 0.3);
 }
 
-/* ==================== Theme-specific Effects ==================== */
-/* Cyberpunk */
-[data-theme="cyberpunk"] #dialog-box::before {
-    border-top: 1px solid rgba(0, 255, 65, 0.4);
-    box-shadow: 0 -2px 20px rgba(0, 255, 65, 0.1);
-}
 
-[data-theme="cyberpunk"] .choice-btn:hover {
-    text-shadow: 0 0 8px rgba(0, 255, 65, 0.5);
-}
-
-[data-theme="cyberpunk"] #dialog-nameplate {
-    clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
-}
-
-/* Ink Wash */
-[data-theme="ink-wash"] #dialog-box::before {
-    background: rgba(245, 240, 232, 0.75);
-    border-top: 1px solid rgba(139, 69, 19, 0.3);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-}
-
-[data-theme="ink-wash"] .choice-btn {
-    border-style: dashed;
-}
-
-[data-theme="ink-wash"] .choice-btn::before {
-    content: '\25C6 ';
-    color: var(--primary);
-}
-
-/* Vaporwave */
-[data-theme="vaporwave"] #scene-overlay {
-    background: linear-gradient(to top, rgba(26, 0, 48, 0.7) 0%, transparent 40%, rgba(255, 110, 199, 0.05) 70%, rgba(123, 104, 238, 0.1) 100%);
-}
-
-[data-theme="vaporwave"] .choice-btn:hover {
-    text-shadow: 0 0 10px rgba(255, 110, 199, 0.6);
-    box-shadow: 0 0 20px rgba(255, 110, 199, 0.2);
-}
 
 /* ==================== Scene Transition ==================== */
 .scene-transition {
@@ -2831,8 +2542,8 @@ html, body {
     .title-subtitle { font-size: 14px; letter-spacing: 0.1em; }
     .menu-btn { padding: 10px 16px; font-size: 16px; }
     #dialog-box { padding: 0 1rem 1rem; max-height: 40vh; }
-    #dialog-content { font-size: 0.95rem; line-height: 1.7; height: 90px; }
-    #dialog-text-area { font-size: 0.95rem; line-height: 1.7; height: 90px; }
+    #dialog-content { font-size: 0.95rem; line-height: 1.7; height: 80px; }
+    #dialog-text-area { font-size: 0.95rem; line-height: 1.7; height: 80px; }
     #choices-box { margin-bottom: 240px; max-width: 95%; }
     .choice-btn { padding: 0.8rem 1.2rem; font-size: 0.9rem; }
     .modal-content { width: 95%; max-height: 90vh; }
@@ -2858,7 +2569,8 @@ html, body {
     .storage-bar-wrap { flex-wrap: wrap; }
     .chat-msg { max-width: 90%; }
     #chat-quick-actions { padding-bottom: 0.2rem; }
-    #dialog-inner { width: 80%; }
+    #dialog-inner { width: 88%; }
+    #character-sprite { max-width: 50vw; max-height: 65vh; }
 }
 
 @media (max-width: 480px) {
@@ -2871,8 +2583,8 @@ html, body {
     .menu-btn small { display: none; }
     .toolbar-btn { width: 30px; height: 30px; font-size: 0.85rem; }
     #game-toolbar { gap: 0.15rem; padding: 0.3rem; }
-    #dialog-content { font-size: 0.88rem; height: 80px; }
-    #dialog-text-area { font-size: 0.88rem; height: 80px; }
+    #dialog-content { font-size: 0.88rem; height: 70px; }
+    #dialog-text-area { font-size: 0.88rem; height: 70px; }
     #dialog-box { max-height: 35vh; }
     #choices-box { margin-bottom: 210px; }
     .choice-btn { padding: 0.7rem 1rem; font-size: 0.85rem; }
@@ -2883,12 +2595,12 @@ html, body {
     #gallery-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
     #custom-input-box { bottom: 220px; }
     #info-badge { top: 8px; right: 8px; font-size: 0.9rem; }
-    #character-sprite { width: 200px; height: 340px; }
+    #character-sprite { max-width: 55vw; max-height: 60vh; }
     #outline-chapter-display { font-size: 0.6rem; max-width: 60%; }
     #dialog-inner { width: 90%; }
-    #dialog-name { font-size: 18px; }
-    #dialog-subtitle { font-size: 16px; }
-    #emotion-indicator { font-size: 16px; }
+    #dialog-name { font-size: 16px; }
+    #dialog-subtitle { font-size: 14px; }
+    #emotion-indicator { font-size: 14px; }
     #dialog-input { font-size: 16px; }
-    #dialog-send-btn { font-size: 16px; }
+    #dialog-send-btn { font-size: 14px; }
 }

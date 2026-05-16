@@ -228,7 +228,6 @@
             imageModel: 'cogview-3-flash',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
             apiKeys: { zhipu: '', modelscope: '', nvidia: '' },
-            customTheme: { bg: '#0a0a1a', primary: '#00d2ff', accent: '#7b2ff7', text: '#ffffff' },
             dayNightMode: 'day',
             bgmVolume: 30,
             bgmEnabled: false,
@@ -430,6 +429,8 @@
     function init() {
         sessionStorage.setItem('galgame_session_active', '1');
         loadSettings();
+        const validThemes = ['dark-star', 'ink-wash'];
+        if (!validThemes.includes(state.theme)) state.theme = 'dark-star';
         applyTheme(state.theme);
         applyDayNightMode(state.dayNightMode || state.settings.dayNightMode || 'day');
         initTitleParticles();
@@ -450,7 +451,6 @@
             if (saved) {
                 state.settings = { ...state.settings, ...saved };
                 if (saved.apiKeys) state.settings.apiKeys = { ...state.settings.apiKeys, ...saved.apiKeys };
-                if (saved.customTheme) state.settings.customTheme = { ...state.settings.customTheme, ...saved.customTheme };
                 if (saved.dayNightMode) state.dayNightMode = saved.dayNightMode;
             }
         } catch (e) { console.warn('加载设置失败'); }
@@ -489,18 +489,6 @@
     function applyTheme(themeName) {
         state.theme = themeName;
         document.documentElement.setAttribute('data-theme', themeName);
-        if (themeName === 'custom') {
-            const c = state.settings.customTheme;
-            document.documentElement.style.setProperty('--bg', c.bg);
-            document.documentElement.style.setProperty('--primary', c.primary);
-            document.documentElement.style.setProperty('--accent', c.accent);
-            document.documentElement.style.setProperty('--text', c.text);
-        } else {
-            document.documentElement.style.removeProperty('--bg');
-            document.documentElement.style.removeProperty('--primary');
-            document.documentElement.style.removeProperty('--accent');
-            document.documentElement.style.removeProperty('--text');
-        }
         saveSettings();
     }
 
@@ -622,10 +610,7 @@
         $$('.theme-card').forEach(card => card.addEventListener('click', () => {
             $$('.theme-card').forEach(c => c.classList.remove('active'));
             card.classList.add('active');
-            const theme = card.dataset.theme;
-            applyTheme(theme);
-            if (theme === 'custom') $('#custom-theme-editor').classList.remove('hidden');
-            else $('#custom-theme-editor').classList.add('hidden');
+            applyTheme(card.dataset.theme);
         }));
 
         $('#text-api-provider').addEventListener('change', () => { updateModelOptions(); collectSettingsForm(); });
@@ -684,11 +669,6 @@
         $('#text-model').addEventListener('change', e => { state.settings.textModel = e.target.value; updateModelTags(); saveSettings(); });
         $('#image-model').addEventListener('change', e => { state.settings.imageModel = e.target.value; saveSettings(); });
         $('#system-prompt').addEventListener('change', e => { state.settings.systemPrompt = e.target.value || DEFAULT_SYSTEM_PROMPT; saveSettings(); });
-
-        ['custom-bg', 'custom-primary', 'custom-accent', 'custom-text'].forEach(id => {
-            const el = $(`#${id}`);
-            if (el) el.addEventListener('input', () => { const k = id.replace('custom-', ''); state.settings.customTheme[k] = el.value; if (state.theme === 'custom') applyTheme('custom'); saveSettings(); });
-        });
 
         $('#dialog-box').addEventListener('click', handleDialogClick);
         $('#custom-input').addEventListener('keydown', (e) => {
@@ -882,7 +862,6 @@
             textModel: 'Qwen/Qwen3.5-35B-A3B',
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
-            customTheme: { bg: '#0a0a1a', primary: '#00d2ff', accent: '#7b2ff7', text: '#ffffff' },
             dayNightMode: 'day',
             bgmVolume: 30,
             bgmEnabled: false,
@@ -965,13 +944,6 @@
             ttsState.voice = s.ttsVoice;
         }
         $$('.theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === state.theme));
-        if (state.theme === 'custom') {
-            $('#custom-theme-editor').classList.remove('hidden');
-            $('#custom-bg').value = s.customTheme.bg;
-            $('#custom-primary').value = s.customTheme.primary;
-            $('#custom-accent').value = s.customTheme.accent;
-            $('#custom-text').value = s.customTheme.text;
-        }
     }
 
     function updateModelOptions() {
@@ -2272,15 +2244,15 @@
         
         typeText(text, dialogText, dialogCursor, () => {
             dialogSegmentState.isTyping = false;
-            if (currentIndex < segments.length - 1) {
-                dialogSegmentState.isWaitingForContinue = true;
-                const dialogInput = $('#dialog-input');
-                if (dialogInput) {
-                    dialogInput.readOnly = true;
+            dialogSegmentState.isWaitingForContinue = true;
+            const dialogInput = $('#dialog-input');
+            if (dialogInput) {
+                dialogInput.readOnly = true;
+                if (currentIndex < segments.length - 1) {
                     dialogInput.placeholder = '按 Enter 继续...';
+                } else {
+                    dialogInput.placeholder = '按 Enter 输入回复...';
                 }
-            } else {
-                enableDialogInput();
             }
         });
     }
@@ -2322,20 +2294,27 @@
             if (dialogCursor) dialogCursor.style.display = 'none';
             dialogSegmentState.isTyping = false;
             
-            if (currentIndex < segments.length - 1) {
-                dialogSegmentState.isWaitingForContinue = true;
-                const dialogInput = $('#dialog-input');
-                if (dialogInput) {
-                    dialogInput.readOnly = true;
+            dialogSegmentState.isWaitingForContinue = true;
+            const dialogInput = $('#dialog-input');
+            if (dialogInput) {
+                dialogInput.readOnly = true;
+                if (currentIndex < segments.length - 1) {
                     dialogInput.placeholder = '按 Enter 继续...';
+                } else {
+                    dialogInput.placeholder = '按 Enter 输入回复...';
                 }
-            } else {
-                enableDialogInput();
             }
             return;
         }
         
         if (!dialogSegmentState.isWaitingForContinue) return;
+        
+        const { segments, currentIndex } = dialogSegmentState;
+        
+        if (currentIndex >= segments.length - 1) {
+            enableDialogInput();
+            return;
+        }
         
         dialogSegmentState.isWaitingForContinue = false;
         dialogSegmentState.currentIndex++;
@@ -2347,9 +2326,10 @@
         if (dialogInput) {
             dialogInput.readOnly = false;
             dialogInput.value = '';
-            dialogInput.placeholder = '在这里输入消息...';
+            dialogInput.placeholder = '输入消息，按 Enter 发送...';
             dialogInput.focus();
         }
+        dialogSegmentState.isWaitingForContinue = false;
     }
 
     function sendDialogInput() {
@@ -3036,7 +3016,10 @@
         if (!save) { showToast('该存档为空', 'error'); return; }
         state.mode = save.mode;
         state.game = JSON.parse(JSON.stringify(save.game));
-        if (save.theme) applyTheme(save.theme);
+        if (save.theme) {
+            const validThemes = ['dark-star', 'ink-wash'];
+            applyTheme(validThemes.includes(save.theme) ? save.theme : 'dark-star');
+        }
         if (save.dayNightMode) applyDayNightMode(save.dayNightMode);
         if (save.uiMode) switchUiMode(save.uiMode);
         if (state.game.activeOutline) {
