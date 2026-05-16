@@ -102,7 +102,143 @@
     --text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
+[data-theme="ink-wash"] {
+    --bg: #f5f0e8;
+    --bg-secondary: #e8e0d0;
+    --bg-card: rgba(255, 255, 255, 0.45);
+    --text: #2c2c2c;
+    --text-secondary: rgba(44, 44, 44, 0.7);
+    --text-muted: rgba(44, 44, 44, 0.4);
+    --primary: #6b8fd4;
+    --accent: #4a6fa5;
+    --gradient: linear-gradient(135deg, #6b8fd4, #4a6fa5);
+    --border: rgba(74, 111, 165, 0.2);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --dialog-bg: rgba(245, 240, 232, 0.85);
+    --dialog-bg-top: rgba(245, 240, 232, 0.7);
+    --dialog-border: rgba(74, 111, 165, 0.25);
+    --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(245, 240, 232, 0.4) 50%, rgba(245, 240, 232, 0.7) 100%);
+    --nameplate-bg: linear-gradient(135deg, #6b8fd4, #4a6fa5);
+    --input-bg: rgba(74, 111, 165, 0.08);
+    --input-border: rgba(74, 111, 165, 0.25);
+    --accent-color: #6b8fd4;
+    --name-color: #4a6fa5;
+    --emotion-color: #d4567a;
+    --send-color: #6b8fd4;
+    --send-hover-color: rgba(107, 143, 212, 0.7);
+    --menu-btn-bg: #dce6f5;
+    --menu-btn-color: #4a6fa5;
+    --menu-header-bg: #4a6fa5;
+    --big-button-bg: #4a6fa5;
+    --slider-track: linear-gradient(to left, #6b8fd4, #a8c4e8);
+    --slider-thumb-border: 2px solid #6b8fd4;
+    --text-shadow: none;
+    --title-panel-bg: rgba(255, 255, 255, 0.85);
+    --title-panel-border: 1px solid rgba(74, 111, 165, 0.15);
+    --title-panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --title-panel-hover-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    --title-text-color: #2c2c2c;
+    --title-subtitle-color: #5a6a7a;
+    --title-tag-color: #6b8fd4;
+    --title-btn-primary-bg: #4a6fa5;
+    --title-btn-primary-hover-bg: #3a5f95;
+    --title-btn-primary-shadow: 0 4px 12px rgba(74, 111, 165, 0.25);
+    --title-btn-bg: #dce6f5;
+    --title-btn-color: #4a6fa5;
+    --title-btn-hover-bg: #c8d8ef;
+    --title-btn-secondary-bg: #e8e0d0;
+    --title-btn-secondary-color: #3c2a1e;
+    --settings-panel-bg: #fff;
+    --settings-panel-shadow: 0 5px 30px rgba(0, 0, 0, 0.15);
+    --settings-tab-color: #5a6a7a;
+    --settings-tab-active-color: #6b8fd4;
+    --settings-tab-indicator: #6b8fd4;
+    --settings-input-bg: rgba(255, 255, 255, 0.9);
+    --settings-input-border: rgba(74, 111, 165, 0.15);
+    --settings-input-focus-border: #6b8fd4;
+    --settings-input-focus-shadow: 0 0 5px rgba(107, 143, 212, 0.3);
+    --settings-input-color: #2c2c2c;
+    --settings-label-color: #4a5568;
+    --settings-divider: #e8e0d0;
+    --settings-item-bg: rgba(74, 111, 165, 0.06);
+    --settings-item-border: rgba(74, 111, 165, 0.12);
+}
 
+[data-theme="ink-wash"] #dialog-box {
+    background: linear-gradient(to top, rgba(245, 240, 232, 0.92) 0%, rgba(245, 240, 232, 0.75) 80%, transparent 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+[data-theme="ink-wash"] #dialog-box::before {
+    background: linear-gradient(to top, rgba(245, 240, 232, 0.5) 0%, transparent 100%);
+}
+
+[data-theme="ink-wash"] #dialog-name {
+    color: #4a6fa5;
+    text-shadow: none;
+}
+
+[data-theme="ink-wash"] #dialog-text-area {
+    color: rgba(44, 44, 44, 0.9);
+}
+
+[data-theme="ink-wash"] #dialog-input {
+    background: rgba(74, 111, 165, 0.06);
+    border-color: rgba(74, 111, 165, 0.2);
+    color: #2c2c2c;
+}
+
+[data-theme="ink-wash"] #dialog-input::placeholder {
+    color: rgba(44, 44, 44, 0.4);
+}
+
+[data-theme="ink-wash"] #dialog-input:focus {
+    border-color: rgba(107, 143, 212, 0.4);
+    background: rgba(107, 143, 212, 0.08);
+}
+
+[data-theme="ink-wash"] #dialog-send-btn {
+    background: rgba(107, 143, 212, 0.12);
+    color: #6b8fd4;
+    border-color: rgba(107, 143, 212, 0.25);
+}
+
+[data-theme="ink-wash"] .choice-btn {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(74, 111, 165, 0.2);
+    color: rgba(44, 44, 44, 0.9);
+}
+
+[data-theme="ink-wash"] .choice-btn:hover {
+    background: rgba(107, 143, 212, 0.1);
+    border-color: rgba(107, 143, 212, 0.4);
+    color: #6b8fd4;
+}
+
+[data-theme="ink-wash"] .choice-btn::before {
+    color: #6b8fd4;
+}
+
+[data-theme="ink-wash"] .toolbar-btn {
+    background: rgba(255, 255, 255, 0.6);
+    border-color: rgba(74, 111, 165, 0.12);
+    color: rgba(44, 44, 44, 0.6);
+}
+
+[data-theme="ink-wash"] .toolbar-btn:hover {
+    background: rgba(107, 143, 212, 0.1);
+    border-color: rgba(107, 143, 212, 0.3);
+    color: #6b8fd4;
+}
+
+[data-theme="ink-wash"] #scene-overlay {
+    background: linear-gradient(to top, rgba(245, 240, 232, 0.4) 0%, rgba(245, 240, 232, 0.1) 40%, transparent 70%, rgba(245, 240, 232, 0.15) 100%);
+}
+
+[data-theme="ink-wash"] #character-sprite {
+    filter: drop-shadow(0 0 10px rgba(107, 143, 212, 0.2));
+}
 
 /* ==================== Reset & Base ==================== */
 * {
@@ -556,11 +692,11 @@ html, body {
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 2;
+    z-index: 5;
     padding: 20px 24px;
-    background: linear-gradient(to top, rgba(5, 10, 25, 0.92) 0%, rgba(5, 10, 25, 0.78) 70%, transparent 100%);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: linear-gradient(to top, rgba(5, 10, 25, 0.88) 0%, rgba(5, 10, 25, 0.65) 80%, transparent 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -773,18 +909,16 @@ html, body {
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 1;
-    max-width: 45vw;
-    max-height: 75vh;
-    width: auto;
-    height: auto;
+    z-index: 3;
+    width: 400px;
+    height: 70vh;
+    max-width: 50vw;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center bottom;
     pointer-events: none;
     transition: opacity 0.4s ease, transform 0.4s ease;
     filter: drop-shadow(0 0 10px rgba(121, 217, 255, 0.25));
-    aspect-ratio: auto;
 }
 
 #character-sprite.sprite-enter {
@@ -828,7 +962,7 @@ html, body {
 
 #custom-input-box {
     position: absolute;
-    bottom: 300px;
+    bottom: 200px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 8;
@@ -837,11 +971,11 @@ html, body {
     width: 90%;
     max-width: 500px;
     padding: 0.5rem;
-    background: rgba(10, 10, 30, 0.85);
+    background: rgba(5, 10, 25, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-radius: var(--radius);
-    border: 1px solid var(--border);
+    border: 1px solid rgba(121, 217, 255, 0.2);
 }
 
 #custom-input {
@@ -878,15 +1012,10 @@ html, body {
 }
 
 #choices-box {
-    position: relative;
-    bottom: auto;
-    margin-top: auto;
-    margin-bottom: 300px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-bottom: 0.5rem;
-    transform: translateZ(0);
-    will-change: transform;
+    position: absolute;
+    bottom: 200px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 15;
     display: flex;
     flex-direction: column;
@@ -896,10 +1025,7 @@ html, body {
     pointer-events: auto;
     max-height: 35vh;
     overflow-y: auto;
-}
-
-#choices-box:hover {
-    transform: translateZ(0);
+    padding-bottom: 0.5rem;
 }
 
 .choice-btn {
@@ -2564,13 +2690,13 @@ html, body {
     .settings-footer { padding: 0.8rem 1rem; }
     .settings-footer .action-btn { flex: 1; padding: 0.7rem; }
     #custom-input { font-size: 16px; }
-    #custom-input-box { bottom: 250px; width: 94%; }
+    #custom-input-box { bottom: 180px; width: 94%; }
     .btn-row { flex-direction: column; }
     .storage-bar-wrap { flex-wrap: wrap; }
     .chat-msg { max-width: 90%; }
     #chat-quick-actions { padding-bottom: 0.2rem; }
     #dialog-inner { width: 88%; }
-    #character-sprite { max-width: 50vw; max-height: 65vh; }
+    #character-sprite { width: 260px; height: 55vh; max-width: 50vw; }
 }
 
 @media (max-width: 480px) {
@@ -2593,9 +2719,9 @@ html, body {
     .modal-header h2 { font-size: 1rem; }
     .api-provider h3 { font-size: 0.85rem; }
     #gallery-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
-    #custom-input-box { bottom: 220px; }
+    #custom-input-box { bottom: 160px; }
     #info-badge { top: 8px; right: 8px; font-size: 0.9rem; }
-    #character-sprite { max-width: 55vw; max-height: 60vh; }
+    #character-sprite { width: 200px; height: 45vh; max-width: 55vw; }
     #outline-chapter-display { font-size: 0.6rem; max-width: 60%; }
     #dialog-inner { width: 90%; }
     #dialog-name { font-size: 16px; }
