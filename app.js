@@ -590,6 +590,17 @@
         }
         function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); connect(); animFrameId = requestAnimationFrame(animate); }
         animate();
+        const titleBgs = [
+            'sprites/background/pic1.png',
+            'sprites/background/pic2.png',
+            'sprites/background/pic3.jpeg',
+        ];
+        let currentTitleBgIdx = 0;
+        const titleEl = $('#title-screen');
+        setInterval(() => {
+            currentTitleBgIdx = (currentTitleBgIdx + 1) % titleBgs.length;
+            if (titleEl) titleEl.style.setProperty('--title-bg-url', `url('${titleBgs[currentTitleBgIdx]}')`);
+        }, 30000);
     }
 
     function stopTitleParticles() {
