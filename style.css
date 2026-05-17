@@ -703,7 +703,7 @@ html, body {
 #dialog-nameplate {
     display: flex;
     align-items: baseline;
-    margin-bottom: 0;
+    margin-bottom: 10px;
 }
 
 /* LingChat: font-size 24px, bold, white, margin-right 15px */

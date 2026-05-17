@@ -2223,11 +2223,16 @@
         dialogSegmentState.isWaitingForContinue = false;
         dialogSegmentState.isTyping = false;
         
+        hideCustomInput();
         const dialogBox = $('#dialog-box');
-        if (dialogBox) dialogBox.classList.remove('hidden');
+        if (dialogBox) {
+            dialogBox.classList.remove('hidden');
+            dialogBox.classList.add('clickable');
+        }
         
         const dialogName = $('#dialog-name');
         if (dialogName) dialogName.textContent = name;
+        state.game.characterName = name;
         
         const inputMessage = $('#inputMessage');
         if (inputMessage) {
@@ -2677,46 +2682,8 @@
     }
 
     function showDialog(name, text) {
-        const dialogBox = $('#dialog-box');
-        const nameEl = $('#dialog-name');
-        const inputMessage = $('#inputMessage');
-
-        hideCustomInput();
-        dialogBox.classList.remove('hidden');
-        dialogBox.classList.add('clickable');
-        nameEl.textContent = name;
-        state.game.characterName = name;
-
-        if (typewriterTimer) { clearInterval(typewriterTimer); typewriterTimer = null; }
-
-        const effect = state.settings.textEffect || 'typewriter-fade';
-
-        if (effect === 'instant') {
-            inputMessage.value = text;
-            inputMessage.readOnly = true;
-            state.game.isTyping = false;
-            triggerAutoPlay();
-            return;
-        }
-
-        state.game.isTyping = true;
-        let index = 0;
-        inputMessage.value = '';
-        inputMessage.readOnly = true;
-
-        const useFade = effect === 'typewriter-fade';
-
-        typewriterTimer = setInterval(() => {
-            if (index < text.length) {
-                index++;
-                inputMessage.value = text.substring(0, index);
-                inputMessage.scrollTop = inputMessage.scrollHeight;
-            } else {
-                clearInterval(typewriterTimer); typewriterTimer = null;
-                state.game.isTyping = false;
-                triggerAutoPlay();
-            }
-        }, state.settings.textSpeed);
+        const segments = splitDialogIntoSegments(text);
+        showSegmentedDialog(name, segments, '');
     }
 
     function triggerAutoPlay() {
