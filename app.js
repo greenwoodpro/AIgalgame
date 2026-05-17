@@ -429,6 +429,10 @@
     }
 
     function handleChatSend() {
+        if (chatSegmentState.isTyping || chatSegmentState.isWaitingForContinue) {
+            continueChatSegment();
+            return;
+        }
         const input = $('#chat-input');
         const text = input.value.trim();
         if (!text) return;
@@ -438,6 +442,10 @@
     }
 
     function handleChatQuickAction(action) {
+        if (chatSegmentState.isTyping || chatSegmentState.isWaitingForContinue) {
+            continueChatSegment();
+            return;
+        }
         const actions = {
             'chat-continue': '请继续推进剧情',
             'chat-explore': '我想探索一下当前场景的细节',
@@ -698,8 +706,9 @@
         });
         $('#chat-input').addEventListener('keydown', e => {
             if (e.key === 'Enter') {
+                e.preventDefault();
                 if (chatSegmentState.isTyping || chatSegmentState.isWaitingForContinue) {
-                    e.preventDefault();
+                    e.stopPropagation();
                     continueChatSegment();
                 } else {
                     handleChatSend();
@@ -832,7 +841,10 @@
     function handleKeyDown(e) {
         if (state.currentScreen !== 'game') return;
         if (state.uiMode === 'chat' && (chatSegmentState.isTyping || chatSegmentState.isWaitingForContinue)) {
-            if (e.key === 'Enter') { e.preventDefault(); continueChatSegment(); }
+            if (e.key === 'Enter' && e.target.id !== 'chat-input') {
+                e.preventDefault();
+                continueChatSegment();
+            }
             return;
         }
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
@@ -2198,16 +2210,16 @@
             }
             
             const segments = splitDialogIntoSegments(dialog);
-            showSegmentedDialog(name, segments, emotion);
+            if (state.uiMode === 'chat') {
+                showChatSegmentedMessage(name, segments, emotion);
+            } else {
+                showSegmentedDialog(name, segments, emotion);
+            }
             addDialogHistory(name, dialog);
             updateEmotionIndicator(emotion);
             if (ttsState.enabled) speakText(dialog, emotion);
             if (spriteState.visible === false && name !== '旁白' && name !== '系统') {
                 showSprite('char_1', SPRITE_CONFIG.emotionMap[emotion] || '高兴');
-            }
-            if (state.uiMode === 'chat') {
-                const chatSegments = splitDialogIntoSegments(dialog);
-                showChatSegmentedMessage(name, chatSegments, emotion);
             }
             if (scene) state.game.currentScene = scene;
             if (scene && state.settings.autoGenScene) generateSceneImage(scene);
@@ -2698,13 +2710,25 @@
             
             showToast('AI 调用失败: ' + errorMsg, 'error');
             const segments = splitDialogIntoSegments(friendlyMsg);
-            showSegmentedDialog('星酱', segments, 'neutral');
+            if (state.uiMode === 'chat') {
+                showChatSegmentedMessage('星酱', segments, 'neutral');
+            } else {
+                showSegmentedDialog('星酱', segments, 'neutral');
+            }
             
             setTimeout(() => {
-                enableDialogInput();
-                const inputMessage = $('#inputMessage');
-                if (inputMessage) {
-                    inputMessage.placeholder = '输入消息重试...';
+                if (state.uiMode === 'chat') {
+                    const chatInput = $('#chat-input');
+                    if (chatInput) {
+                        chatInput.disabled = false;
+                        chatInput.focus();
+                    }
+                } else {
+                    enableDialogInput();
+                    const inputMessage = $('#inputMessage');
+                    if (inputMessage) {
+                        inputMessage.placeholder = '输入消息重试...';
+                    }
                 }
             }, 1000);
         } finally {

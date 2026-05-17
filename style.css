@@ -29,7 +29,7 @@
     --dialog-bg: rgba(5, 12, 35, 0.88);
     --dialog-bg-top: rgba(5, 12, 35, 0.55);
     --dialog-border: rgba(121, 217, 255, 0.15);
-    --dialog-blur: blur(20px) saturate(180%);
+    --dialog-blur: blur(8px) saturate(150%);
     --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(5, 12, 35, 0.2) 40%, rgba(5, 12, 35, 0.5) 100%);
     --nameplate-bg: var(--gradient);
 
@@ -166,8 +166,8 @@
 
 [data-theme="ink-wash"] #dialog-box {
     background: linear-gradient(to top, rgba(245, 240, 232, 0.92) 0%, rgba(245, 240, 232, 0.8) 60%, rgba(245, 240, 232, 0.55) 100%);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(8px) saturate(150%);
+    -webkit-backdrop-filter: blur(8px) saturate(150%);
     border-top: 1px solid rgba(74, 111, 165, 0.15);
     box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.08);
 }
@@ -672,8 +672,8 @@ html, body {
     z-index: 2;
     padding: 18px 15px;
     background: linear-gradient(to top, rgba(5, 12, 35, 0.88) 0%, rgba(5, 12, 35, 0.75) 60%, rgba(5, 12, 35, 0.5) 100%);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(8px) saturate(150%);
+    -webkit-backdrop-filter: blur(8px) saturate(150%);
     display: flex;
     justify-content: center;
     transition: all 0.5s ease;
