@@ -602,7 +602,8 @@
         ];
         let currentTitleBgIdx = 0;
         const titleEl = $('#title-screen');
-        setInterval(() => {
+        if (titleBgInterval) clearInterval(titleBgInterval);
+        titleBgInterval = setInterval(() => {
             currentTitleBgIdx = (currentTitleBgIdx + 1) % titleBgs.length;
             if (titleEl) titleEl.style.setProperty('--title-bg-url', `url('${titleBgs[currentTitleBgIdx]}')`);
         }, 30000);
@@ -612,17 +613,17 @@
             'sprites/background/pic3.jpeg',
         ];
         let currentGameBgIdx = 0;
-        const sceneBg = $('#scene-bg');
-        setInterval(() => {
+        if (gameBgInterval) clearInterval(gameBgInterval);
+        gameBgInterval = setInterval(() => {
             currentGameBgIdx = (currentGameBgIdx + 1) % gameBgs.length;
-            if (sceneBg) {
-                sceneBg.style.backgroundImage = `url('${gameBgs[currentGameBgIdx]}')`;
-            }
+            setSceneBackground(gameBgs[currentGameBgIdx]);
         }, 30000);
     }
 
     function stopTitleParticles() {
         if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+        if (titleBgInterval) { clearInterval(titleBgInterval); titleBgInterval = null; }
+        if (gameBgInterval) { clearInterval(gameBgInterval); gameBgInterval = null; }
     }
 
     function bindEvents() {
@@ -2331,7 +2332,7 @@
         let i = 0;
         element.textContent = '';
         
-        const speed = 50;
+        const speed = state.settings.textSpeed || 50;
         
         function typeNext() {
             if (i < text.length) {
@@ -2503,15 +2504,11 @@
         indicator.className = `emotion-${emotion}`;
         switchBgmByEmotion(emotion);
         switchSpriteExpression(emotion);
-        const statusBadge = $('#status-badge');
         const statusName = $('#status-name');
         const statusEmotion = $('#status-emotion');
-        if (statusBadge && statusName && statusEmotion) {
+        if (statusName && statusEmotion) {
             statusName.textContent = state.game.characterName || '';
             statusEmotion.textContent = emotion || '';
-            if (state.currentScreen === 'game') {
-                statusBadge.classList.remove('hidden');
-            }
         }
     }
 
@@ -2686,6 +2683,8 @@
     let apiCallInProgress = false;
     let currentAbortController = null;
     let bgAutoSwitchTimer = null;
+    let titleBgInterval = null;
+    let gameBgInterval = null;
     let lastImageGenTime = 0;
     let pendingSceneDescription = null;
     let lastChoices = null;

@@ -167,7 +167,7 @@ html, body {
     z-index: 0;
 }
 
-#title-content {
+.title-content {
     position: relative;
     z-index: 1;
     display: flex;
@@ -1451,6 +1451,7 @@ html, body {
 .toast.success { border-left: 3px solid #00a854; }
 .toast.error { border-left: 3px solid #cc0033; }
 .toast.info { border-left: 3px solid var(--accent-color); }
+.toast.warning { border-left: 3px solid #f5a623; }
 
 @keyframes toastIn {
     from { opacity: 0; transform: translateY(-10px); }
@@ -2296,7 +2297,7 @@ html, body {
 
 /* ==================== Responsive ==================== */
 @media (max-width: 768px) {
-    #title-content { gap: 1.2rem; padding: 20px; max-width: 360px; }
+    .title-content { gap: 1.2rem; padding: 20px; max-width: 360px; }
     .title-logo h1,
     .title-text { font-size: 24px; }
     .title-sub,
@@ -2319,7 +2320,7 @@ html, body {
 }
 
 @media (max-width: 480px) {
-    #title-content { gap: 0.8rem; padding: 16px; max-width: 320px; }
+    .title-content { gap: 0.8rem; padding: 16px; max-width: 320px; }
     .title-logo h1,
     .title-text { font-size: 22px; }
     .title-sub,
