@@ -186,24 +186,20 @@
     color: #d4567a;
 }
 
-[data-theme="ink-wash"] #dialog-text-area {
-    color: rgba(44, 44, 44, 0.9);
+[data-theme="ink-wash"] #inputMessage {
+    color: #2c2c2c;
     text-shadow: none;
 }
 
-[data-theme="ink-wash"] #dialog-input {
-    color: #2c2c2c;
-}
-
-[data-theme="ink-wash"] #dialog-input::placeholder {
+[data-theme="ink-wash"] #inputMessage::placeholder {
     color: rgba(44, 44, 44, 0.4);
 }
 
-[data-theme="ink-wash"] #dialog-send-btn {
+[data-theme="ink-wash"] #sendButton {
     color: #4a6fa5;
 }
 
-[data-theme="ink-wash"] #dialog-send-btn:hover {
+[data-theme="ink-wash"] #sendButton:hover {
     color: #6b8fd4;
 }
 
@@ -750,34 +746,7 @@ html, body {
     75% { transform: rotate(10deg); }
 }
 
-/* LingChat dialog content area */
-#dialog-content {
-    padding: 0.8rem 0;
-    height: 120px;
-    overflow-y: auto;
-    font-size: 20px;
-    line-height: 1.8;
-    color: var(--text);
-    letter-spacing: 0.03em;
-    -webkit-overflow-scrolling: touch;
-    flex-shrink: 1;
-    text-shadow: var(--text-shadow);
-}
 
-/* LingChat chatbox-text: 20px bold white */
-#dialog-text-area {
-    padding: 0;
-    min-height: 40px;
-    max-height: 30vh;
-    overflow-y: auto;
-    font-size: 20px;
-    font-weight: bold;
-    line-height: 1.6;
-    color: white;
-    letter-spacing: 0.02em;
-    -webkit-overflow-scrolling: touch;
-    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-}
 
 /* LingChat chatbox-line */
 #dialog-divider {
@@ -786,17 +755,13 @@ html, body {
     margin: 6px 0;
 }
 
-/* LingChat input area */
-#dialog-input-area {
+#dialog-inputbox {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 4px;
+    flex-direction: column;
+    white-space: pre-line;
 }
 
-/* LingChat #inputMessage style */
-#dialog-input {
-    flex: 1;
+#inputMessage {
     width: 100%;
     min-height: 40px;
     background: rgba(255, 255, 255, 0);
@@ -810,50 +775,46 @@ html, body {
     padding: 0;
     font-family: var(--font-main);
     transition: all 0.3s;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
-#dialog-input::placeholder {
+#inputMessage::placeholder {
     color: rgba(255, 255, 255, 0.5);
 }
 
-#dialog-input:read-only {
-    opacity: 0.7;
+#inputMessage:read-only {
+    opacity: 1;
     cursor: default;
 }
 
-/* LingChat #sendButton style */
-#dialog-send-btn {
+#sendButton {
     align-self: flex-end;
     background: rgba(0, 14, 39, 0);
-    color: #04bcff;
+    color: rgb(4, 188, 255);
     border: none;
     padding: 4px 10px;
     border-radius: 5px;
     cursor: pointer;
+    transition: all 0.3s;
     font-size: 20px;
     font-weight: bold;
-    transition: all 0.3s;
     transform: scaleX(1.5);
+    font-family: var(--font-main);
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
-#dialog-send-btn:hover {
+#sendButton:hover {
+    background: rgba(0, 14, 39, 0);
     color: rgba(136, 255, 251, 0.827);
 }
 
-#dialog-send-btn:disabled {
+#sendButton:disabled {
     background: #333;
+    cursor: not-allowed;
     opacity: 0.7;
 }
 
-.cursor-blink {
-    animation: cursorBlink 1s step-end infinite;
-    color: var(--accent-color);
-    font-weight: 300;
-}
 
-@keyframes cursorBlink {
-    50% { opacity: 0; }
-}
 
 #dialog-click-hint {
     text-align: center;
@@ -2626,12 +2587,11 @@ html, body {
     .settings-tabs { flex-wrap: wrap; gap: 0; }
     .settings-tabs .tab-btn { flex: 1; min-width: 0; padding: 0.5rem 0.6rem; font-size: 14px; }
     #dialog-inner { width: 75%; }
-    #dialog-text-area { max-height: 25vh; font-size: 18px; }
+    #inputMessage { max-height: 25vh; font-size: 18px; }
     #dialog-name { font-size: 20px; }
     #dialog-subtitle { font-size: 17px; }
     #emotion-indicator { font-size: 17px; }
-    #dialog-input { font-size: 18px; }
-    #dialog-send-btn { font-size: 18px; }
+    #sendButton { font-size: 18px; }
     #choices-box { width: 75%; bottom: 220px; }
     #custom-input-box { bottom: 220px; width: 75%; }
     #character-sprite { transform: translateX(-50%) scale(1.7); }
@@ -2648,12 +2608,11 @@ html, body {
     .toolbar-btn { width: 30px; height: 30px; font-size: 0.85rem; }
     #game-toolbar { gap: 0.15rem; padding: 0.3rem; }
     #dialog-inner { width: 90%; }
-    #dialog-text-area { max-height: 20vh; font-size: 16px; }
+    #inputMessage { max-height: 20vh; font-size: 16px; }
     #dialog-name { font-size: 18px; }
     #dialog-subtitle { font-size: 15px; }
     #emotion-indicator { font-size: 15px; }
-    #dialog-input { font-size: 16px; }
-    #dialog-send-btn { font-size: 16px; }
+    #sendButton { font-size: 16px; }
     #choices-box { width: 90%; bottom: 200px; }
     #custom-input-box { bottom: 200px; width: 90%; }
     #character-sprite { transform: translateX(-50%) scale(1.5); }
