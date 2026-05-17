@@ -429,8 +429,8 @@
     function init() {
         sessionStorage.setItem('galgame_session_active', '1');
         loadSettings();
-        const validThemes = ['dark-star', 'ink-wash'];
-        if (!validThemes.includes(state.theme)) state.theme = 'dark-star';
+        const validThemes = ['dark-star', 'ink-wash', 'light'];
+        if (!validThemes.includes(state.theme)) state.theme = 'light';
         applyTheme(state.theme);
         applyDayNightMode(state.dayNightMode || state.settings.dayNightMode || 'day');
         initTitleParticles();
@@ -442,6 +442,15 @@
         initBgm();
         initTts();
         loadStoryVars();
+        document.addEventListener('click', (e) => {
+            const heart = document.createElement('div');
+            heart.className = 'click-heart';
+            heart.textContent = '♥';
+            heart.style.left = e.clientX + 'px';
+            heart.style.top = e.clientY + 'px';
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 1000);
+        });
     }
 
     function loadSettings() {
@@ -487,8 +496,8 @@
     }
 
     function applyTheme(themeName) {
-        state.theme = themeName;
-        document.documentElement.setAttribute('data-theme', themeName);
+        state.theme = 'light';
+        document.documentElement.removeAttribute('data-theme');
         saveSettings();
     }
 
@@ -506,6 +515,14 @@
             target.classList.add('active');
             state.currentScreen = screenId.replace('-screen', '');
             if (screenId === 'title-screen') playBgm('title');
+            const statusBadge = $('#status-badge');
+            if (statusBadge) {
+                if (screenId === 'game-screen') {
+                    statusBadge.classList.remove('hidden');
+                } else {
+                    statusBadge.classList.add('hidden');
+                }
+            }
             const hashMap = { title: '', game: 'game', chat: 'chat', settings: 'settings' };
             const hash = hashMap[state.currentScreen] || state.currentScreen;
             if (location.hash !== '#' + hash && hash !== '') {
@@ -588,6 +605,19 @@
         setInterval(() => {
             currentTitleBgIdx = (currentTitleBgIdx + 1) % titleBgs.length;
             if (titleEl) titleEl.style.setProperty('--title-bg-url', `url('${titleBgs[currentTitleBgIdx]}')`);
+        }, 30000);
+        const gameBgs = [
+            'sprites/background/pic1.png',
+            'sprites/background/pic2.png',
+            'sprites/background/pic3.jpeg',
+        ];
+        let currentGameBgIdx = 0;
+        const sceneBg = $('#scene-bg');
+        setInterval(() => {
+            currentGameBgIdx = (currentGameBgIdx + 1) % gameBgs.length;
+            if (sceneBg) {
+                sceneBg.style.backgroundImage = `url('${gameBgs[currentGameBgIdx]}')`;
+            }
         }, 30000);
     }
 
@@ -2197,6 +2227,15 @@
             }
         }
         if (segments.length === 0) segments.push(text.trim() || dialog);
+        if (segments.length > 3) {
+            const merged = [];
+            for (let i = 0; i < 3; i++) {
+                const start = Math.floor(i * segments.length / 3);
+                const end = Math.floor((i + 1) * segments.length / 3);
+                merged.push(segments.slice(start, end).join('\n\n'));
+            }
+            return merged;
+        }
         return segments;
     }
 
@@ -2464,6 +2503,16 @@
         indicator.className = `emotion-${emotion}`;
         switchBgmByEmotion(emotion);
         switchSpriteExpression(emotion);
+        const statusBadge = $('#status-badge');
+        const statusName = $('#status-name');
+        const statusEmotion = $('#status-emotion');
+        if (statusBadge && statusName && statusEmotion) {
+            statusName.textContent = state.game.characterName || '';
+            statusEmotion.textContent = emotion || '';
+            if (state.currentScreen === 'game') {
+                statusBadge.classList.remove('hidden');
+            }
+        }
     }
 
     async function handleAiChoice(choiceText) {
@@ -3118,8 +3167,8 @@
         state.mode = save.mode;
         state.game = JSON.parse(JSON.stringify(save.game));
         if (save.theme) {
-            const validThemes = ['dark-star', 'ink-wash'];
-            applyTheme(validThemes.includes(save.theme) ? save.theme : 'dark-star');
+            const validThemes = ['dark-star', 'ink-wash', 'light'];
+            applyTheme(validThemes.includes(save.theme) ? save.theme : 'light');
         }
         if (save.dayNightMode) applyDayNightMode(save.dayNightMode);
         if (save.uiMode) switchUiMode(save.uiMode);

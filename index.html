@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#0a0a1a">
+    <meta name="theme-color" content="#f5f0e8">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" href="galgame.ico" type="image/x-icon">
     <link rel="shortcut icon" href="galgame.ico" type="image/x-icon">
     <title>次元邂逅 · AI Galgame</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -26,22 +27,22 @@
                 </div>
                 <nav class="title-menu">
                     <button class="menu-btn primary" data-action="start-ai">
-                        <span class="btn-icon">🤖</span> AI 模式
+                        AI 模式
                         <small>AI实时生成剧情</small>
                     </button>
                     <button class="menu-btn" data-action="start-normal">
-                        <span class="btn-icon">📋</span> 剧情大纲
+                        剧情大纲
                         <small>选择或创建故事大纲</small>
                     </button>
                     <button class="menu-btn" data-action="load">
-                        <span class="btn-icon">📂</span> 继续旅程
+                        继续旅程
                         <small>读取存档</small>
                     </button>
                     <button class="menu-btn" data-action="settings">
-                        <span class="btn-icon">⚙️</span> 设置
+                        设置
                         <small>API / 主题 / 模型</small>
                     </button>
-                    <button class="menu-btn" data-action="toggle-bgm">🎵 音乐</button>
+                    <button class="menu-btn" data-action="toggle-bgm">音乐</button>
                 </nav>
                 <p class="title-footer">© 2026 次元邂逅 · 用热爱与代码构建</p>
             </div>
@@ -50,6 +51,10 @@
         <div id="game-screen" class="screen">
             <button id="outline-select-btn" class="hidden" data-action="show-outline-select" title="从大纲开始">📋 大纲</button>
             <div id="outline-chapter-display" class="hidden"></div>
+            <div id="status-badge" class="hidden">
+                <span class="status-name" id="status-name"></span>
+                <span class="status-emotion" id="status-emotion"></span>
+            </div>
             <div id="character-sprite" class="hidden"></div>
             <div id="sprite-selector" class="hidden">
                 <div id="sprite-selector-header">
@@ -67,16 +72,16 @@
         <div id="scene-overlay"></div>
             </div>
             <div id="game-toolbar">
-                <button class="toolbar-btn" data-action="back-title" title="返回标题">🏠</button>
-                <button class="toolbar-btn" data-action="save" title="存档">💾</button>
-                <button class="toolbar-btn" data-action="load" title="读档">📂</button>
-                <button class="toolbar-btn" data-action="auto" title="自动播放">▶️</button>
-                <button class="toolbar-btn" data-action="history" title="对话记录">📜</button>
-                <button class="toolbar-btn" data-action="gallery" title="图片画廊">🖼️</button>
-                <button class="toolbar-btn" data-action="settings" title="设置">⚙️</button>
-                <button class="toolbar-btn" data-action="toggle-ui-mode" title="切换到聊天模式">💬</button>
-                <button class="toolbar-btn" data-action="toggle-bgm" title="背景音乐">🎵</button>
-                <button class="toolbar-btn" data-action="toggle-tts" title="AI配音">🔊</button>
+                <button class="toolbar-btn" data-action="back-title" title="返回标题">☰</button>
+                <button class="toolbar-btn" data-action="save" title="存档">存</button>
+                <button class="toolbar-btn" data-action="load" title="读档">读</button>
+                <button class="toolbar-btn" data-action="auto" title="自动播放">▶</button>
+                <button class="toolbar-btn" data-action="history" title="对话记录">史</button>
+                <button class="toolbar-btn" data-action="gallery" title="图片画廊">图</button>
+                <button class="toolbar-btn" data-action="settings" title="设置">⚙</button>
+                <button class="toolbar-btn" data-action="toggle-ui-mode" title="切换到聊天模式">聊</button>
+                <button class="toolbar-btn" data-action="toggle-bgm" title="背景音乐">♪</button>
+                <button class="toolbar-btn" data-action="toggle-tts" title="AI配音">声</button>
                 <div id="bgm-track-name" class="hidden"></div>
                 <div id="api-indicator" class="toolbar-btn" data-action="api-status" title="API状态">
                     <span class="api-dot"></span>
@@ -323,19 +328,6 @@
                         </div>
                     </div>
                     <div class="tab-content" id="tab-theme">
-                        <div class="form-group">
-                            <label id="theme-mode-label">显示模式</label>
-                            <div class="theme-grid" style="grid-template-columns: 1fr 1fr;">
-                                <div class="theme-card active" data-theme="dark-star">
-                                    <div class="theme-preview dark-star-preview"></div>
-                                    <span>深色模式</span>
-                                </div>
-                                <div class="theme-card" data-theme="ink-wash">
-                                    <div class="theme-preview light-preview"></div>
-                                    <span>浅色模式</span>
-                                </div>
-                            </div>
-                        </div>
 
                     </div>
                     <div class="tab-content" id="tab-game">
