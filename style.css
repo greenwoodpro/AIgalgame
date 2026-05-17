@@ -165,27 +165,33 @@
 }
 
 [data-theme="ink-wash"] #dialog-box {
-    background: linear-gradient(to top, rgba(245, 240, 232, 0.92) 0%, rgba(245, 240, 232, 0.75) 80%, transparent 100%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: linear-gradient(to top, rgba(245, 240, 232, 0.88) 0%, rgba(245, 240, 232, 0.75) 100%);
+    backdrop-filter: blur(1px);
 }
 
 [data-theme="ink-wash"] #dialog-box::before {
-    background: linear-gradient(to top, rgba(245, 240, 232, 0.5) 0%, transparent 100%);
+    background: linear-gradient(to bottom, transparent 0%, rgba(245, 240, 232, 0.4) 50%, rgba(245, 240, 232, 0.7) 100%);
 }
 
 [data-theme="ink-wash"] #dialog-name {
-    color: #4a6fa5;
+    color: #2c2c2c;
     text-shadow: none;
+}
+
+[data-theme="ink-wash"] #dialog-subtitle {
+    color: #4a6fa5;
+}
+
+[data-theme="ink-wash"] #emotion-indicator {
+    color: #d4567a;
 }
 
 [data-theme="ink-wash"] #dialog-text-area {
     color: rgba(44, 44, 44, 0.9);
+    text-shadow: none;
 }
 
 [data-theme="ink-wash"] #dialog-input {
-    background: rgba(74, 111, 165, 0.06);
-    border-color: rgba(74, 111, 165, 0.2);
     color: #2c2c2c;
 }
 
@@ -193,51 +199,39 @@
     color: rgba(44, 44, 44, 0.4);
 }
 
-[data-theme="ink-wash"] #dialog-input:focus {
-    border-color: rgba(107, 143, 212, 0.4);
-    background: rgba(107, 143, 212, 0.08);
+[data-theme="ink-wash"] #dialog-send-btn {
+    color: #4a6fa5;
 }
 
-[data-theme="ink-wash"] #dialog-send-btn {
-    background: rgba(107, 143, 212, 0.12);
+[data-theme="ink-wash"] #dialog-send-btn:hover {
     color: #6b8fd4;
-    border-color: rgba(107, 143, 212, 0.25);
 }
 
 [data-theme="ink-wash"] .choice-btn {
     background: rgba(255, 255, 255, 0.7);
-    border-color: rgba(74, 111, 165, 0.2);
-    color: rgba(44, 44, 44, 0.9);
+    border-color: rgba(74, 111, 165, 0.3);
+    color: #2c2c2c;
+    text-shadow: none;
 }
 
 [data-theme="ink-wash"] .choice-btn:hover {
-    background: rgba(107, 143, 212, 0.1);
-    border-color: rgba(107, 143, 212, 0.4);
-    color: #6b8fd4;
-}
-
-[data-theme="ink-wash"] .choice-btn::before {
-    color: #6b8fd4;
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(107, 143, 212, 0.5);
+    color: #4a6fa5;
 }
 
 [data-theme="ink-wash"] .toolbar-btn {
-    background: rgba(255, 255, 255, 0.6);
-    border-color: rgba(74, 111, 165, 0.12);
-    color: rgba(44, 44, 44, 0.6);
+    background: rgba(255, 255, 255, 0.5);
+    color: rgba(44, 44, 44, 0.7);
 }
 
 [data-theme="ink-wash"] .toolbar-btn:hover {
-    background: rgba(107, 143, 212, 0.1);
-    border-color: rgba(107, 143, 212, 0.3);
-    color: #6b8fd4;
-}
-
-[data-theme="ink-wash"] #scene-overlay {
-    background: linear-gradient(to top, rgba(245, 240, 232, 0.4) 0%, rgba(245, 240, 232, 0.1) 40%, transparent 70%, rgba(245, 240, 232, 0.15) 100%);
+    background: rgba(255, 255, 255, 0.8);
+    color: #4a6fa5;
 }
 
 [data-theme="ink-wash"] #character-sprite {
-    filter: drop-shadow(0 0 10px rgba(107, 143, 212, 0.2));
+    filter: drop-shadow(0 0 18px rgba(107, 143, 212, 0.5));
 }
 
 /* ==================== Reset & Base ==================== */
@@ -301,7 +295,7 @@ html, body {
     position: absolute;
     inset: 0;
     background: var(--title-bg-url, url('sprites/background/pic1.png')) center bottom/cover no-repeat;
-    opacity: 0.35;
+    opacity: 0.85;
     z-index: 0;
     transition: opacity 1.5s ease;
 }
@@ -310,8 +304,9 @@ html, body {
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse at center, transparent 30%, var(--bg) 80%);
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.4) 100%);
     z-index: 0;
+    pointer-events: none;
 }
 
 #title-canvas {
@@ -323,29 +318,15 @@ html, body {
 }
 
 /* LingChat login-panel style */
-.title-content {
+#title-content {
     position: relative;
     z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
-    padding: 30px;
-    max-width: 400px;
-    width: 90%;
-    background-color: var(--title-panel-bg);
-    border-radius: var(--title-panel-radius);
-    box-shadow: var(--title-panel-shadow);
-    backdrop-filter: var(--title-panel-blur);
-    -webkit-backdrop-filter: var(--title-panel-blur);
-    border: var(--title-panel-border);
-    color: var(--title-text-color);
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
-}
-
-.title-content:hover {
-    box-shadow: var(--title-panel-hover-shadow);
-    transform: translateY(-5px);
+    justify-content: center;
+    height: 100%;
+    text-align: center;
 }
 
 .title-logo {
@@ -640,26 +621,23 @@ html, body {
 
 /* LingChat-style toolbar buttons */
 .toolbar-btn {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(121, 217, 255, 0.1);
-    border-radius: 8px;
-    background: rgba(5, 10, 25, 0.5);
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    background: rgba(0, 14, 39, 0.5);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(8px);
+    transition: all 0.3s;
 }
 
 .toolbar-btn:hover {
-    background: rgba(121, 217, 255, 0.12);
-    border-color: rgba(121, 217, 255, 0.3);
-    color: var(--accent-color);
-    transform: scale(1.05);
+    background: rgba(0, 14, 39, 0.8);
+    color: #79d9ff;
 }
 
 #api-indicator {
@@ -692,23 +670,25 @@ html, body {
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 5;
-    padding: 20px 24px;
-    background: linear-gradient(to top, rgba(5, 10, 25, 0.88) 0%, rgba(5, 10, 25, 0.65) 80%, transparent 100%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 2;
+    padding: 15px;
+    background: linear-gradient(to top, rgba(0, 14, 39, 0.7) 0%, rgba(0, 14, 39, 0.6) 100%);
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+    display: flex;
+    justify-content: center;
+    transition: all 0.5s ease;
 }
 
 /* LingChat gradient mask above dialog */
 #dialog-box::before {
     content: '';
     position: absolute;
-    top: -60px;
+    top: -40px;
     left: 0;
     right: 0;
-    height: 60px;
-    background: linear-gradient(to top, rgba(5, 10, 25, 0.5) 0%, transparent 100%);
+    height: 40px;
+    background: linear-gradient(to bottom, transparent 0%, rgba(0, 14, 39, 0.3) 50%, rgba(0, 14, 39, 0.6) 100%);
     pointer-events: none;
 }
 
@@ -718,48 +698,42 @@ html, body {
 
 /* LingChat chatbox-main: 60% width */
 #dialog-inner {
-    width: 75%;
-    max-width: 800px;
+    width: 60%;
     display: flex;
     flex-direction: column;
-    margin: 0 auto;
 }
 
 /* LingChat chatbox-title */
 #dialog-nameplate {
     display: flex;
     align-items: baseline;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(121, 217, 255, 0.15);
+    margin-bottom: 0;
 }
 
 /* LingChat: font-size 24px, bold, white, margin-right 15px */
 #dialog-name {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--accent-color);
-    margin-right: 12px;
-    text-shadow: 0 0 8px rgba(121, 217, 255, 0.3);
-    letter-spacing: 0.05em;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    margin-right: 15px;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
 /* LingChat chatbox-subtitle: font-size 20px, bold, #6eb4ff */
 #dialog-subtitle {
     font-size: 20px;
     font-weight: bold;
-    color: var(--name-color);
-    text-shadow: var(--text-shadow);
+    color: #6eb4ff;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
 /* LingChat chatbox-emotion: font-size 20px, bold, #ff77dd, margin auto */
 #emotion-indicator {
     font-size: 20px;
     font-weight: bold;
-    color: var(--emotion-color);
-    margin-left: auto;
-    transition: transform 0.3s ease;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    color: #ff77dd;
+    margin: auto;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
 /* LingChat emotion animations */
@@ -792,16 +766,17 @@ html, body {
 
 /* LingChat chatbox-text: 20px bold white */
 #dialog-text-area {
-    padding: 8px 0;
-    height: 100px;
+    padding: 0;
+    min-height: 40px;
+    max-height: 30vh;
     overflow-y: auto;
-    font-size: 18px;
-    font-weight: 500;
-    line-height: 1.8;
-    color: rgba(255, 255, 255, 0.92);
-    letter-spacing: 0.04em;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1.6;
+    color: white;
+    letter-spacing: 0.02em;
     -webkit-overflow-scrolling: touch;
-    flex-shrink: 1;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
 /* LingChat chatbox-line */
@@ -823,60 +798,50 @@ html, body {
 #dialog-input {
     flex: 1;
     width: 100%;
-    min-height: 36px;
-    background: rgba(121, 217, 255, 0.06);
-    border: 1px solid rgba(121, 217, 255, 0.15);
-    border-radius: 8px;
+    min-height: 40px;
+    background: rgba(255, 255, 255, 0);
+    border: none;
     color: white;
-    font-size: 16px;
-    font-weight: 500;
+    font-size: 20px;
+    font-weight: bold;
     resize: none;
-    margin: 8px 0 0;
+    margin: 5px 0;
     outline: none;
-    padding: 8px 12px;
+    padding: 0;
     font-family: var(--font-main);
-    transition: all 0.3s ease;
-}
-
-#dialog-input:focus {
-    border-color: rgba(121, 217, 255, 0.4);
-    background: rgba(121, 217, 255, 0.1);
+    transition: all 0.3s;
 }
 
 #dialog-input::placeholder {
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.5);
 }
 
 #dialog-input:read-only {
     opacity: 0.7;
     cursor: default;
-    background: transparent;
-    border-color: transparent;
 }
 
 /* LingChat #sendButton style */
 #dialog-send-btn {
     align-self: flex-end;
-    background: rgba(121, 217, 255, 0.15);
-    color: var(--accent-color);
-    border: 1px solid rgba(121, 217, 255, 0.25);
-    padding: 8px 14px;
-    border-radius: 8px;
+    background: rgba(0, 14, 39, 0);
+    color: #04bcff;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    margin-top: 8px;
+    font-size: 20px;
+    font-weight: bold;
+    transition: all 0.3s;
+    transform: scaleX(1.5);
 }
 
 #dialog-send-btn:hover {
-    background: rgba(121, 217, 255, 0.25);
-    border-color: rgba(121, 217, 255, 0.4);
+    color: rgba(136, 255, 251, 0.827);
 }
 
 #dialog-send-btn:disabled {
     background: #333;
-    cursor: not-allowed;
     opacity: 0.7;
 }
 
@@ -906,19 +871,19 @@ html, body {
 /* ==================== Character Sprite (LingChat .main-box img) ==================== */
 #character-sprite {
     position: absolute;
-    bottom: 0;
+    top: 0;
     left: 50%;
-    transform: translateX(-50%);
-    z-index: 3;
-    width: 400px;
-    height: 70vh;
-    max-width: 50vw;
+    transform: translateX(-50%) scale(1.9);
+    transform-origin: center -3%;
+    z-index: 1;
+    width: 100%;
+    height: 102%;
     background-size: contain;
     background-repeat: no-repeat;
-    background-position: center bottom;
+    background-position: center;
     pointer-events: none;
     transition: opacity 0.4s ease, transform 0.4s ease;
-    filter: drop-shadow(0 0 10px rgba(121, 217, 255, 0.25));
+    filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.7));
 }
 
 #character-sprite.sprite-enter {
@@ -934,13 +899,13 @@ html, body {
 }
 
 @keyframes spriteEnter {
-    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    from { opacity: 0; transform: translateX(-50%) scale(1.9) translateY(10px); }
+    to { opacity: 1; transform: translateX(-50%) scale(1.9) translateY(0); }
 }
 
 @keyframes spriteExit {
-    from { opacity: 1; transform: translateX(-50%) translateY(0); }
-    to { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    from { opacity: 1; transform: translateX(-50%) scale(1.9) translateY(0); }
+    to { opacity: 0; transform: translateX(-50%) scale(1.9) translateY(10px); }
 }
 
 @keyframes spriteSwitch {
@@ -962,20 +927,18 @@ html, body {
 
 #custom-input-box {
     position: absolute;
-    bottom: 200px;
+    bottom: 250px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 8;
     display: flex;
     gap: 0.5rem;
-    width: 90%;
+    width: 60%;
     max-width: 500px;
     padding: 0.5rem;
-    background: rgba(5, 10, 25, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: var(--radius);
-    border: 1px solid rgba(121, 217, 255, 0.2);
+    background: rgba(0, 14, 39, 0.7);
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 #custom-input {
@@ -1013,36 +976,34 @@ html, body {
 
 #choices-box {
     position: absolute;
-    bottom: 200px;
+    bottom: 250px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 15;
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
-    width: 90%;
+    width: 60%;
     max-width: 600px;
     pointer-events: auto;
     max-height: 35vh;
     overflow-y: auto;
-    padding-bottom: 0.5rem;
 }
 
 .choice-btn {
     padding: 12px 20px;
-    border: 1px solid rgba(121, 217, 255, 0.2);
-    border-radius: 8px;
-    background: rgba(5, 10, 25, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    background: rgba(0, 14, 39, 0.7);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s;
     font-family: var(--font-main);
     text-align: left;
     animation: choiceAppear 0.4s ease-out backwards;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
 .choice-btn:nth-child(1) { animation-delay: 0.1s; }
@@ -1056,17 +1017,10 @@ html, body {
 }
 
 .choice-btn:hover {
-    background: rgba(121, 217, 255, 0.12);
-    border-color: rgba(121, 217, 255, 0.4);
-    transform: translateX(6px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-    color: var(--accent-color);
-}
-
-.choice-btn::before {
-    content: '\25B8 ';
-    color: var(--accent-color);
-    opacity: 0.7;
+    background: rgba(0, 14, 39, 0.9);
+    border-color: rgba(121, 217, 255, 0.5);
+    transform: translateX(5px);
+    color: #79d9ff;
 }
 
 /* ==================== AI Generating ==================== */
@@ -2231,7 +2185,7 @@ html, body {
 }
 
 [data-day-night="night"] #title-screen::before {
-    opacity: 0.2;
+    opacity: 0.6;
 }
 
 [data-day-night="night"] .save-slot {
@@ -2304,7 +2258,7 @@ html, body {
 }
 
 [data-day-night="day"] #title-screen::before {
-    opacity: 0.4;
+    opacity: 0.7;
 }
 
 [data-day-night="day"] .title-footer {
@@ -2661,46 +2615,30 @@ html, body {
 
 /* ==================== Responsive ==================== */
 @media (max-width: 768px) {
-    .title-content { gap: 1.2rem; padding: 20px; max-width: 360px; }
+    #title-content { gap: 1.2rem; padding: 20px; max-width: 360px; }
     .title-logo h1,
     .title-text { font-size: 24px; }
     .title-sub,
     .title-subtitle { font-size: 14px; letter-spacing: 0.1em; }
     .menu-btn { padding: 10px 16px; font-size: 16px; }
-    #dialog-box { padding: 0 1rem 1rem; max-height: 40vh; }
-    #dialog-content { font-size: 0.95rem; line-height: 1.7; height: 80px; }
-    #dialog-text-area { font-size: 0.95rem; line-height: 1.7; height: 80px; }
-    #choices-box { margin-bottom: 240px; max-width: 95%; }
-    .choice-btn { padding: 0.8rem 1.2rem; font-size: 0.9rem; }
     .modal-content { width: 95%; max-height: 90vh; }
     .theme-grid { grid-template-columns: repeat(2, 1fr); }
     .settings-tabs { flex-wrap: wrap; gap: 0; }
     .settings-tabs .tab-btn { flex: 1; min-width: 0; padding: 0.5rem 0.6rem; font-size: 14px; }
-    #dialog-nameplate { padding: 0.3rem 1rem; }
-    #dialog-name { font-size: 0.8rem; }
-    #dialog-subtitle { font-size: 0.75rem; }
-    #emotion-indicator { font-size: 0.75rem; }
-    .form-group input[type="text"],
-    .form-group input[type="password"],
-    .form-group input[type="number"],
-    .form-group select,
-    .form-group textarea { font-size: 16px; }
-    #scene-download-btn { padding: 0.4rem 0.8rem; font-size: 0.75rem; }
-    #gallery-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-    .settings-footer { padding: 0.8rem 1rem; }
-    .settings-footer .action-btn { flex: 1; padding: 0.7rem; }
-    #custom-input { font-size: 16px; }
-    #custom-input-box { bottom: 180px; width: 94%; }
-    .btn-row { flex-direction: column; }
-    .storage-bar-wrap { flex-wrap: wrap; }
-    .chat-msg { max-width: 90%; }
-    #chat-quick-actions { padding-bottom: 0.2rem; }
-    #dialog-inner { width: 88%; }
-    #character-sprite { width: 260px; height: 55vh; max-width: 50vw; }
+    #dialog-inner { width: 75%; }
+    #dialog-text-area { max-height: 25vh; font-size: 18px; }
+    #dialog-name { font-size: 20px; }
+    #dialog-subtitle { font-size: 17px; }
+    #emotion-indicator { font-size: 17px; }
+    #dialog-input { font-size: 18px; }
+    #dialog-send-btn { font-size: 18px; }
+    #choices-box { width: 75%; bottom: 220px; }
+    #custom-input-box { bottom: 220px; width: 75%; }
+    #character-sprite { transform: translateX(-50%) scale(1.7); }
 }
 
 @media (max-width: 480px) {
-    .title-content { gap: 0.8rem; padding: 16px; max-width: 320px; }
+    #title-content { gap: 0.8rem; padding: 16px; max-width: 320px; }
     .title-logo h1,
     .title-text { font-size: 22px; }
     .title-sub,
@@ -2709,24 +2647,14 @@ html, body {
     .menu-btn small { display: none; }
     .toolbar-btn { width: 30px; height: 30px; font-size: 0.85rem; }
     #game-toolbar { gap: 0.15rem; padding: 0.3rem; }
-    #dialog-content { font-size: 0.88rem; height: 70px; }
-    #dialog-text-area { font-size: 0.88rem; height: 70px; }
-    #dialog-box { max-height: 35vh; }
-    #choices-box { margin-bottom: 210px; }
-    .choice-btn { padding: 0.7rem 1rem; font-size: 0.85rem; }
-    .modal-body { padding: 1rem; }
-    .modal-header { padding: 1rem; }
-    .modal-header h2 { font-size: 1rem; }
-    .api-provider h3 { font-size: 0.85rem; }
-    #gallery-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
-    #custom-input-box { bottom: 160px; }
-    #info-badge { top: 8px; right: 8px; font-size: 0.9rem; }
-    #character-sprite { width: 200px; height: 45vh; max-width: 55vw; }
-    #outline-chapter-display { font-size: 0.6rem; max-width: 60%; }
     #dialog-inner { width: 90%; }
-    #dialog-name { font-size: 16px; }
-    #dialog-subtitle { font-size: 14px; }
-    #emotion-indicator { font-size: 14px; }
+    #dialog-text-area { max-height: 20vh; font-size: 16px; }
+    #dialog-name { font-size: 18px; }
+    #dialog-subtitle { font-size: 15px; }
+    #emotion-indicator { font-size: 15px; }
     #dialog-input { font-size: 16px; }
-    #dialog-send-btn { font-size: 14px; }
+    #dialog-send-btn { font-size: 16px; }
+    #choices-box { width: 90%; bottom: 200px; }
+    #custom-input-box { bottom: 200px; width: 90%; }
+    #character-sprite { transform: translateX(-50%) scale(1.5); }
 }
