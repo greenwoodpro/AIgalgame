@@ -353,17 +353,6 @@
     function switchUiMode(mode) {
         state.uiMode = mode;
         closeSpriteSelector();
-        if (chatSegmentState.typingTimer) clearTimeout(chatSegmentState.typingTimer);
-        chatSegmentState = {
-            segments: [],
-            currentIndex: 0,
-            name: '',
-            emotion: '',
-            isWaitingForContinue: false,
-            isTyping: false,
-            typingTimer: null,
-            currentMsgEl: null,
-        };
         if (mode === 'chat') {
             $('#game-screen').classList.remove('active');
             $('#chat-screen').classList.add('active');
@@ -375,17 +364,6 @@
     }
 
     function rebuildChatMessages() {
-        if (chatSegmentState.typingTimer) clearTimeout(chatSegmentState.typingTimer);
-        chatSegmentState = {
-            segments: [],
-            currentIndex: 0,
-            name: '',
-            emotion: '',
-            isWaitingForContinue: false,
-            isTyping: false,
-            typingTimer: null,
-            currentMsgEl: null,
-        };
         const container = $('#chat-messages');
         container.innerHTML = '';
         state.game.dialogHistory.forEach(item => {
@@ -429,10 +407,6 @@
     }
 
     function handleChatSend() {
-        if (chatSegmentState.isTyping || chatSegmentState.isWaitingForContinue) {
-            continueChatSegment();
-            return;
-        }
         const input = $('#chat-input');
         const text = input.value.trim();
         if (!text) return;
@@ -442,10 +416,6 @@
     }
 
     function handleChatQuickAction(action) {
-        if (chatSegmentState.isTyping || chatSegmentState.isWaitingForContinue) {
-            continueChatSegment();
-            return;
-        }
         const actions = {
             'chat-continue': '请继续推进剧情',
             'chat-explore': '我想探索一下当前场景的细节',
@@ -704,48 +674,35 @@
         $('#custom-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') { e.preventDefault(); sendCustomInput(); }
         });
-        $('#chat-input').addEventListener('keydown', e => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (chatSegmentState.isTyping || chatSegmentState.isWaitingForContinue) {
-                    e.stopPropagation();
-                    continueChatSegment();
-                } else {
-                    handleChatSend();
-                }
-            }
-        });
+        $('#chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') handleChatSend(); });
         
-        const inputMessage = $('#inputMessage');
-        if (inputMessage) {
-            inputMessage.addEventListener('keydown', (e) => {
+        const dialogInput = $('#dialog-input');
+        if (dialogInput) {
+            dialogInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     if (dialogSegmentState.isWaitingForContinue || dialogSegmentState.isTyping) {
                         continueDialog();
-                    } else if (!inputMessage.readOnly && inputMessage.value.trim()) {
+                    } else if (!dialogInput.readOnly && dialogInput.value.trim()) {
                         sendDialogInput();
                     }
-                } else if (e.key === 'ArrowUp' && inputMessage.readOnly) {
+                } else if (e.key === 'ArrowUp' && dialogInput.readOnly) {
                     e.preventDefault();
                     showPreviousDialog();
-                } else if (e.key === 'ArrowDown' && inputMessage.readOnly) {
+                } else if (e.key === 'ArrowDown' && dialogInput.readOnly) {
                     e.preventDefault();
                     showNextDialog();
                 }
             });
         }
         
-        const sendButton = $('#sendButton');
-        if (sendButton) {
-            sendButton.addEventListener('click', () => {
+        const dialogSendBtn = $('#dialog-send-btn');
+        if (dialogSendBtn) {
+            dialogSendBtn.addEventListener('click', () => {
                 if (dialogSegmentState.isWaitingForContinue || dialogSegmentState.isTyping) {
                     continueDialog();
                 } else {
-                    const inputMessage = $('#inputMessage');
-                    if (inputMessage && !inputMessage.readOnly && inputMessage.value.trim()) {
-                        sendDialogInput();
-                    }
+                    sendDialogInput();
                 }
             });
         }
@@ -840,13 +797,6 @@
 
     function handleKeyDown(e) {
         if (state.currentScreen !== 'game') return;
-        if (state.uiMode === 'chat' && (chatSegmentState.isTyping || chatSegmentState.isWaitingForContinue)) {
-            if (e.key === 'Enter' && e.target.id !== 'chat-input') {
-                e.preventDefault();
-                continueChatSegment();
-            }
-            return;
-        }
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleDialogClick(); }
         if (e.key === 'Escape') {
@@ -2210,16 +2160,15 @@
             }
             
             const segments = splitDialogIntoSegments(dialog);
-            if (state.uiMode === 'chat') {
-                showChatSegmentedMessage(name, segments, emotion);
-            } else {
-                showSegmentedDialog(name, segments, emotion);
-            }
+            showSegmentedDialog(name, segments, emotion);
             addDialogHistory(name, dialog);
             updateEmotionIndicator(emotion);
             if (ttsState.enabled) speakText(dialog, emotion);
             if (spriteState.visible === false && name !== '旁白' && name !== '系统') {
                 showSprite('char_1', SPRITE_CONFIG.emotionMap[emotion] || '高兴');
+            }
+            if (state.uiMode === 'chat') {
+                addChatMessage(name, dialog, 'ai');
             }
             if (scene) state.game.currentScene = scene;
             if (scene && state.settings.autoGenScene) generateSceneImage(scene);
@@ -2229,11 +2178,7 @@
             content = content.replace(/我是(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
             
             const segments = splitDialogIntoSegments(content);
-            if (state.uiMode === 'chat') {
-                showChatSegmentedMessage('星酱', segments, 'neutral');
-            } else {
-                showSegmentedDialog('星酱', segments, 'neutral');
-            }
+            showSegmentedDialog('星酱', segments, 'neutral');
             addDialogHistory('星酱', content);
             updateEmotionIndicator('neutral');
         }
@@ -2267,55 +2212,47 @@
         historyOffset: 0,
     };
 
-    let chatSegmentState = {
-        segments: [],
-        currentIndex: 0,
-        name: '',
-        emotion: '',
-        isWaitingForContinue: false,
-        isTyping: false,
-        typingTimer: null,
-        currentMsgEl: null,
-    };
-
     function showSegmentedDialog(name, segments, emotion) {
         dialogSegmentState.segments = segments;
         dialogSegmentState.currentIndex = 0;
         dialogSegmentState.name = name;
         dialogSegmentState.emotion = emotion;
         dialogSegmentState.isWaitingForContinue = false;
-        dialogSegmentState.isTyping = false;
         
-        hideCustomInput();
         const dialogBox = $('#dialog-box');
-        if (dialogBox) {
-            dialogBox.classList.remove('hidden');
-            dialogBox.classList.add('clickable');
-        }
+        if (dialogBox) dialogBox.classList.remove('hidden');
         
         const dialogName = $('#dialog-name');
         if (dialogName) dialogName.textContent = name;
-        state.game.characterName = name;
         
-        const inputMessage = $('#inputMessage');
-        if (inputMessage) {
-            inputMessage.readOnly = true;
-            inputMessage.value = '';
-            inputMessage.placeholder = '';
+        const dialogInput = $('#dialog-input');
+        if (dialogInput) {
+            dialogInput.readOnly = true;
+            dialogInput.value = '';
+            dialogInput.placeholder = '';
         }
+
+        const dialogInputArea = $('#dialog-input-area');
+        if (dialogInputArea) dialogInputArea.style.display = 'none';
         
         showCurrentSegment();
     }
 
     function showCurrentSegment() {
         const { segments, currentIndex, name, emotion } = dialogSegmentState;
-        if (currentIndex >= segments.length) return;
+        if (currentIndex >= segments.length) {
+            enableDialogInput();
+            return;
+        }
         
         const text = segments[currentIndex];
-        const inputMessage = $('#inputMessage');
+        const dialogTextArea = $('#dialog-text-area');
+        const dialogText = $('#dialog-text');
+        const dialogCursor = $('#dialog-cursor');
         
-        if (!inputMessage) return;
-        
+        if (dialogText) dialogText.textContent = '';
+        if (dialogCursor) dialogCursor.style.display = 'inline';
+
         const dialogName = $('#dialog-name');
         if (dialogName) dialogName.textContent = name;
 
@@ -2325,10 +2262,7 @@
         const emotionIndicator = $('#emotion-indicator');
         if (emotionIndicator) emotionIndicator.textContent = emotion || '';
         
-        inputMessage.value = '';
-        inputMessage.readOnly = true;
-        
-        typeText(text, inputMessage, () => {
+        typeText(text, dialogText, dialogCursor, () => {
             dialogSegmentState.isTyping = false;
             dialogSegmentState.isWaitingForContinue = true;
 
@@ -2339,34 +2273,43 @@
                 type: 'ai'
             });
 
-            if (currentIndex < segments.length - 1) {
-                inputMessage.placeholder = '按 Enter 继续...';
-            } else {
-                inputMessage.placeholder = '按 Enter 输入回复...';
+            const dialogInput = $('#dialog-input');
+            if (dialogInput) {
+                dialogInput.readOnly = true;
+                if (currentIndex < segments.length - 1) {
+                    dialogInput.placeholder = '按 Enter 继续...';
+                } else {
+                    dialogInput.placeholder = '按 Enter 输入回复...';
+                }
             }
         });
     }
 
-    function typeText(text, textarea, callback) {
-        let i = 0;
+    function typeText(text, element, cursor, callback) {
+        if (!element) { if (callback) callback(); return; }
+        
         dialogSegmentState.isTyping = true;
+        let i = 0;
+        element.textContent = '';
+        
         const speed = 50;
         
-        const typing = () => {
+        function typeNext() {
             if (i < text.length) {
+                element.textContent += text.charAt(i);
                 i++;
-                textarea.value = text.substring(0, i);
-                textarea.scrollTop = textarea.scrollHeight;
                 const baseDelay = speed * 0.8;
                 const randomVariation = speed * 0.4;
                 const delay = baseDelay + Math.random() * randomVariation;
-                dialogSegmentState.typingTimer = setTimeout(typing, delay);
+                dialogSegmentState.typingTimer = setTimeout(typeNext, delay);
             } else {
+                if (cursor) cursor.style.display = 'none';
                 dialogSegmentState.isTyping = false;
                 if (callback) callback();
             }
-        };
-        typing();
+        }
+        
+        typeNext();
     }
 
     function continueDialog() {
@@ -2375,8 +2318,10 @@
         if (dialogSegmentState.isTyping) {
             clearTimeout(dialogSegmentState.typingTimer);
             const { segments, currentIndex } = dialogSegmentState;
-            const inputMessage = $('#inputMessage');
-            if (inputMessage) inputMessage.value = segments[currentIndex];
+            const dialogText = $('#dialog-text');
+            const dialogCursor = $('#dialog-cursor');
+            if (dialogText) dialogText.textContent = segments[currentIndex];
+            if (dialogCursor) dialogCursor.style.display = 'none';
             dialogSegmentState.isTyping = false;
 
             dialogSegmentState.dialogHistory.push({
@@ -2387,11 +2332,13 @@
             });
             
             dialogSegmentState.isWaitingForContinue = true;
-            if (inputMessage) {
+            const dialogInput = $('#dialog-input');
+            if (dialogInput) {
+                dialogInput.readOnly = true;
                 if (currentIndex < segments.length - 1) {
-                    inputMessage.placeholder = '按 Enter 继续...';
+                    dialogInput.placeholder = '按 Enter 继续...';
                 } else {
-                    inputMessage.placeholder = '按 Enter 输入回复...';
+                    dialogInput.placeholder = '按 Enter 输入回复...';
                 }
             }
             return;
@@ -2412,13 +2359,15 @@
     }
 
     function enableDialogInput() {
-        const inputMessage = $('#inputMessage');
-        if (inputMessage) {
-            inputMessage.readOnly = false;
-            inputMessage.value = '';
-            inputMessage.placeholder = '在这里输入消息...';
-            inputMessage.focus();
+        const dialogInput = $('#dialog-input');
+        const dialogInputArea = $('#dialog-input-area');
+        if (dialogInput) {
+            dialogInput.readOnly = false;
+            dialogInput.value = '';
+            dialogInput.placeholder = '输入消息，按 Enter 发送...';
+            dialogInput.focus();
         }
+        if (dialogInputArea) dialogInputArea.style.display = 'flex';
         dialogSegmentState.isWaitingForContinue = false;
         dialogSegmentState.historyOffset = 0;
     }
@@ -2432,13 +2381,12 @@
         const entry = dialogSegmentState.dialogHistory[idx];
 
         const dialogName = $('#dialog-name');
-        const inputMessage = $('#inputMessage');
+        const dialogText = $('#dialog-text');
         if (dialogName) dialogName.textContent = entry.name;
-        if (inputMessage) {
-            inputMessage.value = entry.text;
-            inputMessage.readOnly = true;
-            inputMessage.placeholder = '↑↓查看历史 / 按 Enter 返回当前';
-        }
+        if (dialogText) dialogText.textContent = entry.text;
+
+        const dialogInput = $('#dialog-input');
+        if (dialogInput) dialogInput.placeholder = '↑↓查看历史 / 按 Enter 返回当前';
     }
 
     function showNextDialog() {
@@ -2449,16 +2397,17 @@
         if (dialogSegmentState.historyOffset === 0) {
             const { segments, currentIndex, name, emotion } = dialogSegmentState;
             const dialogName = $('#dialog-name');
-            const inputMessage = $('#inputMessage');
+            const dialogText = $('#dialog-text');
             if (dialogName) dialogName.textContent = name;
-            if (inputMessage) {
-                inputMessage.value = segments[currentIndex];
-                inputMessage.readOnly = true;
+            if (dialogText) dialogText.textContent = segments[currentIndex];
+
+            const dialogInput = $('#dialog-input');
+            if (dialogInput) {
                 if (dialogSegmentState.isWaitingForContinue) {
                     if (currentIndex < segments.length - 1) {
-                        inputMessage.placeholder = '按 Enter 继续...';
+                        dialogInput.placeholder = '按 Enter 继续...';
                     } else {
-                        inputMessage.placeholder = '按 Enter 输入回复...';
+                        dialogInput.placeholder = '按 Enter 输入回复...';
                     }
                 }
             }
@@ -2469,18 +2418,16 @@
         const entry = dialogSegmentState.dialogHistory[idx];
 
         const dialogName = $('#dialog-name');
-        const inputMessage = $('#inputMessage');
+        const dialogText = $('#dialog-text');
         if (dialogName) dialogName.textContent = entry.name;
-        if (inputMessage) {
-            inputMessage.value = entry.text;
-        }
+        if (dialogText) dialogText.textContent = entry.text;
     }
 
     function sendDialogInput() {
-        const inputMessage = $('#inputMessage');
-        if (!inputMessage || inputMessage.readOnly) return;
+        const dialogInput = $('#dialog-input');
+        if (!dialogInput || dialogInput.readOnly) return;
         
-        const text = inputMessage.value.trim();
+        const text = dialogInput.value.trim();
         if (!text) return;
 
         dialogSegmentState.dialogHistory.push({
@@ -2490,143 +2437,14 @@
             type: 'user'
         });
         
-        inputMessage.value = '';
-        inputMessage.readOnly = true;
-        inputMessage.placeholder = '等待回应中...';
+        dialogInput.value = '';
+        dialogInput.readOnly = true;
+        dialogInput.placeholder = '等待回应中...';
+
+        const dialogInputArea = $('#dialog-input-area');
+        if (dialogInputArea) dialogInputArea.style.display = 'none';
         
         handleAiChoice(text);
-    }
-
-    function showChatSegmentedMessage(name, segments, emotion) {
-        chatSegmentState.segments = segments;
-        chatSegmentState.currentIndex = 0;
-        chatSegmentState.name = name;
-        chatSegmentState.emotion = emotion;
-        chatSegmentState.isWaitingForContinue = false;
-        chatSegmentState.isTyping = false;
-
-        const container = $('#chat-messages');
-        const msg = document.createElement('div');
-        msg.className = 'chat-msg ai segmented';
-        const nameEl = document.createElement('div');
-        nameEl.className = 'msg-name';
-        nameEl.textContent = name;
-        const textEl = document.createElement('div');
-        textEl.className = 'msg-text';
-        const continueHint = document.createElement('div');
-        continueHint.className = 'msg-continue-hint hidden';
-        continueHint.innerHTML = '按 <kbd>Enter</kbd> 继续 ▼';
-        msg.appendChild(nameEl);
-        msg.appendChild(textEl);
-        msg.appendChild(continueHint);
-        container.appendChild(msg);
-        chatSegmentState.currentMsgEl = msg;
-
-        const chatInput = $('#chat-input');
-        if (chatInput) chatInput.disabled = true;
-
-        showCurrentChatSegment();
-        container.scrollTop = container.scrollHeight;
-    }
-
-    function showCurrentChatSegment() {
-        const { segments, currentIndex, currentMsgEl } = chatSegmentState;
-        if (currentIndex >= segments.length) return;
-
-        const text = segments[currentIndex];
-        const textEl = currentMsgEl.querySelector('.msg-text');
-        const continueHint = currentMsgEl.querySelector('.msg-continue-hint');
-
-        if (currentIndex > 0) {
-            const divider = document.createElement('div');
-            divider.className = 'msg-segment-divider';
-            textEl.appendChild(divider);
-        }
-
-        const segmentSpan = document.createElement('span');
-        segmentSpan.className = 'msg-segment';
-        textEl.appendChild(segmentSpan);
-
-        continueHint.classList.add('hidden');
-
-        typeChatText(text, segmentSpan, () => {
-            chatSegmentState.isTyping = false;
-            chatSegmentState.isWaitingForContinue = true;
-
-            if (currentIndex < segments.length - 1) {
-                continueHint.innerHTML = '按 <kbd>Enter</kbd> 继续 ▼';
-            } else {
-                continueHint.innerHTML = '按 <kbd>Enter</kbd> 输入回复 ▼';
-            }
-            continueHint.classList.remove('hidden');
-
-            const container = $('#chat-messages');
-            container.scrollTop = container.scrollHeight;
-        });
-    }
-
-    function typeChatText(text, element, callback) {
-        let i = 0;
-        chatSegmentState.isTyping = true;
-        const speed = state.settings.textSpeed || 40;
-
-        const typing = () => {
-            if (i < text.length) {
-                i++;
-                element.textContent = text.substring(0, i);
-                const container = $('#chat-messages');
-                container.scrollTop = container.scrollHeight;
-                const baseDelay = speed * 0.8;
-                const randomVariation = speed * 0.4;
-                const delay = baseDelay + Math.random() * randomVariation;
-                chatSegmentState.typingTimer = setTimeout(typing, delay);
-            } else {
-                chatSegmentState.isTyping = false;
-                if (callback) callback();
-            }
-        };
-        typing();
-    }
-
-    function continueChatSegment() {
-        if (chatSegmentState.isTyping) {
-            clearTimeout(chatSegmentState.typingTimer);
-            const { segments, currentIndex, currentMsgEl } = chatSegmentState;
-            const segmentSpan = currentMsgEl.querySelectorAll('.msg-segment')[currentIndex];
-            if (segmentSpan) segmentSpan.textContent = segments[currentIndex];
-            chatSegmentState.isTyping = false;
-            chatSegmentState.isWaitingForContinue = true;
-
-            const continueHint = currentMsgEl.querySelector('.msg-continue-hint');
-            if (currentIndex < segments.length - 1) {
-                continueHint.innerHTML = '按 <kbd>Enter</kbd> 继续 ▼';
-            } else {
-                continueHint.innerHTML = '按 <kbd>Enter</kbd> 输入回复 ▼';
-            }
-            continueHint.classList.remove('hidden');
-            return;
-        }
-
-        if (!chatSegmentState.isWaitingForContinue) return;
-
-        const { segments, currentIndex, currentMsgEl } = chatSegmentState;
-        const continueHint = currentMsgEl.querySelector('.msg-continue-hint');
-
-        if (currentIndex >= segments.length - 1) {
-            continueHint.classList.add('hidden');
-            chatSegmentState.isWaitingForContinue = false;
-            const chatInput = $('#chat-input');
-            if (chatInput) {
-                chatInput.disabled = false;
-                chatInput.focus();
-            }
-            return;
-        }
-
-        chatSegmentState.isWaitingForContinue = false;
-        continueHint.classList.add('hidden');
-        chatSegmentState.currentIndex++;
-        showCurrentChatSegment();
     }
 
     function updateEmotionIndicator(emotion) {
@@ -2710,25 +2528,13 @@
             
             showToast('AI 调用失败: ' + errorMsg, 'error');
             const segments = splitDialogIntoSegments(friendlyMsg);
-            if (state.uiMode === 'chat') {
-                showChatSegmentedMessage('星酱', segments, 'neutral');
-            } else {
-                showSegmentedDialog('星酱', segments, 'neutral');
-            }
+            showSegmentedDialog('星酱', segments, 'neutral');
             
             setTimeout(() => {
-                if (state.uiMode === 'chat') {
-                    const chatInput = $('#chat-input');
-                    if (chatInput) {
-                        chatInput.disabled = false;
-                        chatInput.focus();
-                    }
-                } else {
-                    enableDialogInput();
-                    const inputMessage = $('#inputMessage');
-                    if (inputMessage) {
-                        inputMessage.placeholder = '输入消息重试...';
-                    }
+                enableDialogInput();
+                const dialogInput = $('#dialog-input');
+                if (dialogInput) {
+                    dialogInput.placeholder = '输入消息重试...';
                 }
             }, 1000);
         } finally {
@@ -2889,8 +2695,63 @@
     }
 
     function showDialog(name, text) {
-        const segments = splitDialogIntoSegments(text);
-        showSegmentedDialog(name, segments, '');
+        const dialogBox = $('#dialog-box');
+        const nameEl = $('#dialog-name');
+        const textEl = $('#dialog-text');
+        const cursor = $('#dialog-cursor');
+
+        hideCustomInput();
+        dialogBox.classList.remove('hidden');
+        dialogBox.classList.add('clickable');
+        nameEl.textContent = name;
+        state.game.characterName = name;
+
+        if (typewriterTimer) { clearInterval(typewriterTimer); typewriterTimer = null; }
+
+        const effect = state.settings.textEffect || 'typewriter-fade';
+
+        if (effect === 'instant') {
+            textEl.textContent = text;
+            textEl.style.opacity = '0';
+            textEl.offsetHeight;
+            textEl.style.transition = 'opacity 0.5s ease';
+            textEl.style.opacity = '1';
+            state.game.isTyping = false;
+            cursor.style.display = 'none';
+            triggerAutoPlay();
+            return;
+        }
+
+        cursor.style.display = 'inline';
+        state.game.isTyping = true;
+        let index = 0;
+        textEl.textContent = '';
+        textEl.style.opacity = '1';
+        textEl.style.transition = '';
+
+        const useFade = effect === 'typewriter-fade';
+
+        typewriterTimer = setInterval(() => {
+            if (index < text.length) {
+                const span = document.createElement('span');
+                span.textContent = text[index];
+                if (useFade) {
+                    span.style.opacity = '0';
+                    span.style.transition = 'opacity 0.3s ease';
+                    textEl.appendChild(span);
+                    requestAnimationFrame(() => { span.style.opacity = '1'; });
+                } else {
+                    textEl.appendChild(span);
+                }
+                index++;
+                textEl.scrollTop = textEl.scrollHeight;
+            } else {
+                clearInterval(typewriterTimer); typewriterTimer = null;
+                state.game.isTyping = false;
+                cursor.style.display = 'none';
+                triggerAutoPlay();
+            }
+        }, state.settings.textSpeed);
     }
 
     function triggerAutoPlay() {
@@ -2980,8 +2841,6 @@
         if (show) {
             el.classList.remove('hidden');
             if (state.uiMode === 'chat') {
-                const chatInput = $('#chat-input');
-                if (chatInput) chatInput.disabled = true;
                 const container = $('#chat-messages');
                 if (container && !chatThinkingMsg) {
                     chatThinkingMsg = document.createElement('div');
@@ -2996,10 +2855,6 @@
             if (chatThinkingMsg) {
                 chatThinkingMsg.remove();
                 chatThinkingMsg = null;
-            }
-            if (state.uiMode === 'chat' && !chatSegmentState.isTyping && !chatSegmentState.isWaitingForContinue) {
-                const chatInput = $('#chat-input');
-                if (chatInput) chatInput.disabled = false;
             }
         }
     }
