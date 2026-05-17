@@ -353,6 +353,17 @@
     function switchUiMode(mode) {
         state.uiMode = mode;
         closeSpriteSelector();
+        if (chatSegmentState.typingTimer) clearTimeout(chatSegmentState.typingTimer);
+        chatSegmentState = {
+            segments: [],
+            currentIndex: 0,
+            name: '',
+            emotion: '',
+            isWaitingForContinue: false,
+            isTyping: false,
+            typingTimer: null,
+            currentMsgEl: null,
+        };
         if (mode === 'chat') {
             $('#game-screen').classList.remove('active');
             $('#chat-screen').classList.add('active');
@@ -364,6 +375,17 @@
     }
 
     function rebuildChatMessages() {
+        if (chatSegmentState.typingTimer) clearTimeout(chatSegmentState.typingTimer);
+        chatSegmentState = {
+            segments: [],
+            currentIndex: 0,
+            name: '',
+            emotion: '',
+            isWaitingForContinue: false,
+            isTyping: false,
+            typingTimer: null,
+            currentMsgEl: null,
+        };
         const container = $('#chat-messages');
         container.innerHTML = '';
         state.game.dialogHistory.forEach(item => {
@@ -674,7 +696,16 @@
         $('#custom-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') { e.preventDefault(); sendCustomInput(); }
         });
-        $('#chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') handleChatSend(); });
+        $('#chat-input').addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                if (chatSegmentState.isTyping || chatSegmentState.isWaitingForContinue) {
+                    e.preventDefault();
+                    continueChatSegment();
+                } else {
+                    handleChatSend();
+                }
+            }
+        });
         
         const inputMessage = $('#inputMessage');
         if (inputMessage) {
@@ -800,6 +831,10 @@
 
     function handleKeyDown(e) {
         if (state.currentScreen !== 'game') return;
+        if (state.uiMode === 'chat' && (chatSegmentState.isTyping || chatSegmentState.isWaitingForContinue)) {
+            if (e.key === 'Enter') { e.preventDefault(); continueChatSegment(); }
+            return;
+        }
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleDialogClick(); }
         if (e.key === 'Escape') {
@@ -2171,7 +2206,8 @@
                 showSprite('char_1', SPRITE_CONFIG.emotionMap[emotion] || '高兴');
             }
             if (state.uiMode === 'chat') {
-                addChatMessage(name, dialog, 'ai');
+                const chatSegments = splitDialogIntoSegments(dialog);
+                showChatSegmentedMessage(name, chatSegments, emotion);
             }
             if (scene) state.game.currentScene = scene;
             if (scene && state.settings.autoGenScene) generateSceneImage(scene);
@@ -2181,7 +2217,11 @@
             content = content.replace(/我是(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
             
             const segments = splitDialogIntoSegments(content);
-            showSegmentedDialog('星酱', segments, 'neutral');
+            if (state.uiMode === 'chat') {
+                showChatSegmentedMessage('星酱', segments, 'neutral');
+            } else {
+                showSegmentedDialog('星酱', segments, 'neutral');
+            }
             addDialogHistory('星酱', content);
             updateEmotionIndicator('neutral');
         }
@@ -2213,6 +2253,17 @@
         typingTimer: null,
         dialogHistory: [],
         historyOffset: 0,
+    };
+
+    let chatSegmentState = {
+        segments: [],
+        currentIndex: 0,
+        name: '',
+        emotion: '',
+        isWaitingForContinue: false,
+        isTyping: false,
+        typingTimer: null,
+        currentMsgEl: null,
     };
 
     function showSegmentedDialog(name, segments, emotion) {
@@ -2432,6 +2483,138 @@
         inputMessage.placeholder = '等待回应中...';
         
         handleAiChoice(text);
+    }
+
+    function showChatSegmentedMessage(name, segments, emotion) {
+        chatSegmentState.segments = segments;
+        chatSegmentState.currentIndex = 0;
+        chatSegmentState.name = name;
+        chatSegmentState.emotion = emotion;
+        chatSegmentState.isWaitingForContinue = false;
+        chatSegmentState.isTyping = false;
+
+        const container = $('#chat-messages');
+        const msg = document.createElement('div');
+        msg.className = 'chat-msg ai segmented';
+        const nameEl = document.createElement('div');
+        nameEl.className = 'msg-name';
+        nameEl.textContent = name;
+        const textEl = document.createElement('div');
+        textEl.className = 'msg-text';
+        const continueHint = document.createElement('div');
+        continueHint.className = 'msg-continue-hint hidden';
+        continueHint.innerHTML = '按 <kbd>Enter</kbd> 继续 ▼';
+        msg.appendChild(nameEl);
+        msg.appendChild(textEl);
+        msg.appendChild(continueHint);
+        container.appendChild(msg);
+        chatSegmentState.currentMsgEl = msg;
+
+        const chatInput = $('#chat-input');
+        if (chatInput) chatInput.disabled = true;
+
+        showCurrentChatSegment();
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function showCurrentChatSegment() {
+        const { segments, currentIndex, currentMsgEl } = chatSegmentState;
+        if (currentIndex >= segments.length) return;
+
+        const text = segments[currentIndex];
+        const textEl = currentMsgEl.querySelector('.msg-text');
+        const continueHint = currentMsgEl.querySelector('.msg-continue-hint');
+
+        if (currentIndex > 0) {
+            const divider = document.createElement('div');
+            divider.className = 'msg-segment-divider';
+            textEl.appendChild(divider);
+        }
+
+        const segmentSpan = document.createElement('span');
+        segmentSpan.className = 'msg-segment';
+        textEl.appendChild(segmentSpan);
+
+        continueHint.classList.add('hidden');
+
+        typeChatText(text, segmentSpan, () => {
+            chatSegmentState.isTyping = false;
+            chatSegmentState.isWaitingForContinue = true;
+
+            if (currentIndex < segments.length - 1) {
+                continueHint.innerHTML = '按 <kbd>Enter</kbd> 继续 ▼';
+            } else {
+                continueHint.innerHTML = '按 <kbd>Enter</kbd> 输入回复 ▼';
+            }
+            continueHint.classList.remove('hidden');
+
+            const container = $('#chat-messages');
+            container.scrollTop = container.scrollHeight;
+        });
+    }
+
+    function typeChatText(text, element, callback) {
+        let i = 0;
+        chatSegmentState.isTyping = true;
+        const speed = state.settings.textSpeed || 40;
+
+        const typing = () => {
+            if (i < text.length) {
+                i++;
+                element.textContent = text.substring(0, i);
+                const container = $('#chat-messages');
+                container.scrollTop = container.scrollHeight;
+                const baseDelay = speed * 0.8;
+                const randomVariation = speed * 0.4;
+                const delay = baseDelay + Math.random() * randomVariation;
+                chatSegmentState.typingTimer = setTimeout(typing, delay);
+            } else {
+                chatSegmentState.isTyping = false;
+                if (callback) callback();
+            }
+        };
+        typing();
+    }
+
+    function continueChatSegment() {
+        if (chatSegmentState.isTyping) {
+            clearTimeout(chatSegmentState.typingTimer);
+            const { segments, currentIndex, currentMsgEl } = chatSegmentState;
+            const segmentSpan = currentMsgEl.querySelectorAll('.msg-segment')[currentIndex];
+            if (segmentSpan) segmentSpan.textContent = segments[currentIndex];
+            chatSegmentState.isTyping = false;
+            chatSegmentState.isWaitingForContinue = true;
+
+            const continueHint = currentMsgEl.querySelector('.msg-continue-hint');
+            if (currentIndex < segments.length - 1) {
+                continueHint.innerHTML = '按 <kbd>Enter</kbd> 继续 ▼';
+            } else {
+                continueHint.innerHTML = '按 <kbd>Enter</kbd> 输入回复 ▼';
+            }
+            continueHint.classList.remove('hidden');
+            return;
+        }
+
+        if (!chatSegmentState.isWaitingForContinue) return;
+
+        const { segments, currentIndex, currentMsgEl } = chatSegmentState;
+        const continueHint = currentMsgEl.querySelector('.msg-continue-hint');
+
+        if (currentIndex >= segments.length - 1) {
+            continueHint.classList.add('hidden');
+            chatSegmentState.isWaitingForContinue = false;
+            const chatInput = $('#chat-input');
+            if (chatInput) {
+                chatInput.disabled = false;
+                chatInput.focus();
+            }
+            return;
+        }
+
+        chatSegmentState.isWaitingForContinue = false;
+        continueHint.classList.add('hidden');
+        chatSegmentState.currentIndex++;
+        showCurrentChatSegment();
     }
 
     function updateEmotionIndicator(emotion) {
@@ -2773,6 +2956,8 @@
         if (show) {
             el.classList.remove('hidden');
             if (state.uiMode === 'chat') {
+                const chatInput = $('#chat-input');
+                if (chatInput) chatInput.disabled = true;
                 const container = $('#chat-messages');
                 if (container && !chatThinkingMsg) {
                     chatThinkingMsg = document.createElement('div');
@@ -2787,6 +2972,10 @@
             if (chatThinkingMsg) {
                 chatThinkingMsg.remove();
                 chatThinkingMsg = null;
+            }
+            if (state.uiMode === 'chat' && !chatSegmentState.isTyping && !chatSegmentState.isWaitingForContinue) {
+                const chatInput = $('#chat-input');
+                if (chatInput) chatInput.disabled = false;
             }
         }
     }
