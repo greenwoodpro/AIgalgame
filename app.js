@@ -337,6 +337,7 @@
         async urlToBase64(url) {
             try {
                 const resp = await fetch(url, { mode: 'cors' });
+                if (!resp.ok) return null;
                 const blob = await resp.blob();
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -433,15 +434,8 @@
         if (!validThemes.includes(state.theme)) state.theme = 'light';
         applyTheme(state.theme);
         applyDayNightMode(state.dayNightMode || state.settings.dayNightMode || 'day');
-        initTitleParticles();
         bindEvents();
-        updateModelOptions();
         restoreSettingsUI();
-        updateApiIndicator();
-        updateStorageUsage();
-        initBgm();
-        initTts();
-        loadStoryVars();
         document.addEventListener('click', (e) => {
             const heart = document.createElement('div');
             heart.className = 'click-heart';
@@ -450,6 +444,13 @@
             heart.style.top = e.clientY + 'px';
             document.body.appendChild(heart);
             setTimeout(() => heart.remove(), 1000);
+        });
+        requestIdleCallback(() => {
+            initTitleParticles();
+            updateModelOptions();
+            updateApiIndicator();
+            updateStorageUsage();
+            loadStoryVars();
         });
     }
 
@@ -496,8 +497,14 @@
     }
 
     function applyTheme(themeName) {
-        state.theme = 'light';
-        document.documentElement.removeAttribute('data-theme');
+        const validThemes = ['dark-star', 'ink-wash', 'light'];
+        if (!validThemes.includes(themeName)) themeName = 'light';
+        state.theme = themeName;
+        if (themeName === 'light') {
+            document.documentElement.removeAttribute('data-theme');
+        } else {
+            document.documentElement.setAttribute('data-theme', themeName);
+        }
         saveSettings();
     }
 
@@ -677,26 +684,36 @@
             const mode = e.target.checked ? 'night' : 'day';
             applyDayNightMode(mode);
         });
-        $('#bgm-volume').addEventListener('input', e => {
-            const vol = parseInt(e.target.value);
-            bgmState.volume = vol / 100;
-            state.settings.bgmVolume = vol;
-            $('#bgm-volume-label').textContent = vol + '%';
-            const current = $('#bgm-current');
-            if (current) current.volume = bgmState.volume;
-            saveSettings();
-        });
-        $('#tts-toggle').addEventListener('change', e => {
-            ttsState.enabled = e.target.checked;
-            state.settings.ttsEnabled = ttsState.enabled;
-            if (!ttsState.enabled) stopTts();
-            saveSettings();
-        });
-        $('#tts-voice').addEventListener('change', e => {
-            ttsState.voice = e.target.value;
-            state.settings.ttsVoice = ttsState.voice;
-            saveSettings();
-        });
+        const bgmVolumeEl = $('#bgm-volume');
+        if (bgmVolumeEl) {
+            bgmVolumeEl.addEventListener('input', e => {
+                const vol = parseInt(e.target.value);
+                bgmState.volume = vol / 100;
+                state.settings.bgmVolume = vol;
+                const label = $('#bgm-volume-label');
+                if (label) label.textContent = vol + '%';
+                const current = $('#bgm-current');
+                if (current) current.volume = bgmState.volume;
+                saveSettings();
+            });
+        }
+        const ttsToggleEl = $('#tts-toggle');
+        if (ttsToggleEl) {
+            ttsToggleEl.addEventListener('change', e => {
+                ttsState.enabled = e.target.checked;
+                state.settings.ttsEnabled = ttsState.enabled;
+                if (!ttsState.enabled) stopTts();
+                saveSettings();
+            });
+        }
+        const ttsVoiceEl = $('#tts-voice');
+        if (ttsVoiceEl) {
+            ttsVoiceEl.addEventListener('change', e => {
+                ttsState.voice = e.target.value;
+                state.settings.ttsVoice = ttsState.voice;
+                saveSettings();
+            });
+        }
         $('#text-model').addEventListener('change', e => { state.settings.textModel = e.target.value; updateModelTags(); saveSettings(); });
         $('#image-model').addEventListener('change', e => { state.settings.imageModel = e.target.value; saveSettings(); });
         $('#system-prompt').addEventListener('change', e => { state.settings.systemPrompt = e.target.value || DEFAULT_SYSTEM_PROMPT; saveSettings(); });
@@ -866,7 +883,8 @@
         state.settings.imageCooldown = parseInt($('#image-cooldown').value) || 60;
         state.settings.dayNightMode = $('#day-night-toggle').checked ? 'night' : 'day';
         state.dayNightMode = state.settings.dayNightMode;
-        state.settings.bgmVolume = parseInt($('#bgm-volume').value) || 30;
+        const bgmVolumeEl = $('#bgm-volume');
+        if (bgmVolumeEl) state.settings.bgmVolume = parseInt(bgmVolumeEl.value) || 30;
         state.settings.bgmEnabled = bgmState.enabled;
         state.settings.ttsEnabled = ttsState.enabled;
         state.settings.ttsVoice = ttsState.voice;
@@ -967,8 +985,10 @@
             if (dnToggle) dnToggle.checked = s.dayNightMode === 'night';
         }
         if (s.bgmVolume !== undefined) {
-            $('#bgm-volume').value = s.bgmVolume;
-            $('#bgm-volume-label').textContent = s.bgmVolume + '%';
+            const bgmVolEl = $('#bgm-volume');
+            if (bgmVolEl) bgmVolEl.value = s.bgmVolume;
+            const bgmVolLabel = $('#bgm-volume-label');
+            if (bgmVolLabel) bgmVolLabel.textContent = s.bgmVolume + '%';
         }
         if (s.ttsEnabled !== undefined) {
             const ttsToggle = $('#tts-toggle');
@@ -1749,7 +1769,7 @@
     }
 
     function playBgm(mood) {
-        if (!bgmState.enabled) return;
+        return;
         const track = BGM_TRACKS[mood];
         if (!track) return;
         if (bgmState.currentTrack === mood) return;
@@ -2202,7 +2222,7 @@
                 addChatMessage(name, dialog, 'ai');
             }
             if (scene) state.game.currentScene = scene;
-            if (scene && state.settings.autoGenScene) generateSceneImage(scene);
+            if (scene && state.settings.autoGenScene) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
         } else {
             let content = rawContent;
             content = content.replace(/作为(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
@@ -2425,6 +2445,14 @@
         if (dialogName) dialogName.textContent = entry.name;
         if (dialogText) dialogText.textContent = entry.text;
 
+        if (entry.emotion) {
+            const emotionEl = $('#emotion-indicator');
+            if (emotionEl) {
+                emotionEl.className = `emotion-${normalizeEmotion(entry.emotion)}`;
+                emotionEl.textContent = entry.emotion;
+            }
+        }
+
         const dialogInput = $('#dialog-input');
         if (dialogInput) dialogInput.placeholder = '↑↓查看历史 / 按 Enter 返回当前';
     }
@@ -2440,6 +2468,14 @@
             const dialogText = $('#dialog-text');
             if (dialogName) dialogName.textContent = name;
             if (dialogText) dialogText.textContent = segments[currentIndex];
+
+            if (emotion) {
+                const emotionEl = $('#emotion-indicator');
+                if (emotionEl) {
+                    emotionEl.className = `emotion-${normalizeEmotion(emotion)}`;
+                    emotionEl.textContent = emotion;
+                }
+            }
 
             const dialogInput = $('#dialog-input');
             if (dialogInput) {
@@ -2461,6 +2497,14 @@
         const dialogText = $('#dialog-text');
         if (dialogName) dialogName.textContent = entry.name;
         if (dialogText) dialogText.textContent = entry.text;
+
+        if (entry.emotion) {
+            const emotionEl = $('#emotion-indicator');
+            if (emotionEl) {
+                emotionEl.className = `emotion-${normalizeEmotion(entry.emotion)}`;
+                emotionEl.textContent = entry.emotion;
+            }
+        }
     }
 
     function sendDialogInput() {
@@ -2599,20 +2643,22 @@
             schedulePendingImage();
             return;
         }
-        lastImageGenTime = now;
         try {
+            lastImageGenTime = Date.now();
             showToast('正在生成场景图...', 'info');
             const result = await callImageApi(sceneDescription + ', digital art, detailed background, visual novel style, high quality');
             if (result) {
                 let imageUrl;
                 let base64Data = null;
+                let originalUrl = null;
                 if (result.type === 'url') {
-                    imageUrl = result.value;
+                    originalUrl = result.value;
                     try {
                         base64Data = await IDB.urlToBase64(result.value);
-                        imageUrl = base64Data;
+                        imageUrl = base64Data || result.value;
                     } catch {
                         base64Data = null;
+                        imageUrl = result.value;
                     }
                 } else if (result.type === 'base64') {
                     imageUrl = `data:image/png;base64,${result.value}`;
@@ -2620,18 +2666,24 @@
                 }
                 if (imageUrl) {
                     setSceneBackground(imageUrl);
-                    state.game.currentSceneUrl = imageUrl;
+                    if (base64Data && base64Data.length < 2 * 1024 * 1024) {
+                        state.game.currentSceneUrl = base64Data;
+                    } else if (originalUrl) {
+                        state.game.currentSceneUrl = originalUrl;
+                    } else {
+                        state.game.currentSceneUrl = imageUrl;
+                    }
                     const imgId = `scene_${Date.now()}`;
                     if (base64Data) {
                         try {
                             await IDB.saveImage(imgId, { base64: base64Data, prompt: sceneDescription });
-                            state.gallery.push({ id: imgId, prompt: sceneDescription, timestamp: Date.now(), persisted: true });
+                            state.gallery.push({ id: imgId, prompt: sceneDescription, timestamp: Date.now(), persisted: true, url: originalUrl || imageUrl });
                         } catch (e) {
                             console.warn('IndexedDB保存失败');
-                            state.gallery.push({ prompt: sceneDescription, timestamp: Date.now(), note: '图片可能无法持久保存' });
+                            state.gallery.push({ prompt: sceneDescription, timestamp: Date.now(), url: originalUrl || imageUrl, note: '图片可能无法持久保存' });
                         }
                     } else {
-                        state.gallery.push({ prompt: sceneDescription, timestamp: Date.now(), note: '图片可能无法持久保存' });
+                        state.gallery.push({ prompt: sceneDescription, timestamp: Date.now(), url: originalUrl || imageUrl, note: '图片可能无法持久保存' });
                     }
                     if (state.gallery.length > 30) state.gallery = state.gallery.slice(-30);
                     try { saveGallery(); } catch (e) { console.warn('画廊保存失败'); }
@@ -2640,6 +2692,7 @@
                 }
             }
         } catch (e) {
+            lastImageGenTime = 0;
             console.warn('场景图生成失败');
             showToast('场景图生成失败: ' + e.message, 'error');
         }
@@ -2660,8 +2713,8 @@
         const chatBg = $('#chat-screen-bg');
         if (!imageUrl) {
             bgNext.classList.remove('active');
-            bg.style.backgroundImage = `url('${DEFAULT_BG}')`;
-            if (chatBg) chatBg.style.backgroundImage = `url('${DEFAULT_BG}')`;
+            setBgStyle(bg, DEFAULT_BG);
+            if (chatBg) setBgStyle(chatBg, DEFAULT_BG);
             return;
         }
         const img = new Image();
@@ -2675,6 +2728,8 @@
             }, 1300);
         };
         img.onerror = () => {
+            console.warn('场景背景图加载失败:', imageUrl.substring(0, 80));
+            showToast('场景图加载失败', 'error');
         };
         img.src = imageUrl;
     }
@@ -2693,29 +2748,36 @@
         return (state.settings.imageCooldown || 60) * 1000;
     }
 
+    let pendingImageTimer = null;
+
     function schedulePendingImage() {
         if (!pendingSceneDescription) return;
+        if (pendingImageTimer) { clearTimeout(pendingImageTimer); pendingImageTimer = null; }
         const now = Date.now();
         const remaining = getImageCooldown() - (now - lastImageGenTime);
         if (remaining <= 0) {
-            generateSceneImage(pendingSceneDescription);
+            generateSceneImage(pendingSceneDescription).catch(e => console.warn('generateSceneImage error:', e));
             pendingSceneDescription = null;
         } else {
-            setTimeout(() => {
+            pendingImageTimer = setTimeout(() => {
                 if (pendingSceneDescription) {
-                    generateSceneImage(pendingSceneDescription);
+                    generateSceneImage(pendingSceneDescription).catch(e => console.warn('generateSceneImage error:', e));
                     pendingSceneDescription = null;
                 }
+                pendingImageTimer = null;
             }, remaining);
         }
     }
+
+    let imageGenInProgress = false;
 
     function startBgAutoSwitch() {
         stopBgAutoSwitch();
         if (!state.settings.autoSwitchBg || state.mode !== 'ai') return;
         const interval = (state.settings.bgSwitchInterval || 120) * 1000;
-        bgAutoSwitchTimer = setInterval(async () => {
-            if (state.mode === 'ai' && !apiCallInProgress && state.game.currentScene) {
+        async function doSwitch() {
+            if (state.mode === 'ai' && !apiCallInProgress && !imageGenInProgress && state.game.currentScene) {
+                imageGenInProgress = true;
                 try {
                     const prompt = `${state.game.currentScene}, cinematic lighting, detailed background, anime style`;
                     const result = await callImageApi(prompt);
@@ -2733,13 +2795,19 @@
                     if (base64Data) {
                         try { await IDB.saveImage(imgId, { base64: base64Data, prompt, autoSwitch: true }); } catch {}
                     }
-                } catch {}
+                } catch {} finally {
+                    imageGenInProgress = false;
+                }
             }
-        }, interval);
+            if (state.settings.autoSwitchBg && state.mode === 'ai') {
+                bgAutoSwitchTimer = setTimeout(doSwitch, interval);
+            }
+        }
+        bgAutoSwitchTimer = setTimeout(doSwitch, interval);
     }
 
     function stopBgAutoSwitch() {
-        if (bgAutoSwitchTimer) { clearInterval(bgAutoSwitchTimer); bgAutoSwitchTimer = null; }
+        if (bgAutoSwitchTimer) { clearTimeout(bgAutoSwitchTimer); bgAutoSwitchTimer = null; }
     }
 
     function showDialog(name, text) {
@@ -3061,6 +3129,8 @@
         apiCallInProgress = false;
         state.game.isTyping = false;
         stopBgAutoSwitch();
+        if (pendingImageTimer) { clearTimeout(pendingImageTimer); pendingImageTimer = null; }
+        pendingSceneDescription = null;
         stopTts();
         switchScreen('title-screen');
         state.game.isAutoPlay = false;
@@ -3069,7 +3139,6 @@
         const chapterDisplay = $('#outline-chapter-display');
         if (chapterDisplay) chapterDisplay.classList.add('hidden');
         hideSprite();
-        if (bgmState.enabled) playBgm('title');
     }
 
     function openSaveModal(mode) {
@@ -3590,7 +3659,7 @@
     }
 
     async function speakText(text, emotion) {
-        if (!ttsState.enabled) return;
+        return;
         if (ttsState.speaking) stopTts();
         const cleanText = text.replace(/（[^）]*）/g, '').replace(/[「」『』]/g, '').trim();
         if (!cleanText || cleanText.length < 2) return;

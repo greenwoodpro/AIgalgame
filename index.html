@@ -9,12 +9,12 @@
     <link rel="icon" href="galgame.ico" type="image/x-icon">
     <link rel="shortcut icon" href="galgame.ico" type="image/x-icon">
     <title>次元邂逅 · AI Galgame</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <audio id="bgm-current" loop preload="none"></audio>
-    <audio id="bgm-next" loop preload="none"></audio>
     <div id="app">
         <div id="title-screen" class="screen active">
             <canvas id="title-canvas"></canvas>
@@ -42,7 +42,7 @@
                         设置
                         <small>API / 主题 / 模型</small>
                     </button>
-                    <button class="menu-btn" data-action="toggle-bgm">音乐</button>
+
                 </nav>
                 <p class="title-footer">© 2026 次元邂逅 · 用热爱与代码构建</p>
             </div>
@@ -80,9 +80,6 @@
                 <button class="toolbar-btn" data-action="gallery" title="图片画廊">图</button>
                 <button class="toolbar-btn" data-action="settings" title="设置">⚙</button>
                 <button class="toolbar-btn" data-action="toggle-ui-mode" title="切换到聊天模式">聊</button>
-                <button class="toolbar-btn" data-action="toggle-bgm" title="背景音乐">♪</button>
-                <button class="toolbar-btn" data-action="toggle-tts" title="AI配音">声</button>
-                <div id="bgm-track-name" class="hidden"></div>
                 <div id="api-indicator" class="toolbar-btn" data-action="api-status" title="API状态">
                     <span class="api-dot"></span>
                     <span class="api-label">API</span>
@@ -143,8 +140,6 @@
                 <button class="toolbar-btn" data-action="toggle-ui-mode" title="切换到游戏模式">🎮</button>
                 <button class="toolbar-btn" data-action="save" title="存档">💾</button>
                 <button class="toolbar-btn" data-action="settings" title="设置">⚙️</button>
-                <button class="toolbar-btn" data-action="toggle-bgm" title="背景音乐">🎵</button>
-                <button class="toolbar-btn" data-action="toggle-tts" title="AI配音">🔊</button>
             </div>
             <div id="chat-messages"></div>
             <div id="chat-input-area">
@@ -339,31 +334,6 @@
                             <small>开启后降低整体亮度，与主题颜色独立控制</small>
                         </div>
                         <div class="form-group">
-                            <label for="bgm-volume">背景音乐音量</label>
-                            <div style="display:flex;align-items:center;gap:0.5rem;">
-                                <input type="range" id="bgm-volume" min="0" max="100" value="30" style="flex:1;">
-                                <span id="bgm-volume-label">30%</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="tts-toggle">
-                                AI配音（Microsoft Edge TTS）
-                            </label>
-                            <small>开启后AI回复将自动朗读，使用Microsoft Edge TTS免费语音合成</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="tts-voice">配音音色</label>
-                            <select id="tts-voice">
-                                <option value="zh-CN-XiaoxiaoNeural">晓晓（温柔）</option>
-                                <option value="zh-CN-XiaoyiNeural">晓伊（甜美）</option>
-                                <option value="zh-CN-XiaomoNeural">晓墨（文艺）</option>
-                                <option value="zh-CN-XiaochenNeural">晓辰（活力）</option>
-                                <option value="zh-CN-XiaohanNeural">晓涵（知性）</option>
-                            </select>
-                            <small>选择角色的说话音色，不同音色适合不同性格的角色</small>
-                        </div>
-                        <div class="form-group">
                             <label for="text-speed">文字显示速度</label>
                             <input type="range" id="text-speed" min="10" max="100" value="40">
                             <span id="text-speed-label">40ms</span>
@@ -544,6 +514,6 @@
         <div id="toast-container"></div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app.js" defer></script>
 </body>
 </html>
