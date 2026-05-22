@@ -55,7 +55,10 @@
                 <span class="status-name" id="status-name"></span>
                 <span class="status-emotion" id="status-emotion"></span>
             </div>
-            <div id="character-sprite" class="hidden"></div>
+            <div id="character-sprite" class="hidden">
+                <div id="sprite-layer-current" class="sprite-layer"></div>
+                <div id="sprite-layer-next" class="sprite-layer"></div>
+            </div>
             <div id="sprite-selector" class="hidden">
                 <div id="sprite-selector-header">
                     <span>立绘切换</span>
@@ -323,7 +326,20 @@
                         </div>
                     </div>
                     <div class="tab-content" id="tab-theme">
-
+                        <div class="theme-grid">
+                            <div class="theme-card active" data-theme="light">
+                                <div class="theme-preview light-preview"></div>
+                                <span>浅色</span>
+                            </div>
+                            <div class="theme-card" data-theme="dark-star">
+                                <div class="theme-preview dark-star-preview"></div>
+                                <span>暗夜星辰</span>
+                            </div>
+                            <div class="theme-card" data-theme="ink-wash">
+                                <div class="theme-preview ink-wash-preview"></div>
+                                <span>水墨丹青</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="tab-content" id="tab-game">
                         <div class="form-group">

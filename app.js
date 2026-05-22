@@ -511,7 +511,11 @@
     function applyDayNightMode(mode) {
         state.dayNightMode = mode;
         state.settings.dayNightMode = mode;
-        document.documentElement.setAttribute('data-day-night', mode);
+        if (mode === 'auto' || !mode) {
+            document.documentElement.removeAttribute('data-day-night');
+        } else {
+            document.documentElement.setAttribute('data-day-night', mode);
+        }
         saveSettings();
     }
 
@@ -3523,10 +3527,22 @@
         const spriteEl = $('#character-sprite');
         if (!spriteEl) return;
         const imgSrc = getSpriteImagePath(char, expr);
-        spriteEl.style.backgroundImage = `url('${imgSrc}')`;
+        const currentLayer = $('#sprite-layer-current');
+        const nextLayer = $('#sprite-layer-next');
+        if (currentLayer) {
+            currentLayer.style.backgroundImage = `url('${imgSrc}')`;
+            currentLayer.style.opacity = '1';
+        }
+        if (nextLayer) {
+            nextLayer.style.backgroundImage = '';
+            nextLayer.style.opacity = '0';
+        }
         spriteEl.classList.remove('hidden');
         spriteEl.classList.add('sprite-enter');
-        setTimeout(() => spriteEl.classList.remove('sprite-enter'), 500);
+        setTimeout(() => {
+            spriteEl.classList.remove('sprite-enter');
+            spriteEl.classList.add('idle');
+        }, 500);
         const toggleBtn = $('#sprite-toggle-btn');
         if (toggleBtn) toggleBtn.classList.remove('hidden');
         const selector = $('#sprite-selector');
@@ -3542,16 +3558,28 @@
     function hideSprite() {
         const spriteEl = $('#character-sprite');
         if (!spriteEl) return;
+        spriteEl.classList.remove('idle');
         spriteEl.classList.add('sprite-exit');
         setTimeout(() => {
             spriteEl.classList.add('hidden');
             spriteEl.classList.remove('sprite-exit');
             spriteState.visible = false;
+            const currentLayer = $('#sprite-layer-current');
+            const nextLayer = $('#sprite-layer-next');
+            if (currentLayer) { currentLayer.style.backgroundImage = ''; currentLayer.style.opacity = '1'; }
+            if (nextLayer) { nextLayer.style.backgroundImage = ''; nextLayer.style.opacity = '0'; }
         }, 400);
         const toggleBtn = $('#sprite-toggle-btn');
         if (toggleBtn) toggleBtn.classList.add('hidden');
         closeSpriteSelector();
     }
+
+    const SPRITE_EMOTION_ANIM_MAP = {
+        happy: 'sprite-happy', sad: 'sprite-serious', angry: 'sprite-angry',
+        surprised: 'sprite-embarrassed', shy: 'sprite-embarrassed',
+        neutral: null, scared: 'sprite-serious', excited: 'sprite-happy',
+        worried: 'sprite-serious', tsundere: 'sprite-naughty',
+    };
 
     function switchSpriteExpression(emotion) {
         if (!spriteState.visible || !spriteState.currentChar) return;
@@ -3563,9 +3591,55 @@
             const spriteEl = $('#character-sprite');
             if (!spriteEl) return;
             const imgSrc = getSpriteImagePath(char, expr);
-            spriteEl.style.backgroundImage = `url('${imgSrc}')`;
-            spriteEl.classList.add('sprite-switch');
-            setTimeout(() => spriteEl.classList.remove('sprite-switch'), 300);
+            const currentLayer = $('#sprite-layer-current');
+            const nextLayer = $('#sprite-layer-next');
+            if (!currentLayer || !nextLayer) return;
+
+            // Cross-fade: load new image on next layer, fade in, then swap
+            const img = new Image();
+            img.src = imgSrc;
+            const doFade = () => {
+                nextLayer.style.backgroundImage = `url('${imgSrc}')`;
+                requestAnimationFrame(() => {
+                    nextLayer.style.opacity = '1';
+                });
+                const onTransitionEnd = () => {
+                    nextLayer.removeEventListener('transitionend', onTransitionEnd);
+                    currentLayer.style.backgroundImage = `url('${imgSrc}')`;
+                    currentLayer.style.opacity = '1';
+                    nextLayer.style.opacity = '0';
+                    nextLayer.style.backgroundImage = '';
+                };
+                nextLayer.addEventListener('transitionend', onTransitionEnd);
+                // Fallback in case transitionend doesn't fire
+                setTimeout(onTransitionEnd, 400);
+            };
+            if (img.complete) {
+                doFade();
+            } else {
+                img.onload = doFade;
+                img.onerror = doFade; // proceed even on error
+            }
+
+            // Emotion animation on sprite
+            spriteEl.classList.remove('idle');
+            const animClass = SPRITE_EMOTION_ANIM_MAP[emotion];
+            if (animClass) {
+                spriteEl.classList.add(animClass);
+                const animDuration = animClass === 'sprite-angry' ? 800 :
+                    animClass === 'sprite-happy' ? 600 :
+                    animClass === 'sprite-heartbeat' ? 800 :
+                    animClass === 'sprite-serious' ? 600 :
+                    animClass === 'sprite-embarrassed' ? 300 :
+                    animClass === 'sprite-naughty' ? 300 : 600;
+                setTimeout(() => {
+                    spriteEl.classList.remove(animClass);
+                    spriteEl.classList.add('idle');
+                }, animDuration);
+            } else {
+                spriteEl.classList.add('idle');
+            }
+
             const exprList = $('#sprite-expr-list');
             if (exprList) {
                 exprList.querySelectorAll('.sprite-expr-btn').forEach(b => {
