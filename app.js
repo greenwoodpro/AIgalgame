@@ -919,6 +919,8 @@
             maxContext: 20,
             autoGenScene: true,
             enableThinking: false,
+            autoDefaultBg: true,
+            defaultBgInterval: 60,
             autoSwitchBg: false,
             chatShowBg: true,
             bgSwitchInterval: 120,
@@ -1399,7 +1401,9 @@
             if (!styleAnchors.includes(m)) messages.push(m);
         });
         messages.push({ role: 'user', content: userMessage });
-        state.game.aiContext.push({ role: 'user', content: userMessage });
+        if (retryCount === 0) {
+            state.game.aiContext.push({ role: 'user', content: userMessage });
+        }
 
         const body = { model: state.settings.textModel, messages, stream: false, max_tokens: state.settings.maxResponseLength || 500 };
         if (provider === 'nvidia') { body.temperature = 1; body.top_p = 0.9; }
@@ -1413,13 +1417,6 @@
             try { currentAbortController.abort(); } catch {}
         }
         currentAbortController = new AbortController();
-        
-        const timeoutId = setTimeout(() => {
-            if (currentAbortController) {
-                currentAbortController.abort();
-                showToast('API请求超时，正在重试...', 'warning');
-            }
-        }, 30000);
 
         try {
             const response = await fetch(url, {
@@ -1428,8 +1425,6 @@
                 body: JSON.stringify(body),
                 signal: currentAbortController.signal,
             });
-            
-            clearTimeout(timeoutId);
 
             if (response.status === 429) {
                 const fallback = tryFallbackProvider(provider);
@@ -1488,8 +1483,6 @@
             
             return result;
         } catch (e) {
-            clearTimeout(timeoutId);
-            
             if (e.name === 'AbortError') {
                 if (retryCount < MAX_RETRIES) {
                     const delay = BASE_DELAY * Math.pow(2, retryCount);
@@ -1512,7 +1505,6 @@
             
             throw e;
         } finally {
-            clearTimeout(timeoutId);
             updateApiIndicator();
             updateInfoBadge();
         }
@@ -1568,7 +1560,12 @@
             for (let i = 0; i < 60; i++) {
                 await new Promise(r => setTimeout(r, 3000));
                 const taskResp = await fetch(taskUrl, { headers: taskHeaders });
-                const taskData = await taskResp.json();
+                if (!taskResp.ok) {
+                    if (i < 59) continue;
+                    throw new Error(`任务状态查询失败 (${taskResp.status})`);
+                }
+                const taskData = await taskResp.json().catch(() => null);
+                if (!taskData) continue;
                 if (taskData.task_status === 'SUCCEED') {
                     const imgUrl = taskData.output_images?.[0];
                     if (imgUrl) return { type: 'url', value: imgUrl };
@@ -1913,12 +1910,12 @@
             card.style.cssText = 'background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:0.8rem;cursor:pointer;transition:all var(--transition);';
             card.innerHTML = `
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-                    <h3 style="color:var(--primary);font-size:1rem;">${outline.title}</h3>
-                    <span style="font-size:0.7rem;color:var(--text-muted);background:var(--bg-secondary);padding:0.2rem 0.5rem;border-radius:10px;">${outline.genre}</span>
+                    <h3 style="color:var(--primary);font-size:1rem;">${esc(outline.title)}</h3>
+                    <span style="font-size:0.7rem;color:var(--text-muted);background:var(--bg-secondary);padding:0.2rem 0.5rem;border-radius:10px;">${esc(outline.genre)}</span>
                 </div>
-                <p style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;margin-bottom:0.5rem;">${outline.description}</p>
+                <p style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;margin-bottom:0.5rem;">${esc(outline.description)}</p>
                 <div style="display:flex;gap:0.3rem;flex-wrap:wrap;margin-bottom:0.5rem;">
-                    ${outline.chapters.map((c, i) => `<span style="font-size:0.7rem;color:var(--accent);background:rgba(123,47,247,0.1);padding:0.15rem 0.5rem;border-radius:8px;">第${i + 1}章: ${c.title}</span>`).join('')}
+                    ${outline.chapters.map((c, i) => `<span style="font-size:0.7rem;color:var(--accent);background:rgba(123,47,247,0.1);padding:0.15rem 0.5rem;border-radius:8px;">第${i + 1}章: ${esc(c.title)}</span>`).join('')}
                 </div>
                 <div style="display:flex;gap:0.4rem;">
                     <button class="choice-btn" data-action="start-from-outline" data-outline-id="${outline.id}" style="font-size:0.75rem;">▶ 开始</button>
@@ -2059,13 +2056,13 @@
         const outline = outlines.find(o => o.id === id);
         if (!outline) return;
         let html = `<div style="margin-bottom:1rem;">`;
-        html += `<h3 style="color:var(--primary);font-size:1.1rem;margin-bottom:0.5rem;">📖 ${outline.title}</h3>`;
+        html += `<h3 style="color:var(--primary);font-size:1.1rem;margin-bottom:0.5rem;">📖 ${esc(outline.title)}</h3>`;
         html += `<div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.8rem;">`;
-        html += `<span style="font-size:0.75rem;color:var(--text-muted);background:var(--bg-secondary);padding:0.2rem 0.6rem;border-radius:10px;">${outline.genre}</span>`;
+        html += `<span style="font-size:0.75rem;color:var(--text-muted);background:var(--bg-secondary);padding:0.2rem 0.6rem;border-radius:10px;">${esc(outline.genre)}</span>`;
         html += `</div>`;
-        html += `<p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;margin-bottom:0.8rem;">${outline.description}</p>`;
+        html += `<p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;margin-bottom:0.8rem;">${esc(outline.description)}</p>`;
         if (outline.characters) {
-            html += `<p style="font-size:0.85rem;color:var(--accent);margin-bottom:0.8rem;">👥 ${outline.characters}</p>`;
+            html += `<p style="font-size:0.85rem;color:var(--accent);margin-bottom:0.8rem;">👥 ${esc(outline.characters)}</p>`;
         }
         html += `</div>`;
         html += `<div style="border-top:1px solid var(--border);padding-top:0.8rem;">`;
@@ -2073,10 +2070,10 @@
             const moodEmoji = { daily: '🏠', adventure: '⚔️', mystery: '🔮', tender: '💕', romantic: '💗', battle: '🗡️', melancholy: '🌧️', horror: '👻' };
             html += `<div style="margin-bottom:0.8rem;padding:0.6rem;background:var(--bg-card);border-radius:var(--radius-sm);border-left:3px solid var(--primary);">`;
             html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">`;
-            html += `<strong style="color:var(--primary);font-size:0.9rem;">第${i + 1}章：${ch.title}</strong>`;
+            html += `<strong style="color:var(--primary);font-size:0.9rem;">第${i + 1}章：${esc(ch.title)}</strong>`;
             html += `<span style="font-size:0.7rem;">${moodEmoji[ch.mood] || '🏠'} ${ch.mood || 'daily'}</span>`;
             html += `</div>`;
-            html += `<p style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;">${ch.summary}</p>`;
+            html += `<p style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;">${esc(ch.summary)}</p>`;
             html += `</div>`;
         });
         html += `</div>`;
@@ -2363,6 +2360,9 @@
                 emotion: emotion,
                 type: 'ai'
             });
+            if (dialogSegmentState.dialogHistory.length > 200) {
+                dialogSegmentState.dialogHistory = dialogSegmentState.dialogHistory.slice(-200);
+            }
 
             const dialogTextAreaEl = $('#dialog-text-area');
             if (dialogTextAreaEl) {

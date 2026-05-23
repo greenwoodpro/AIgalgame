@@ -13,25 +13,32 @@ function getApiKey(env, provider) {
     return map[provider] || null;
 }
 
-const CORS_HEADERS = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-ModelScope-Async-Mode, X-ModelScope-Task-Type',
-    'Access-Control-Expose-Headers': 'modelscope-ratelimit-requests-limit, modelscope-ratelimit-requests-remaining, modelscope-ratelimit-model-requests-limit, modelscope-ratelimit-model-requests-remaining',
-};
+const ALLOWED_ORIGINS = ['https://aigalgame.pages.dev', 'http://localhost:3000', 'http://localhost:5500'];
 
-function errorResponse(message, status = 400) {
+function getCorsHeaders(origin) {
+    const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    return {
+        'Access-Control-Allow-Origin': allowedOrigin,
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-ModelScope-Async-Mode, X-ModelScope-Task-Type',
+        'Access-Control-Expose-Headers': 'modelscope-ratelimit-requests-limit, modelscope-ratelimit-requests-remaining, modelscope-ratelimit-model-requests-limit, modelscope-ratelimit-model-requests-remaining',
+    };
+}
+
+function errorResponse(message, status = 400, origin) {
     return new Response(JSON.stringify({ error: message }), {
         status,
-        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+        headers: { 'Content-Type': 'application/json', ...getCorsHeaders(origin) },
     });
 }
 
 async function proxyApi(request, env, provider, apiPath) {
+    const origin = request.headers.get('Origin') || '';
+    const corsHeaders = getCorsHeaders(origin);
     const apiKey = getApiKey(env, provider);
     const baseUrl = API_BASES[provider];
     if (!apiKey || !baseUrl) {
-        return errorResponse(`Provider ${provider} not configured`, 500);
+        return errorResponse(`Provider ${provider} not configured`, 500, origin);
     }
 
     const targetUrl = `${baseUrl}/${apiPath}`;
@@ -66,7 +73,10 @@ async function proxyApi(request, env, provider, apiPath) {
 
         if (isStream) {
             const { readable, writable } = new TransformStream();
-            response.body.pipeTo(writable).catch(() => {});
+            response.body.pipeTo(writable).catch((err) => {
+                console.error('Stream pipe error:', err);
+                try { writable.close(); } catch {}
+            });
             return new Response(readable, {
                 status: response.status,
                 statusText: response.statusText,
@@ -74,7 +84,7 @@ async function proxyApi(request, env, provider, apiPath) {
                     'Content-Type': 'text/event-stream;charset=UTF-8',
                     'Cache-Control': 'no-cache',
                     'Connection': 'keep-alive',
-                    ...CORS_HEADERS,
+                    ...corsHeaders,
                 },
             });
         }
@@ -83,7 +93,7 @@ async function proxyApi(request, env, provider, apiPath) {
 
         const newHeaders = new Headers();
         newHeaders.set('Content-Type', response.headers.get('Content-Type') || 'application/json');
-        Object.entries(CORS_HEADERS).forEach(([k, v]) => newHeaders.set(k, v));
+        Object.entries(corsHeaders).forEach(([k, v]) => newHeaders.set(k, v));
 
         return new Response(respBody, {
             status: response.status,
@@ -91,7 +101,8 @@ async function proxyApi(request, env, provider, apiPath) {
             headers: newHeaders,
         });
     } catch (e) {
-        return errorResponse(e.message, 502);
+        console.error(`Proxy error [${provider}/${apiPath}]:`, e.message);
+        return errorResponse('上游API请求失败', 502, origin);
     }
 }
 
@@ -100,9 +111,10 @@ export default {
         const url = new URL(request.url);
 
         if (request.method === 'OPTIONS') {
+            const origin = request.headers.get('Origin') || '';
             return new Response(null, {
                 headers: {
-                    ...CORS_HEADERS,
+                    ...getCorsHeaders(origin),
                     'Access-Control-Max-Age': '86400',
                 },
             });

@@ -313,6 +313,12 @@ html, body {
     -webkit-touch-callout: none;
 }
 
+@supports (-webkit-touch-callout: none) {
+    html, body {
+        background-attachment: scroll;
+    }
+}
+
 #app {
     width: 100%;
     height: 100%;
@@ -322,14 +328,18 @@ html, body {
 .screen {
     position: absolute;
     inset: 0;
-    display: none;
+    display: flex;
+    visibility: hidden;
     opacity: 0;
-    transition: opacity 0.6s var(--ease-smooth);
+    pointer-events: none;
+    transition: opacity 0.6s var(--ease-smooth), visibility 0s 0.6s;
 }
 
 .screen.active {
-    display: flex;
+    visibility: visible;
     opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.6s var(--ease-smooth), visibility 0s 0s;
 }
 
 .hidden {
@@ -2090,8 +2100,8 @@ html, body {
     opacity: 0.7;
 }
 
-#scene-download-btn:hover {
-    opacity: 1 !important;
+#scene-layer:hover #scene-download-btn:hover {
+    opacity: 1;
     background: rgba(255, 255, 255, 0.85);
 }
 
@@ -2326,7 +2336,7 @@ html, body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to bottom, rgba(245, 240, 232, 0.3) 0%, rgba(245, 240, 232, 0.1) 50%, rgba(245, 240, 232, 0.3) 100%);
+    background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 30%, transparent) 0%, color-mix(in srgb, var(--bg) 10%, transparent) 50%, color-mix(in srgb, var(--bg) 30%, transparent) 100%);
 }
 
 #chat-header,
@@ -2635,8 +2645,6 @@ html, body {
     #dialog-name { font-size: 20px; }
     #dialog-subtitle { font-size: 17px; }
     #emotion-indicator { font-size: 17px; }
-    #dialog-input { font-size: 18px; }
-    #dialog-send-btn { font-size: 18px; }
 }
 
 @media (max-width: 480px) {
@@ -2660,6 +2668,4 @@ html, body {
     #dialog-name { font-size: 18px; }
     #dialog-subtitle { font-size: 15px; }
     #emotion-indicator { font-size: 15px; }
-    #dialog-input { font-size: 16px; }
-    #dialog-send-btn { font-size: 16px; }
 }
