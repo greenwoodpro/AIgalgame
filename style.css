@@ -350,7 +350,7 @@ html, body {
     content: '';
     position: absolute;
     inset: 0;
-    background: var(--title-bg-url, url('sprites/background/pic1.png')) center center/cover no-repeat;
+    background: var(--title-bg-url, url('sprites/background/pic1.png')) center center/100% 100% no-repeat;
     opacity: 1;
     z-index: 0;
     transition: opacity 1.5s ease;
@@ -555,7 +555,7 @@ html, body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-size: cover;
+    background-size: 100% 100%;
     background-position: center center;
     background-repeat: no-repeat;
     background-image: url('sprites/background/pic1.png');
@@ -572,7 +572,7 @@ html, body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-size: cover;
+    background-size: 100% 100%;
     background-position: center center;
     background-repeat: no-repeat;
     opacity: 0;
