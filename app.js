@@ -629,12 +629,18 @@
         if (!state.settings.autoDefaultBg) return;
         const interval = (state.settings.defaultBgInterval || 60) * 1000;
         defaultBgTimer = setInterval(() => {
-            // Only rotate default backgrounds when no AI-generated scene is active
+            // Skip rotation when AI-generated scene is currently displayed
             if (state.game.currentSceneUrl) return;
             const bgs = SPRITE_CONFIG.defaultBackgrounds;
             defaultBgIndex = Math.floor(Math.random() * bgs.length);
             setSceneBackground(bgs[defaultBgIndex]);
         }, interval);
+        // Also set an initial random background (not always pic1)
+        if (!state.game.currentSceneUrl) {
+            const bgs = SPRITE_CONFIG.defaultBackgrounds;
+            defaultBgIndex = Math.floor(Math.random() * bgs.length);
+            setSceneBackground(bgs[defaultBgIndex]);
+        }
     }
 
     function stopDefaultBgRotation() {
@@ -740,33 +746,23 @@
         });
         $('#chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') handleChatSend(); });
         
-        const dialogInput = $('#dialog-input');
-        if (dialogInput) {
-            dialogInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
+        const dialogTextArea = $('#dialog-text-area');
+        if (dialogTextArea) {
+            dialogTextArea.addEventListener('keydown', (e) => {
+                const isInputMode = dialogTextArea.dataset.mode === 'input';
+                if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     if (dialogSegmentState.isWaitingForContinue || dialogSegmentState.isTyping) {
                         continueDialog();
-                    } else if (!dialogInput.readOnly && dialogInput.value.trim()) {
+                    } else if (isInputMode && dialogTextArea.textContent.trim()) {
                         sendDialogInput();
                     }
-                } else if (e.key === 'ArrowUp' && dialogInput.readOnly) {
+                } else if (e.key === 'ArrowUp' && !isInputMode) {
                     e.preventDefault();
                     showPreviousDialog();
-                } else if (e.key === 'ArrowDown' && dialogInput.readOnly) {
+                } else if (e.key === 'ArrowDown' && !isInputMode) {
                     e.preventDefault();
                     showNextDialog();
-                }
-            });
-        }
-        
-        const dialogSendBtn = $('#dialog-send-btn');
-        if (dialogSendBtn) {
-            dialogSendBtn.addEventListener('click', () => {
-                if (dialogSegmentState.isWaitingForContinue || dialogSegmentState.isTyping) {
-                    continueDialog();
-                } else {
-                    sendDialogInput();
                 }
             });
         }
@@ -1149,6 +1145,7 @@
         state.mode = mode;
         stopTitleParticles();
         switchScreen('game-screen');
+        startDefaultBgRotation();
         if (mode === 'ai') {
             if (!state.settings.useProxyKeys && !state.settings.apiKeys[state.settings.textApiProvider]) {
                 showToast('请先配置 API Key！', 'error');
@@ -1174,6 +1171,7 @@
         state.mode = mode;
         stopTitleParticles();
         switchScreen('game-screen');
+        startDefaultBgRotation();
         const lastDialog = state.game.dialogHistory[state.game.dialogHistory.length - 1];
         if (lastDialog) showDialog(lastDialog.name, lastDialog.text);
         if (state.game.currentSceneUrl) setSceneBackground(state.game.currentSceneUrl);
@@ -1199,11 +1197,13 @@
         if (apiCallInProgress) return;
         apiCallInProgress = true;
         showAiGenerating(true);
+        const startTime = Date.now();
         try {
             const prompt = '游戏开始！请以一个有趣的开场白开始故事，设定一个引人入胜的场景。记住必须用JSON格式回复。';
             const result = await callAiApi(prompt);
             showAiGenerating(false);
-            if (result) processAiResponse(result);
+            const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+            if (result) processAiResponse(result, elapsed);
             if (state.settings.autoSwitchBg) startBgAutoSwitch();
         } catch (e) {
             showAiGenerating(false);
@@ -2210,7 +2210,7 @@
         return period;
     }
 
-    function processAiResponse(rawContent) {
+    function processAiResponse(rawContent, elapsedSec) {
         restoreFallbackProvider();
         let parsed = null;
         try {
@@ -2218,6 +2218,13 @@
             const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
             if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
         } catch {}
+
+        // Show meta info (thinking time + output tokens)
+        const dialogMeta = $('#dialog-meta');
+        const tokenCount = rawContent.length;
+        if (dialogMeta && elapsedSec) {
+            dialogMeta.textContent = `${elapsedSec}s · ${tokenCount}字`;
+        }
 
         if (parsed && parsed.dialog) {
             const name = parsed.name || '???';
@@ -2307,15 +2314,11 @@
         const dialogName = $('#dialog-name');
         if (dialogName) dialogName.textContent = name;
         
-        const dialogInput = $('#dialog-input');
-        if (dialogInput) {
-            dialogInput.readOnly = true;
-            dialogInput.value = '';
-            dialogInput.placeholder = '';
+        const dialogTextAreaEl = $('#dialog-text-area');
+        if (dialogTextAreaEl) {
+            dialogTextAreaEl.contentEditable = 'false';
+            dialogTextAreaEl.dataset.mode = 'display';
         }
-
-        const dialogInputArea = $('#dialog-input-area');
-        if (dialogInputArea) dialogInputArea.style.display = 'none';
         
         showCurrentSegment();
     }
@@ -2355,14 +2358,9 @@
                 type: 'ai'
             });
 
-            const dialogInput = $('#dialog-input');
-            if (dialogInput) {
-                dialogInput.readOnly = true;
-                if (currentIndex < segments.length - 1) {
-                    dialogInput.placeholder = '按 Enter 继续...';
-                } else {
-                    dialogInput.placeholder = '按 Enter 输入回复...';
-                }
+            const dialogTextAreaEl = $('#dialog-text-area');
+            if (dialogTextAreaEl) {
+                dialogTextAreaEl.setAttribute('data-placeholder', currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...');
             }
         });
     }
@@ -2414,14 +2412,9 @@
             });
             
             dialogSegmentState.isWaitingForContinue = true;
-            const dialogInput = $('#dialog-input');
-            if (dialogInput) {
-                dialogInput.readOnly = true;
-                if (currentIndex < segments.length - 1) {
-                    dialogInput.placeholder = '按 Enter 继续...';
-                } else {
-                    dialogInput.placeholder = '按 Enter 输入回复...';
-                }
+            const dialogTextAreaEl = $('#dialog-text-area');
+            if (dialogTextAreaEl) {
+                dialogTextAreaEl.setAttribute('data-placeholder', currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...');
             }
             return;
         }
@@ -2441,18 +2434,25 @@
     }
 
     function enableDialogInput() {
-        const dialogInput = $('#dialog-input');
-        const dialogInputArea = $('#dialog-input-area');
+        const dialogText = $('#dialog-text');
+        const dialogCursor = $('#dialog-cursor');
         const dialogTextArea = $('#dialog-text-area');
+        const dialogName = $('#dialog-name');
+        const dialogMeta = $('#dialog-meta');
         // Clear previous dialog text - this is a new input page
-        if (dialogTextArea) dialogTextArea.textContent = '';
-        if (dialogInput) {
-            dialogInput.readOnly = false;
-            dialogInput.value = '';
-            dialogInput.placeholder = '输入消息，按 Enter 发送...';
-            dialogInput.focus();
+        if (dialogText) dialogText.textContent = '';
+        if (dialogCursor) dialogCursor.style.display = 'none';
+        if (dialogName) dialogName.textContent = '你';
+        if (dialogMeta) dialogMeta.textContent = '';
+        // Make dialog-text-area editable for input
+        if (dialogTextArea) {
+            dialogTextArea.contentEditable = 'true';
+            dialogTextArea.dataset.mode = 'input';
+            dialogTextArea.textContent = '';
+            dialogTextArea.focus();
+            // Placeholder effect
+            dialogTextArea.setAttribute('data-placeholder', '输入消息，按 Enter 发送...');
         }
-        if (dialogInputArea) dialogInputArea.style.display = 'flex';
         dialogSegmentState.isWaitingForContinue = false;
         dialogSegmentState.historyOffset = 0;
     }
@@ -2478,8 +2478,8 @@
             }
         }
 
-        const dialogInput = $('#dialog-input');
-        if (dialogInput) dialogInput.placeholder = '↑↓查看历史 / 按 Enter 返回当前';
+        const dialogTextArea = $('#dialog-text-area');
+        if (dialogTextArea) dialogTextArea.setAttribute('data-placeholder', '↑↓查看历史 / 按 Enter 返回当前');
     }
 
     function showNextDialog() {
@@ -2502,14 +2502,10 @@
                 }
             }
 
-            const dialogInput = $('#dialog-input');
-            if (dialogInput) {
+            const dialogTextArea = $('#dialog-text-area');
+            if (dialogTextArea) {
                 if (dialogSegmentState.isWaitingForContinue) {
-                    if (currentIndex < segments.length - 1) {
-                        dialogInput.placeholder = '按 Enter 继续...';
-                    } else {
-                        dialogInput.placeholder = '按 Enter 输入回复...';
-                    }
+                    dialogTextArea.setAttribute('data-placeholder', currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...');
                 }
             }
             return;
@@ -2533,10 +2529,10 @@
     }
 
     function sendDialogInput() {
-        const dialogInput = $('#dialog-input');
-        if (!dialogInput || dialogInput.readOnly) return;
+        const dialogTextArea = $('#dialog-text-area');
+        if (!dialogTextArea || dialogTextArea.dataset.mode !== 'input') return;
         
-        const text = dialogInput.value.trim();
+        const text = dialogTextArea.textContent.trim();
         if (!text) return;
 
         dialogSegmentState.dialogHistory.push({
@@ -2546,12 +2542,9 @@
             type: 'user'
         });
         
-        dialogInput.value = '';
-        dialogInput.readOnly = true;
-        dialogInput.placeholder = '等待回应中...';
-
-        const dialogInputArea = $('#dialog-input-area');
-        if (dialogInputArea) dialogInputArea.style.display = 'none';
+        dialogTextArea.contentEditable = 'false';
+        dialogTextArea.dataset.mode = 'display';
+        dialogTextArea.textContent = '';
         
         handleAiChoice(text);
     }
@@ -2617,7 +2610,8 @@
             
             showAiGenerating(false);
             if (result) {
-                processAiResponse(result);
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                processAiResponse(result, elapsed);
             } else {
                 throw new Error('AI返回了空响应');
             }
@@ -2647,10 +2641,8 @@
             
             setTimeout(() => {
                 enableDialogInput();
-                const dialogInput = $('#dialog-input');
-                if (dialogInput) {
-                    dialogInput.placeholder = '输入消息重试...';
-                }
+                const dialogTextAreaEl = $('#dialog-text-area');
+                if (dialogTextAreaEl) dialogTextAreaEl.setAttribute('data-placeholder', '输入消息重试...');
             }, 1000);
         } finally {
             apiCallInProgress = false;
