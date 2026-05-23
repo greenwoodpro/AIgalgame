@@ -754,7 +754,7 @@
                     e.preventDefault();
                     if (dialogSegmentState.isWaitingForContinue || dialogSegmentState.isTyping) {
                         continueDialog();
-                    } else if (isInputMode && dialogTextArea.textContent.trim()) {
+                    } else if (isInputMode && dialogTextArea.innerText.trim()) {
                         sendDialogInput();
                     }
                 } else if (e.key === 'ArrowUp' && !isInputMode) {
@@ -2318,7 +2318,13 @@
         if (dialogTextAreaEl) {
             dialogTextAreaEl.contentEditable = 'false';
             dialogTextAreaEl.dataset.mode = 'display';
+            dialogTextAreaEl.innerText = '';
         }
+        // Restore dialog display elements
+        const dialogText = $('#dialog-text');
+        const dialogCursor = $('#dialog-cursor');
+        if (dialogText) dialogText.style.display = '';
+        if (dialogCursor) dialogCursor.style.display = '';
         
         showCurrentSegment();
     }
@@ -2439,8 +2445,8 @@
         const dialogTextArea = $('#dialog-text-area');
         const dialogName = $('#dialog-name');
         const dialogMeta = $('#dialog-meta');
-        // Clear previous dialog text - this is a new input page
-        if (dialogText) dialogText.textContent = '';
+        // Hide dialog display elements
+        if (dialogText) dialogText.style.display = 'none';
         if (dialogCursor) dialogCursor.style.display = 'none';
         if (dialogName) dialogName.textContent = '你';
         if (dialogMeta) dialogMeta.textContent = '';
@@ -2448,10 +2454,10 @@
         if (dialogTextArea) {
             dialogTextArea.contentEditable = 'true';
             dialogTextArea.dataset.mode = 'input';
-            dialogTextArea.textContent = '';
-            dialogTextArea.focus();
-            // Placeholder effect
+            // Clear only the direct text nodes, not child elements
+            dialogTextArea.innerText = '';
             dialogTextArea.setAttribute('data-placeholder', '输入消息，按 Enter 发送...');
+            dialogTextArea.focus();
         }
         dialogSegmentState.isWaitingForContinue = false;
         dialogSegmentState.historyOffset = 0;
@@ -2532,7 +2538,7 @@
         const dialogTextArea = $('#dialog-text-area');
         if (!dialogTextArea || dialogTextArea.dataset.mode !== 'input') return;
         
-        const text = dialogTextArea.textContent.trim();
+        const text = dialogTextArea.innerText.trim();
         if (!text) return;
 
         dialogSegmentState.dialogHistory.push({
@@ -2544,7 +2550,12 @@
         
         dialogTextArea.contentEditable = 'false';
         dialogTextArea.dataset.mode = 'display';
-        dialogTextArea.textContent = '';
+        dialogTextArea.innerText = '';
+        // Restore dialog display elements
+        const dialogText = $('#dialog-text');
+        const dialogCursor = $('#dialog-cursor');
+        if (dialogText) dialogText.style.display = '';
+        if (dialogCursor) dialogCursor.style.display = '';
         
         handleAiChoice(text);
     }
@@ -2832,12 +2843,21 @@
         const nameEl = $('#dialog-name');
         const textEl = $('#dialog-text');
         const cursor = $('#dialog-cursor');
+        const dialogTextArea = $('#dialog-text-area');
 
         hideCustomInput();
         dialogBox.classList.remove('hidden');
         dialogBox.classList.add('clickable');
         nameEl.textContent = name;
         state.game.characterName = name;
+        
+        // Ensure display mode
+        if (dialogTextArea) {
+            dialogTextArea.contentEditable = 'false';
+            dialogTextArea.dataset.mode = 'display';
+        }
+        if (textEl) textEl.style.display = '';
+        if (cursor) cursor.style.display = '';
 
         if (typewriterTimer) { clearInterval(typewriterTimer); typewriterTimer = null; }
 
