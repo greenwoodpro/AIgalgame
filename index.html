@@ -75,14 +75,38 @@
         <div id="scene-overlay"></div>
             </div>
             <div id="game-toolbar">
-                <button class="toolbar-btn" data-action="back-title" title="返回标题">☰</button>
-                <button class="toolbar-btn" data-action="save" title="存档">存</button>
-                <button class="toolbar-btn" data-action="load" title="读档">读</button>
-                <button class="toolbar-btn" data-action="auto" title="自动播放">▶</button>
-                <button class="toolbar-btn" data-action="history" title="对话记录">史</button>
-                <button class="toolbar-btn" data-action="gallery" title="图片画廊">图</button>
-                <button class="toolbar-btn" data-action="settings" title="设置">⚙</button>
-                <button class="toolbar-btn" data-action="toggle-ui-mode" title="切换到聊天模式">聊</button>
+                <button class="toolbar-btn" data-action="back-title" title="返回标题">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg>
+                    <span class="toolbar-tip">返回标题</span>
+                </button>
+                <button class="toolbar-btn" data-action="save" title="存档">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                    <span class="toolbar-tip">存档</span>
+                </button>
+                <button class="toolbar-btn" data-action="load" title="读档">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    <span class="toolbar-tip">读档</span>
+                </button>
+                <button class="toolbar-btn" data-action="auto" title="自动播放">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <span class="toolbar-tip">自动播放</span>
+                </button>
+                <button class="toolbar-btn" data-action="history" title="对话记录">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span class="toolbar-tip">对话记录</span>
+                </button>
+                <button class="toolbar-btn" data-action="gallery" title="图片画廊">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                    <span class="toolbar-tip">图片画廊</span>
+                </button>
+                <button class="toolbar-btn" data-action="settings" title="设置">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span class="toolbar-tip">设置</span>
+                </button>
+                <button class="toolbar-btn" data-action="toggle-ui-mode" title="聊天模式">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    <span class="toolbar-tip">聊天模式</span>
+                </button>
                 <div id="api-indicator" class="toolbar-btn" data-action="api-status" title="API状态">
                     <span class="api-dot"></span>
                     <span class="api-label">API</span>
