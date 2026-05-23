@@ -352,7 +352,6 @@ html, body {
     align-items: center;
     justify-content: center;
     background: var(--bg);
-    position: relative;
     overflow: hidden;
 }
 
@@ -360,7 +359,7 @@ html, body {
     content: '';
     position: absolute;
     inset: 0;
-    background: var(--title-bg-url, url('sprites/background/pic1.png')) center center/100% 100% no-repeat;
+    background: var(--title-bg-url, url('sprites/background/pic1.png')) center center/cover no-repeat;
     opacity: 1;
     z-index: 0;
     transition: opacity 1.5s ease;
@@ -549,7 +548,6 @@ html, body {
 #game-screen {
     flex-direction: column;
     background: #0a0a0a;
-    position: relative;
     overflow: hidden;
 }
 
@@ -565,7 +563,7 @@ html, body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-size: 100% 100%;
+    background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
     background-image: url('sprites/background/pic1.png');
@@ -582,7 +580,7 @@ html, body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-size: 100% 100%;
+    background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
     opacity: 0;
@@ -2307,12 +2305,8 @@ html, body {
 
 /* ==================== Chat Screen ==================== */
 #chat-screen {
-    display: flex;
     flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
     background: var(--bg);
-    position: relative;
 }
 
 #chat-screen-bg {
@@ -2345,9 +2339,6 @@ html, body {
     position: relative;
     z-index: 1;
 }
-
-#chat-screen:not(.active) { display: none; }
-#chat-screen.active { display: flex; }
 
 #chat-header {
     display: flex;
