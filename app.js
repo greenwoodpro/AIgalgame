@@ -214,6 +214,8 @@
             maxContext: 20,
             autoGenScene: true,
             enableThinking: false,
+            autoDefaultBg: true,
+            defaultBgInterval: 60,
             autoSwitchBg: false,
             chatShowBg: true,
             bgSwitchInterval: 120,
@@ -606,29 +608,37 @@
         }
         function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); connect(); animFrameId = requestAnimationFrame(animate); }
         animate();
-        const titleBgs = [
-            'sprites/background/pic1.png',
-            'sprites/background/pic2.png',
-            'sprites/background/pic3.jpeg',
-        ];
+        // Title screen background rotation (always active on title)
+        const titleBgs = SPRITE_CONFIG.defaultBackgrounds;
         let currentTitleBgIdx = 0;
-        const titleEl = $('#title-screen');
         if (titleBgInterval) clearInterval(titleBgInterval);
         titleBgInterval = setInterval(() => {
             currentTitleBgIdx = (currentTitleBgIdx + 1) % titleBgs.length;
+            const titleEl = $('#title-screen');
             if (titleEl) titleEl.style.setProperty('--title-bg-url', `url('${titleBgs[currentTitleBgIdx]}')`);
         }, 30000);
-        const gameBgs = [
-            'sprites/background/pic1.png',
-            'sprites/background/pic2.png',
-            'sprites/background/pic3.jpeg',
-        ];
-        let currentGameBgIdx = 0;
-        if (gameBgInterval) clearInterval(gameBgInterval);
-        gameBgInterval = setInterval(() => {
-            currentGameBgIdx = (currentGameBgIdx + 1) % gameBgs.length;
-            setSceneBackground(gameBgs[currentGameBgIdx]);
-        }, 30000);
+        // Game screen default background rotation
+        startDefaultBgRotation();
+    }
+
+    let defaultBgTimer = null;
+    let defaultBgIndex = 0;
+
+    function startDefaultBgRotation() {
+        stopDefaultBgRotation();
+        if (!state.settings.autoDefaultBg) return;
+        const interval = (state.settings.defaultBgInterval || 60) * 1000;
+        defaultBgTimer = setInterval(() => {
+            // Only rotate default backgrounds when no AI-generated scene is active
+            if (state.game.currentSceneUrl) return;
+            const bgs = SPRITE_CONFIG.defaultBackgrounds;
+            defaultBgIndex = Math.floor(Math.random() * bgs.length);
+            setSceneBackground(bgs[defaultBgIndex]);
+        }, interval);
+    }
+
+    function stopDefaultBgRotation() {
+        if (defaultBgTimer) { clearInterval(defaultBgTimer); defaultBgTimer = null; }
     }
 
     function stopTitleParticles() {
@@ -675,6 +685,8 @@
         $('#max-response-length').addEventListener('change', e => { state.settings.maxResponseLength = Math.max(50, parseInt(e.target.value) || 500); saveSettings(); });
         $('#auto-gen-scene').addEventListener('change', e => { state.settings.autoGenScene = e.target.checked; saveSettings(); });
         $('#enable-thinking').addEventListener('change', e => { state.settings.enableThinking = e.target.checked; saveSettings(); });
+        $('#auto-default-bg').addEventListener('change', e => { state.settings.autoDefaultBg = e.target.checked; saveSettings(); if (e.target.checked) startDefaultBgRotation(); else stopDefaultBgRotation(); });
+        $('#default-bg-interval').addEventListener('change', e => { state.settings.defaultBgInterval = Math.max(10, parseInt(e.target.value) || 60); saveSettings(); if (state.settings.autoDefaultBg) { stopDefaultBgRotation(); startDefaultBgRotation(); } });
         $('#auto-switch-bg').addEventListener('change', e => { state.settings.autoSwitchBg = e.target.checked; saveSettings(); if (e.target.checked) startBgAutoSwitch(); else stopBgAutoSwitch(); });
         $('#chat-show-bg').addEventListener('change', e => {
             state.settings.chatShowBg = e.target.checked;
@@ -851,6 +863,8 @@
         if (state.currentScreen !== 'game') return;
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleDialogClick(); }
+        if (e.key === 'ArrowDown') { e.preventDefault(); handleDialogClick(); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); showPreviousDialog(); }
         if (e.key === 'Escape') {
             if (!$('#settings-modal').classList.contains('hidden')) hideModal('settings-modal');
             else if (!$('#gallery-modal').classList.contains('hidden')) hideModal('gallery-modal');
@@ -881,6 +895,8 @@
         state.settings.useProxyKeys = $('#use-proxy-keys').checked;
         state.settings.autoGenScene = $('#auto-gen-scene').checked;
         state.settings.enableThinking = $('#enable-thinking').checked;
+        state.settings.autoDefaultBg = $('#auto-default-bg').checked;
+        state.settings.defaultBgInterval = parseInt($('#default-bg-interval').value) || 60;
         state.settings.autoSwitchBg = $('#auto-switch-bg').checked;
         state.settings.chatShowBg = $('#chat-show-bg').checked;
         state.settings.bgSwitchInterval = parseInt($('#bg-switch-interval').value) || 120;
@@ -976,6 +992,8 @@
         if (s.useProxyKeys !== undefined) $('#use-proxy-keys').checked = s.useProxyKeys;
         if (s.autoGenScene !== undefined) $('#auto-gen-scene').checked = s.autoGenScene;
         if (s.enableThinking !== undefined) $('#enable-thinking').checked = s.enableThinking;
+        if (s.autoDefaultBg !== undefined) $('#auto-default-bg').checked = s.autoDefaultBg;
+        if (s.defaultBgInterval !== undefined) $('#default-bg-interval').value = s.defaultBgInterval;
         if (s.autoSwitchBg !== undefined) $('#auto-switch-bg').checked = s.autoSwitchBg;
         if (s.chatShowBg !== undefined) {
             $('#chat-show-bg').checked = s.chatShowBg;
@@ -2425,6 +2443,9 @@
     function enableDialogInput() {
         const dialogInput = $('#dialog-input');
         const dialogInputArea = $('#dialog-input-area');
+        const dialogTextArea = $('#dialog-text-area');
+        // Clear previous dialog text - this is a new input page
+        if (dialogTextArea) dialogTextArea.textContent = '';
         if (dialogInput) {
             dialogInput.readOnly = false;
             dialogInput.value = '';
