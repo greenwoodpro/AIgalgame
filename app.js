@@ -198,6 +198,15 @@
                 ],
             },
         },
+        custom: {
+            name: '自定义',
+            baseUrl: '',
+            models: {
+                text: [],
+                image: [],
+            },
+            isCustom: true,
+        },
     };
 
     let state = {
@@ -229,7 +238,10 @@
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
-            apiKeys: { zhipu: '', modelscope: '', nvidia: '' },
+            apiKeys: { zhipu: '', modelscope: '', nvidia: '', custom: '' },
+            customBaseUrl: '',
+            customTextModel: '',
+            customImageModel: '',
             dayNightMode: 'day',
             bgmVolume: 30,
             bgmEnabled: false,
@@ -437,6 +449,7 @@
         applyTheme(state.theme);
         applyDayNightMode(state.dayNightMode || state.settings.dayNightMode || 'day');
         bindEvents();
+        initParallax();
         restoreSettingsUI();
         document.addEventListener('click', (e) => {
             if (state.currentScreen !== 'game' && state.currentScreen !== 'chat') return;
@@ -509,6 +522,8 @@
         } else {
             document.documentElement.setAttribute('data-theme', themeName);
         }
+        // Update ambient particles type
+        if (ambientParticles) ambientParticles.setType(themeName);
         saveSettings();
     }
 
@@ -655,6 +670,168 @@
         if (gameBgInterval) { clearInterval(gameBgInterval); gameBgInterval = null; }
     }
 
+    /* ==================== Ambient Particles ==================== */
+    let ambientParticles = null;
+
+    class AmbientParticles {
+        constructor(canvas) {
+            this.canvas = canvas;
+            this.ctx = canvas.getContext('2d');
+            this.particles = [];
+            this.running = false;
+            this.type = 'sakura'; // sakura | star | ink
+            this.resize();
+            window.addEventListener('resize', () => this.resize());
+        }
+
+        resize() {
+            const parent = this.canvas.parentElement;
+            if (parent) {
+                this.canvas.width = parent.clientWidth;
+                this.canvas.height = parent.clientHeight;
+            }
+        }
+
+        setType(theme) {
+            if (theme === 'dark-star') this.type = 'star';
+            else if (theme === 'ink-wash') this.type = 'ink';
+            else this.type = 'sakura';
+            this.initParticles();
+        }
+
+        initParticles() {
+            const isMobile = window.innerWidth <= 768;
+            const count = isMobile ? 15 : 35;
+            this.particles = [];
+            for (let i = 0; i < count; i++) {
+                this.particles.push(this.createParticle());
+            }
+        }
+
+        createParticle() {
+            const w = this.canvas.width;
+            const h = this.canvas.height;
+            const base = {
+                x: Math.random() * w,
+                y: Math.random() * h,
+                size: Math.random() * 3 + 2,
+                speedX: (Math.random() - 0.5) * 0.5,
+                speedY: Math.random() * 0.5 + 0.3,
+                opacity: Math.random() * 0.4 + 0.2,
+                rotation: Math.random() * Math.PI * 2,
+                rotationSpeed: (Math.random() - 0.5) * 0.02,
+            };
+
+            if (this.type === 'sakura') {
+                base.color = `rgba(255, ${180 + Math.random() * 40}, ${190 + Math.random() * 30}, ${base.opacity})`;
+                base.size = Math.random() * 4 + 3;
+                base.speedY = Math.random() * 0.8 + 0.4;
+                base.speedX = Math.random() * 0.6 - 0.3;
+            } else if (this.type === 'star') {
+                base.color = `rgba(${200 + Math.random() * 55}, ${220 + Math.random() * 35}, 255, ${base.opacity})`;
+                base.size = Math.random() * 2 + 1;
+                base.speedY = -Math.random() * 0.3 - 0.1;
+                base.speedX = (Math.random() - 0.5) * 0.3;
+                base.twinkle = Math.random() * Math.PI;
+            } else if (this.type === 'ink') {
+                base.color = `rgba(${60 + Math.random() * 40}, ${50 + Math.random() * 30}, ${40 + Math.random() * 20}, ${base.opacity * 0.6})`;
+                base.size = Math.random() * 5 + 2;
+                base.speedY = Math.random() * 0.4 + 0.2;
+                base.speedX = Math.random() * 0.2 - 0.1;
+            }
+            return base;
+        }
+
+        update() {
+            const w = this.canvas.width;
+            const h = this.canvas.height;
+            this.particles.forEach(p => {
+                p.x += p.speedX;
+                p.y += p.speedY;
+                p.rotation += p.rotationSpeed;
+                if (p.twinkle !== undefined) p.twinkle += 0.03;
+
+                if (p.y > h + 10) {
+                    p.y = -10;
+                    p.x = Math.random() * w;
+                }
+                if (p.y < -10 && p.speedY < 0) {
+                    p.y = h + 10;
+                    p.x = Math.random() * w;
+                }
+                if (p.x > w + 10) p.x = -10;
+                if (p.x < -10) p.x = w + 10;
+            });
+        }
+
+        draw() {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.particles.forEach(p => {
+                this.ctx.save();
+                this.ctx.translate(p.x, p.y);
+                this.ctx.rotate(p.rotation);
+
+                if (this.type === 'sakura') {
+                    // Draw petal shape
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.beginPath();
+                    this.ctx.ellipse(0, 0, p.size, p.size * 0.6, 0, 0, Math.PI * 2);
+                    this.ctx.fill();
+                } else if (this.type === 'star') {
+                    // Twinkle effect
+                    const alpha = p.opacity * (0.5 + 0.5 * Math.sin(p.twinkle));
+                    this.ctx.fillStyle = p.color.replace(/[\d.]+\)$/, `${alpha})`);
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    // Glow
+                    this.ctx.shadowBlur = 6;
+                    this.ctx.shadowColor = p.color;
+                    this.ctx.fill();
+                } else if (this.type === 'ink') {
+                    // Soft ink dot
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+
+                this.ctx.restore();
+            });
+        }
+
+        animate() {
+            if (!this.running) return;
+            this.update();
+            this.draw();
+            requestAnimationFrame(() => this.animate());
+        }
+
+        start() {
+            if (state.settings.ambientParticles === false) return;
+            this.running = true;
+            this.initParticles();
+            this.animate();
+        }
+
+        stop() {
+            this.running = false;
+        }
+    }
+
+    function startAmbientParticles() {
+        const canvas = $('#ambient-particles');
+        if (!canvas) return;
+        if (ambientParticles) ambientParticles.stop();
+        ambientParticles = new AmbientParticles(canvas);
+        ambientParticles.setType(state.settings.theme || 'light');
+        ambientParticles.start();
+    }
+
+    function stopAmbientParticles() {
+        if (ambientParticles) ambientParticles.stop();
+    }
+
     function bindEvents() {
         document.addEventListener('click', handleGlobalClick);
         document.addEventListener('keydown', handleKeyDown);
@@ -680,10 +857,17 @@
         $('#text-effect').addEventListener('change', e => { state.settings.textEffect = e.target.value; saveSettings(); });
         $('#auto-wait').addEventListener('input', e => { state.settings.autoWait = parseInt(e.target.value); $('#auto-wait-label').textContent = e.target.value + 's'; saveSettings(); });
 
-        ['zhipu-api-key', 'modelscope-api-key', 'nvidia-api-key'].forEach(id => {
+        ['zhipu-api-key', 'modelscope-api-key', 'nvidia-api-key', 'custom-api-key'].forEach(id => {
             const el = $(`#${id}`);
             if (el) el.addEventListener('change', () => { const p = id.replace('-api-key', ''); state.settings.apiKeys[p] = el.value.trim(); saveSettings(); updateApiIndicator(); });
         });
+
+        const customBaseUrlEl = $('#custom-base-url');
+        if (customBaseUrlEl) customBaseUrlEl.addEventListener('change', e => { state.settings.customBaseUrl = e.target.value.trim(); saveSettings(); });
+        const customTextModelEl = $('#custom-text-model');
+        if (customTextModelEl) customTextModelEl.addEventListener('change', e => { state.settings.customTextModel = e.target.value.trim(); state.settings.textModel = e.target.value.trim(); saveSettings(); });
+        const customImageModelEl = $('#custom-image-model');
+        if (customImageModelEl) customImageModelEl.addEventListener('change', e => { state.settings.customImageModel = e.target.value.trim(); state.settings.imageModel = e.target.value.trim(); saveSettings(); });
 
         $('#cors-proxy-toggle').addEventListener('change', e => { state.settings.corsProxy = e.target.checked; saveSettings(); });
         $('#cors-proxy-url').addEventListener('change', e => { state.settings.corsProxyUrl = e.target.value.trim(); saveSettings(); });
@@ -715,6 +899,12 @@
             if (chatBg) chatBg.style.display = e.target.checked ? '' : 'none';
         });
         $('#image-cooldown').addEventListener('change', e => { state.settings.imageCooldown = parseInt(e.target.value) || 60; saveSettings(); if (pendingSceneDescription) schedulePendingImage(); });
+        $('#ambient-particles').addEventListener('change', e => {
+            state.settings.ambientParticles = e.target.checked;
+            saveSettings();
+            if (e.target.checked) startAmbientParticles();
+            else stopAmbientParticles();
+        });
         $('#day-night-toggle').addEventListener('change', e => {
             const mode = e.target.checked ? 'night' : 'day';
             applyDayNightMode(mode);
@@ -753,6 +943,8 @@
         $('#image-model').addEventListener('change', e => { state.settings.imageModel = e.target.value; saveSettings(); });
         $('#system-prompt').addEventListener('change', e => { state.settings.systemPrompt = e.target.value || DEFAULT_SYSTEM_PROMPT; saveSettings(); });
 
+        $('#left-sidebar-toggle').addEventListener('click', toggleLeftSidebar);
+        $('#right-sidebar-toggle').addEventListener('click', toggleRightSidebar);
         $('#dialog-box').addEventListener('click', handleDialogClick);
         $('#custom-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') { e.preventDefault(); sendCustomInput(); }
@@ -865,6 +1057,9 @@
             case 'close-sprite-selector': closeSpriteSelector(); break;
             case 'chat-send': handleChatSend(); break;
             case 'chat-continue': case 'chat-explore': case 'chat-interact': handleChatQuickAction(act); break;
+            case 'open-settings': showModal('settings-modal'); break;
+            case 'open-gallery': openGallery(); break;
+            case 'open-history': openHistory(); break;
         }
     }
 
@@ -893,9 +1088,14 @@
 
     function collectSettingsForm() {
         state.settings.textApiProvider = $('#text-api-provider').value;
-        state.settings.textModel = $('#text-model').value;
+        const isCustomText = state.settings.textApiProvider === 'custom';
+        state.settings.textModel = isCustomText ? ($('#custom-text-model')?.value?.trim() || '') : $('#text-model').value;
+        if (isCustomText) state.settings.customTextModel = state.settings.textModel;
         state.settings.imageApiProvider = $('#image-api-provider').value;
-        state.settings.imageModel = $('#image-model').value;
+        const isCustomImage = state.settings.imageApiProvider === 'custom';
+        state.settings.imageModel = isCustomImage ? ($('#custom-image-model')?.value?.trim() || '') : $('#image-model').value;
+        if (isCustomImage) state.settings.customImageModel = state.settings.imageModel;
+        state.settings.customBaseUrl = $('#custom-base-url')?.value?.trim() || '';
         state.settings.systemPrompt = $('#system-prompt').value || DEFAULT_SYSTEM_PROMPT;
         state.settings.maxResponseLength = parseInt($('#max-response-length').value) || 500;
         state.settings.textSpeed = parseInt($('#text-speed').value) || 40;
@@ -911,6 +1111,7 @@
         state.settings.defaultBgInterval = parseInt($('#default-bg-interval').value) || 60;
         state.settings.chatShowBg = $('#chat-show-bg').checked;
         state.settings.imageCooldown = parseInt($('#image-cooldown').value) || 60;
+        state.settings.ambientParticles = $('#ambient-particles').checked;
         state.settings.dayNightMode = $('#day-night-toggle').checked ? 'night' : 'day';
         state.dayNightMode = state.settings.dayNightMode;
         const bgmVolumeEl = $('#bgm-volume');
@@ -944,6 +1145,9 @@
             corsProxyUrl: '',
             useProxyKeys: true,
             apiKeys: keys,
+            customBaseUrl: '',
+            customTextModel: '',
+            customImageModel: '',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
             textApiProvider: 'modelscope',
             textModel: 'Qwen/Qwen3.5-35B-A3B',
@@ -967,6 +1171,10 @@
         if (s.apiKeys.zhipu) $('#zhipu-api-key').value = s.apiKeys.zhipu;
         if (s.apiKeys.modelscope) $('#modelscope-api-key').value = s.apiKeys.modelscope;
         if (s.apiKeys.nvidia) $('#nvidia-api-key').value = s.apiKeys.nvidia;
+        if (s.apiKeys.custom) $('#custom-api-key').value = s.apiKeys.custom;
+        if (s.customBaseUrl) $('#custom-base-url').value = s.customBaseUrl;
+        if (s.customTextModel) $('#custom-text-model').value = s.customTextModel;
+        if (s.customImageModel) $('#custom-image-model').value = s.customImageModel;
         $('#text-api-provider').value = s.textApiProvider;
         updateModelOptions();
         $('#text-model').value = s.textModel;
@@ -1012,6 +1220,7 @@
             if (chatBg) chatBg.style.display = s.chatShowBg ? '' : 'none';
         }
         if (s.imageCooldown !== undefined) $('#image-cooldown').value = s.imageCooldown;
+        if (s.ambientParticles !== undefined) $('#ambient-particles').checked = s.ambientParticles;
         if (s.dayNightMode) {
             const dnToggle = $('#day-night-toggle');
             if (dnToggle) dnToggle.checked = s.dayNightMode === 'night';
@@ -1039,7 +1248,24 @@
         const provider = $('#text-api-provider').value;
         const select = $('#text-model');
         const config = API_CONFIGS[provider];
-        if (!config || !config.models.text) return;
+        if (!config) return;
+
+        // Custom provider: show text input instead of dropdown
+        const customTextGroup = $('#custom-text-model-group');
+        if (provider === 'custom') {
+            if (customTextGroup) customTextGroup.style.display = '';
+            select.style.display = 'none';
+            const customInput = $('#custom-text-model');
+            if (customInput) customInput.value = state.settings.customTextModel || '';
+            state.settings.textModel = state.settings.customTextModel || '';
+            updateModelTags();
+            return;
+        } else {
+            if (customTextGroup) customTextGroup.style.display = 'none';
+            select.style.display = '';
+        }
+
+        if (!config.models.text) return;
         const previousValue = state.settings.textModel;
         select.innerHTML = '';
         config.models.text.forEach(m => {
@@ -1082,7 +1308,24 @@
         const provider = $('#image-api-provider').value;
         const select = $('#image-model');
         const config = API_CONFIGS[provider];
-        if (!config || !config.models.image) return;
+        if (!config) return;
+
+        // Custom provider: show text input instead of dropdown
+        const customImageGroup = $('#custom-image-model-group');
+        if (provider === 'custom') {
+            if (customImageGroup) customImageGroup.style.display = '';
+            select.style.display = 'none';
+            const customInput = $('#custom-image-model');
+            if (customInput) customInput.value = state.settings.customImageModel || '';
+            state.settings.imageModel = state.settings.customImageModel || '';
+            saveSettings();
+            return;
+        } else {
+            if (customImageGroup) customImageGroup.style.display = 'none';
+            select.style.display = '';
+        }
+
+        if (!config.models.image) return;
         const previousValue = state.settings.imageModel;
         select.innerHTML = '';
         config.models.image.forEach(m => {
@@ -1133,6 +1376,83 @@
             connEl.textContent = isProxy ? '代理' : '直连';
         }
         if (turnsEl) turnsEl.textContent = Math.floor(state.game.aiContext.length / 2);
+        // Update sidebar info
+        updateSidebars();
+    }
+
+    function updateSidebars() {
+        const textConfig = API_CONFIGS[state.settings.textApiProvider];
+        const imageConfig = API_CONFIGS[state.settings.imageApiProvider];
+        const textModel = textConfig?.models.text.find(m => m.id === state.settings.textModel);
+        const imageModel = imageConfig?.models.image?.find(m => m.id === state.settings.imageModel);
+        const sbText = $('#sidebar-text-model');
+        const sbImage = $('#sidebar-image-model');
+        const sbConn = $('#sidebar-connection');
+        const sbTurns = $('#sidebar-turns');
+        const sbScene = $('#sidebar-scene');
+        const sbChapter = $('#sidebar-chapter');
+        const sbChar = $('#sidebar-char-name');
+        const sbEmo = $('#sidebar-char-emotion');
+        const sbAvatar = $('#sidebar-avatar');
+        if (sbText) sbText.textContent = textModel ? textModel.name : state.settings.textModel;
+        if (sbImage) sbImage.textContent = imageModel ? imageModel.name : (state.settings.imageModel || '未配置');
+        if (sbConn) {
+            const isProxy = state.settings.useProxyKeys || state.settings.corsProxy;
+            sbConn.textContent = isProxy ? '代理' : '直连';
+        }
+        if (sbTurns) sbTurns.textContent = Math.floor(state.game.aiContext.length / 2);
+        if (sbScene) sbScene.textContent = state.game.currentScene || '--';
+        if (sbChapter) sbChapter.textContent = state.game.currentChapter || '--';
+        if (sbChar) sbChar.textContent = state.game.characterName || '星酱';
+        if (sbEmo) sbEmo.textContent = state.game.characterEmotion || '--';
+        if (sbAvatar) {
+            const currentSprite = state.game.currentSprite || 'char1';
+            const emotion = state.game.characterEmotion || '高兴';
+            const normalizedEmo = normalizeEmotion(emotion);
+            const spriteUrl = SPRITE_CONFIG.sprites[currentSprite]?.[normalizedEmo] || SPRITE_CONFIG.sprites[currentSprite]?.['default'];
+            if (spriteUrl) sbAvatar.style.backgroundImage = `url('${spriteUrl}')`;
+        }
+    }
+
+    function toggleLeftSidebar() {
+        const sb = $('#left-sidebar');
+        if (sb) sb.classList.toggle('collapsed');
+    }
+
+    function toggleRightSidebar() {
+        const sb = $('#right-sidebar');
+        if (sb) sb.classList.toggle('collapsed');
+    }
+
+    // ==================== Parallax Effect ====================
+    let parallaxActive = false;
+    let mouseX = 0, mouseY = 0;
+    let targetX = 0, targetY = 0;
+
+    function initParallax() {
+        if (window.innerWidth <= 768 || 'ontouchstart' in window) return;
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+        parallaxActive = true;
+        animateParallax();
+    }
+
+    function animateParallax() {
+        if (!parallaxActive) return;
+        targetX += (mouseX - targetX) * 0.08;
+        targetY += (mouseY - targetY) * 0.08;
+        const screen = $('#game-screen');
+        if (screen) {
+            screen.style.setProperty('--parallax-x', `${targetX * -8}px`);
+            screen.style.setProperty('--parallax-y', `${targetY * -5}px`);
+        }
+        requestAnimationFrame(animateParallax);
+    }
+
+    function stopParallax() {
+        parallaxActive = false;
     }
 
     async function startGame(mode) {
@@ -1151,6 +1471,7 @@
         stopTitleParticles();
         switchScreen('game-screen');
         startDefaultBgRotation();
+        startAmbientParticles();
         if (mode === 'ai') {
             if (!state.settings.useProxyKeys && !state.settings.apiKeys[state.settings.textApiProvider]) {
                 showToast('请先配置 API Key！', 'error');
@@ -1179,6 +1500,7 @@
         stopTitleParticles();
         switchScreen('game-screen');
         startDefaultBgRotation();
+        startAmbientParticles();
         const lastDialog = state.game.dialogHistory[state.game.dialogHistory.length - 1];
         if (lastDialog) showDialog(lastDialog.name, lastDialog.text);
         if (state.game.currentSceneUrl) setSceneBackground(state.game.currentSceneUrl);
@@ -1366,12 +1688,19 @@
 
         const useProxy = state.settings.useProxyKeys;
         const apiKey = state.settings.apiKeys[provider];
-        const canDirectConnect = provider === 'modelscope' && apiKey;
+        const isCustom = provider === 'custom';
+        const canDirectConnect = (provider === 'modelscope' && apiKey) || isCustom;
+        if (isCustom && !state.settings.customBaseUrl) throw new Error('请先配置自定义 API 的 Base URL');
+        if (isCustom && !apiKey) throw new Error('请先配置自定义 API 的 API Key');
         if (!useProxy && !canDirectConnect && !apiKey) throw new Error(`请先配置 ${config.name} 的 API Key，或开启"使用默认密钥"`);
 
         let url;
         let headers = { 'Content-Type': 'application/json' };
-        if (canDirectConnect && !useProxy) {
+        if (isCustom) {
+            const baseUrl = state.settings.customBaseUrl.replace(/\/+$/, '');
+            url = `${baseUrl}/chat/completions`;
+            headers['Authorization'] = `Bearer ${apiKey}`;
+        } else if (canDirectConnect && !useProxy) {
             url = `${config.baseUrl}/chat/completions`;
             headers['Authorization'] = `Bearer ${apiKey}`;
         } else {
@@ -1516,7 +1845,10 @@
         const config = API_CONFIGS[provider];
         const useProxy = state.settings.useProxyKeys;
         const apiKey = state.settings.apiKeys[provider];
-        const canDirectConnect = provider === 'modelscope' && apiKey;
+        const isCustom = provider === 'custom';
+        const canDirectConnect = (provider === 'modelscope' && apiKey) || isCustom;
+        if (isCustom && !state.settings.customBaseUrl) throw new Error('请先配置自定义 API 的 Base URL');
+        if (isCustom && !apiKey) throw new Error('请先配置自定义 API 的 API Key');
         if (!useProxy && !canDirectConnect && !apiKey) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
 
         const proxyBase = state.settings.corsProxyUrl || window.location.origin;
@@ -1524,7 +1856,11 @@
 
         let url;
         let headers = { 'Content-Type': 'application/json' };
-        if (useProxyUrl) {
+        if (isCustom) {
+            const baseUrl = state.settings.customBaseUrl.replace(/\/+$/, '');
+            url = `${baseUrl}/images/generations`;
+            headers['Authorization'] = `Bearer ${apiKey}`;
+        } else if (useProxyUrl) {
             url = `${proxyBase}/api/${provider}/images/generations`;
         } else {
             url = `${config.baseUrl}/images/generations`;
@@ -1535,6 +1871,24 @@
         const cogviewSize = isMobile ? '720x1440' : '1344x768';
         const msImageSize = isMobile ? '576*1024' : '1024*576';
         const body = { model: state.settings.imageModel, prompt, size: cogviewSize };
+
+        if (isCustom) {
+            // Custom provider: standard OpenAI-compatible image generation
+            const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+            if (!response.ok) {
+                const errText = await response.text();
+                let errMsg = `图像生成失败 (${response.status})`;
+                try { const errJson = JSON.parse(errText); if (errJson.error?.message) errMsg = errJson.error.message; } catch {}
+                throw new Error(errMsg);
+            }
+            const data = await response.json();
+            if (data.data?.length > 0) {
+                const img = data.data[0];
+                if (img.url) return { type: 'url', value: img.url };
+                if (img.b64_json) return { type: 'base64', value: img.b64_json };
+            }
+            throw new Error('未获取到图像数据');
+        }
 
         if (provider === 'modelscope') {
             body.size = msImageSize;
@@ -2367,6 +2721,7 @@
         
         dialogSegmentState.isTyping = true;
         element.value = '';
+        element.classList.add('typing');
         let i = 0;
         
         const speed = state.settings.textSpeed || 50;
@@ -2381,6 +2736,7 @@
                 dialogSegmentState.typingTimer = setTimeout(typeNext, delay);
             } else {
                 dialogSegmentState.isTyping = false;
+                element.classList.remove('typing');
                 if (callback) callback();
             }
         }

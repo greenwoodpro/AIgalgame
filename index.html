@@ -26,20 +26,24 @@
                     <p class="title-tag">AI-Powered Visual Novel</p>
                 </div>
                 <nav class="title-menu">
-                    <button class="menu-btn primary" data-action="start-ai">
-                        AI 模式
+                    <button class="menu-btn primary" data-action="start-ai" data-icon="✨">
+                        <span class="menu-btn-icon">✨</span>
+                        <span class="menu-btn-text">AI 模式</span>
                         <small>AI实时生成剧情</small>
                     </button>
-                    <button class="menu-btn" data-action="start-normal">
-                        剧情大纲
+                    <button class="menu-btn" data-action="start-normal" data-icon="📖">
+                        <span class="menu-btn-icon">📖</span>
+                        <span class="menu-btn-text">剧情大纲</span>
                         <small>选择或创建故事大纲</small>
                     </button>
-                    <button class="menu-btn" data-action="load">
-                        继续旅程
+                    <button class="menu-btn" data-action="load" data-icon="💾">
+                        <span class="menu-btn-icon">💾</span>
+                        <span class="menu-btn-text">继续旅程</span>
                         <small>读取存档</small>
                     </button>
-                    <button class="menu-btn" data-action="settings">
-                        设置
+                    <button class="menu-btn" data-action="settings" data-icon="⚙️">
+                        <span class="menu-btn-icon">⚙️</span>
+                        <span class="menu-btn-text">设置</span>
                         <small>API / 主题 / 模型</small>
                     </button>
 
@@ -55,6 +59,70 @@
                 <span class="status-name" id="status-name"></span>
                 <span class="status-emotion" id="status-emotion"></span>
             </div>
+
+            <!-- Left Sidebar -->
+            <div id="left-sidebar" class="sidebar collapsed">
+                <button id="left-sidebar-toggle" class="sidebar-toggle" title="角色信息">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </button>
+                <div class="sidebar-content">
+                    <div class="sidebar-section sidebar-char">
+                        <div class="sidebar-avatar" id="sidebar-avatar"></div>
+                        <div class="sidebar-char-name" id="sidebar-char-name">星酱</div>
+                        <div class="sidebar-char-emotion" id="sidebar-char-emotion">--</div>
+                    </div>
+                    <div class="sidebar-divider"></div>
+                    <div class="sidebar-section">
+                        <div class="sidebar-label">当前章节</div>
+                        <div class="sidebar-value" id="sidebar-chapter">--</div>
+                    </div>
+                    <div class="sidebar-section">
+                        <div class="sidebar-label">对话轮数</div>
+                        <div class="sidebar-value" id="sidebar-turns">0</div>
+                    </div>
+                    <div class="sidebar-section">
+                        <div class="sidebar-label">场景</div>
+                        <div class="sidebar-value" id="sidebar-scene">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div id="right-sidebar" class="sidebar collapsed">
+                <button id="right-sidebar-toggle" class="sidebar-toggle" title="系统信息">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m4.22-10.22l4.24-4.24M6.34 6.34L2.1 2.1m17.9 9.9h6m-6 6h6m-4.24 4.24l4.24 4.24M6.34 17.66l-4.24 4.24M23 12h-6m-6 0H1m4.24-4.24L1.1 3.52m17.8 17.8l4.24 4.24"/></svg>
+                </button>
+                <div class="sidebar-content">
+                    <div class="sidebar-section">
+                        <div class="sidebar-label">文本模型</div>
+                        <div class="sidebar-value" id="sidebar-text-model">--</div>
+                    </div>
+                    <div class="sidebar-section">
+                        <div class="sidebar-label">图像模型</div>
+                        <div class="sidebar-value" id="sidebar-image-model">--</div>
+                    </div>
+                    <div class="sidebar-section">
+                        <div class="sidebar-label">连接方式</div>
+                        <div class="sidebar-value" id="sidebar-connection">--</div>
+                    </div>
+                    <div class="sidebar-divider"></div>
+                    <div class="sidebar-section sidebar-actions">
+                        <button class="sidebar-action-btn" data-action="open-settings">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+                            设置
+                        </button>
+                        <button class="sidebar-action-btn" data-action="open-gallery">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                            画廊
+                        </button>
+                        <button class="sidebar-action-btn" data-action="open-history">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            历史
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div id="character-sprite" class="hidden">
                 <div id="sprite-layer-current" class="sprite-layer"></div>
                 <div id="sprite-layer-next" class="sprite-layer"></div>
@@ -68,12 +136,14 @@
                 <div id="sprite-expr-list"></div>
             </div>
             <button id="sprite-toggle-btn" class="hidden" data-action="toggle-sprite-selector" title="切换立绘">🎭</button>
+            <canvas id="ambient-particles"></canvas>
             <div id="scene-layer">
                 <button id="scene-download-btn" data-action="download-scene">💾 下载场景图</button>
                 <div id="scene-bg"></div>
         <div id="scene-bg-next"></div>
         <div id="scene-overlay"></div>
             </div>
+            <div id="scene-vignette"></div>
             <div id="game-toolbar">
                 <button class="toolbar-btn" data-action="back-title" title="返回标题">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg>
@@ -290,6 +360,19 @@
                                 <small>免费开源模型: llama-4, mixtral, gpt-oss, qwen 等</small>
                             </div>
                         </div>
+                        <div class="api-provider">
+                            <h3>⚙️ 自定义 API (Custom)</h3>
+                            <div class="form-group">
+                                <label for="custom-base-url">Base URL</label>
+                                <input type="text" id="custom-base-url" placeholder="例如: https://api.openai.com/v1">
+                                <small>兼容 OpenAI API 格式的服务地址，如 OpenAI、DeepSeek、硅基流动等</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="custom-api-key">API Key</label>
+                                <input type="password" id="custom-api-key" placeholder="输入自定义 API Key">
+                                <small>自定义 API 的密钥，直连调用不经过代理</small>
+                            </div>
+                        </div>
                         <div class="form-group">
                             <label>
                                 <input type="checkbox" id="use-proxy-keys" checked>
@@ -313,7 +396,13 @@
                                 <option value="zhipu">智谱AI</option>
                                 <option value="modelscope">魔搭社区</option>
                                 <option value="nvidia">NVIDIA</option>
+                                <option value="custom">自定义 (Custom)</option>
                             </select>
+                        </div>
+                        <div class="form-group" id="custom-text-model-group" style="display:none">
+                            <label for="custom-text-model">自定义文本模型 ID</label>
+                            <input type="text" id="custom-text-model" placeholder="例如: gpt-4o, deepseek-chat">
+                            <small>输入模型 ID，需与 API 服务商支持的模型名一致</small>
                         </div>
                         <div class="form-group">
                             <label for="text-model">文本模型 <span id="model-tags" class="model-tags"></span></label>
@@ -324,7 +413,13 @@
                             <select id="image-api-provider">
                                 <option value="zhipu">智谱AI (CogView) 推荐</option>
                                 <option value="modelscope">魔搭社区 (Z-Image/FLUX) 备用-较慢</option>
+                                <option value="custom">自定义 (Custom)</option>
                             </select>
+                        </div>
+                        <div class="form-group" id="custom-image-model-group" style="display:none">
+                            <label for="custom-image-model">自定义图像模型 ID</label>
+                            <input type="text" id="custom-image-model" placeholder="例如: dall-e-3, flux-1">
+                            <small>输入图像模型 ID，需与 API 服务商支持的模型名一致</small>
                         </div>
                         <div class="form-group">
                             <label for="image-model">图像模型</label>
@@ -431,6 +526,13 @@
                                 聊天模式显示背景图
                             </label>
                             <small>在聊天模式下也显示当前场景背景图</small>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="ambient-particles" checked>
+                                环境粒子特效
+                            </label>
+                            <small>游戏页面显示飘落粒子效果（樱花/星光/墨点）</small>
                         </div>
                         <div class="form-group">
                             <label for="image-cooldown">生图冷却间隔</label>
