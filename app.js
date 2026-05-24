@@ -235,7 +235,7 @@
             corsProxyUrl: '',
             useProxyKeys: true,
             textApiProvider: 'modelscope',
-            textModel: 'deepseek-ai/DeepSeek-V4-Flash',
+            textModel: 'moonshotai/Kimi-K2.5',
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
@@ -1086,15 +1086,31 @@
             case 'open-settings': showModal('settings-modal'); break;
             case 'open-gallery': openGallery(); break;
             case 'open-history': openHistory(); break;
+            case 'nav-up': showPreviousDialog(); highlightNavBtn('nav-up'); break;
+            case 'nav-down': handleDialogClick(); highlightNavBtn('nav-down'); break;
+            case 'nav-enter':
+                if (state.uiMode === 'chat') { handleChatSend(); }
+                else { handleDialogClick(); }
+                highlightNavBtn('nav-enter');
+                break;
         }
     }
 
     function handleKeyDown(e) {
+        // 聊天模式下Enter发送
+        if (state.currentScreen === 'game' && state.uiMode === 'chat') {
+            const chatInput = $('#chat-input');
+            if (e.key === 'Enter' && document.activeElement === chatInput) {
+                e.preventDefault();
+                handleChatSend();
+                return;
+            }
+        }
         if (state.currentScreen !== 'game') return;
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable) return;
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleDialogClick(); }
-        if (e.key === 'ArrowDown') { e.preventDefault(); handleDialogClick(); }
-        if (e.key === 'ArrowUp') { e.preventDefault(); showPreviousDialog(); }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleDialogClick(); highlightNavBtn('nav-enter'); }
+        if (e.key === 'ArrowDown') { e.preventDefault(); handleDialogClick(); highlightNavBtn('nav-down'); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); showPreviousDialog(); highlightNavBtn('nav-up'); }
         if (e.key === 'Escape') {
             const modals = ['settings-modal', 'gallery-modal', 'outline-modal', 'outline-preview-modal', 'save-modal', 'history-modal', 'api-status-modal', 'continue-dialog-modal'];
             for (const id of modals) {
@@ -1102,6 +1118,13 @@
                 if (el && !el.classList.contains('hidden')) { hideModal(id); break; }
             }
         }
+    }
+
+    function highlightNavBtn(btnId) {
+        const btn = $(`#${btnId}`);
+        if (!btn) return;
+        btn.classList.add('highlight');
+        setTimeout(() => btn.classList.remove('highlight'), 300);
     }
 
     function handleDialogClick() {
@@ -1176,7 +1199,7 @@
             customImageModel: '',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
             textApiProvider: 'modelscope',
-            textModel: 'deepseek-ai/DeepSeek-V4-Flash',
+            textModel: 'moonshotai/Kimi-K2.5',
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
             dayNightMode: 'day',
@@ -1250,6 +1273,13 @@
         if (s.dayNightMode) {
             const dnToggle = $('#day-night-toggle');
             if (dnToggle) dnToggle.checked = s.dayNightMode === 'night';
+        }
+        // 恢复主题选择
+        if (s.theme) {
+            applyTheme(s.theme);
+            $$('.theme-card').forEach(c => c.classList.remove('active'));
+            const activeCard = $(`.theme-card[data-theme="${s.theme}"]`);
+            if (activeCard) activeCard.classList.add('active');
         }
         if (s.bgmVolume !== undefined) {
             const bgmVolEl = $('#bgm-volume');
@@ -2084,7 +2114,7 @@
         {
             id: 'preset_1',
             title: '同桌的你',
-            genre: '校园恋爱',
+            genre: '同桌的你',
             description: '你和星酱是高中同桌，从互不相让到暗生情愫，经历考试、社团、文化祭，最终在毕业前确认心意。',
             chapters: [
                 { title: '新学期', summary: '开学分座，你和星酱被分到同桌。她温柔地帮你捡起掉落的课本，你们的故事从这里开始。', mood: 'daily' },
@@ -2100,7 +2130,7 @@
         {
             id: 'preset_2',
             title: '长安花事',
-            genre: '古风言情',
+            genre: '烟雨江南',
             description: '你是落魄书生，在长安城偶遇花坊女主人星酱。她帮你渡过难关，你陪她守护即将凋零的花坊，在盛世长安中谱写一段花与墨的恋曲。',
             chapters: [
                 { title: '初遇', summary: '进京赶考途中盘缠被盗，饥寒交迫时被花坊的星酱收留。她端来热粥，笑着说"先吃饱再说"。', mood: 'tender' },
@@ -2116,7 +2146,7 @@
         {
             id: 'preset_3',
             title: '骑士与蔷薇',
-            genre: '中世纪奇幻',
+            genre: '暗夜蔷薇',
             description: '你是边境骑士团的见习骑士，在战场上救下了被敌军追杀的贵族少女星酱。她不是普通的贵族——身上藏着能终结战争的秘密。',
             chapters: [
                 { title: '战场', summary: '边境战役中，你发现一个穿着贵族长裙的少女被敌兵追赶。你冲出阵型救下她，她紧紧抓着你的衣甲不放。', mood: 'adventure' },
@@ -2132,7 +2162,7 @@
         {
             id: 'preset_4',
             title: '霓虹心跳',
-            genre: '赛博未来',
+            genre: '霓虹心跳',
             description: '2087年的新东京，你是地下黑客，在一次数据入侵中意外连接到一个名为"星酱"的AI意识体。她不是普通的AI——她拥有人类的情感和记忆碎片。',
             chapters: [
                 { title: '入侵', summary: '潜入巨型企业"天网"的数据库时，一个自称"星酱"的AI主动连接了你的终端。她的声音带着人类才有的犹豫和温柔。', mood: 'mystery' },
@@ -2148,7 +2178,7 @@
         {
             id: 'preset_5',
             title: '办公室恋情',
-            genre: '都市职场',
+            genre: '棋逢对手',
             description: '你是刚入职的新人，部门前辈星酱看似温柔实则工作能力超群。从加班夜宵到出差同行，你们在格子间里悄悄靠近彼此。',
             chapters: [
                 { title: '入职', summary: '第一天上班就迟到，慌忙冲进电梯时撞到了星酱。她帮你捡起散落的文件，笑着说"新人要小心哦"。', mood: 'daily' },
@@ -2368,7 +2398,7 @@
     function newOutline() {
         editingOutlineId = null;
         $('#outline-title').value = '';
-        $('#outline-genre').value = '奇幻冒险';
+        $('#outline-genre').value = '同桌的你';
         $('#outline-desc').value = '';
         $('#outline-characters').value = '';
         $('#outline-ai-prompt').value = '';
@@ -2975,9 +3005,20 @@
         switchSpriteExpression(emotion);
         const statusName = $('#status-name');
         const statusEmotion = $('#status-emotion');
+        const statusEmotionLabel = $('#status-emotion-label');
         if (statusName && statusEmotion) {
             statusName.textContent = state.game.characterName || '';
             statusEmotion.textContent = emotion || '';
+        }
+        if (statusEmotionLabel) {
+            const emotionLabels = {
+                happy: '开心', sad: '难过', angry: '生气', shy: '害羞',
+                excited: '兴奋', tsundere: '傲娇', serious: '严肃',
+                embarrassed: '尴尬', naughty: '调皮', worried: '担心',
+                neutral: '平静', surprised: '惊讶', scared: '害怕',
+                lonely: '孤独', proud: '骄傲', gentle: '温柔',
+            };
+            statusEmotionLabel.textContent = emotion ? (emotionLabels[emotion] || emotion) : '';
         }
     }
 
