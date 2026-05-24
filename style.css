@@ -893,27 +893,26 @@ html, body {
 #dialog-text-area {
     padding: 0;
     height: 120px;
+    width: 100%;
+    resize: none;
+    border: none;
+    outline: none;
+    background: transparent;
     overflow-y: auto;
     font-size: clamp(16px, 2.5vw, 20px);
     font-weight: bold;
     line-height: 1.6;
     color: var(--dialog-text-color);
     letter-spacing: 0.02em;
+    font-family: var(--font-main);
     -webkit-overflow-scrolling: touch;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-    outline: none;
 }
 
 #dialog-text-area[data-mode="input"] {
     cursor: text;
     caret-color: var(--accent);
-}
-
-#dialog-text-area[data-mode="input"]:empty::before {
-    content: attr(data-placeholder);
-    color: var(--text-muted);
-    font-weight: normal;
-    pointer-events: none;
+    color: var(--dialog-text-color);
 }
 
 #dialog-text-area[data-mode="display"] {
@@ -926,22 +925,12 @@ html, body {
     margin: 6px 0;
 }
 
-/* dialog-input-area and dialog-input removed - input is now inline in dialog-text-area */
-
-.cursor-blink {
-    animation: cursorBlink 1s step-end infinite;
-    color: var(--accent-color);
-    font-weight: 300;
-}
-
-@keyframes cursorBlink {
-    50% { opacity: 0; }
-}
+/* dialog-input-area removed - textarea is dual-purpose (display + input) */
 
 /* ==================== Character Sprite ==================== */
 #character-sprite {
     position: absolute;
-    bottom: 80px;
+    bottom: 100px;
     left: 50%;
     transform: translateX(-50%) scale(var(--sprite-scale));
     transform-origin: center bottom;

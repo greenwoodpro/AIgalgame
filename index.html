@@ -135,10 +135,7 @@
                         <span id="dialog-meta"></span>
                     </div>
                     <div id="dialog-divider"></div>
-                    <div id="dialog-text-area">
-                        <span id="dialog-text"></span>
-                        <span id="dialog-cursor" class="cursor-blink">▎</span>
-                    </div>
+                    <textarea id="dialog-text-area" readonly data-mode="display" placeholder="按 Enter 继续..."></textarea>
                 </div>
             </div>
             <div id="ai-generating" class="hidden">
@@ -430,22 +427,10 @@
                         </div>
                         <div class="form-group">
                             <label>
-                                <input type="checkbox" id="auto-switch-bg">
-                                AI自动生成新背景图
-                            </label>
-                            <small>AI模式自动生成新背景图，每隔一段时间或剧情变化时切换</small>
-                        </div>
-                        <div class="form-group">
-                            <label>
                                 <input type="checkbox" id="chat-show-bg">
                                 聊天模式显示背景图
                             </label>
                             <small>在聊天模式下也显示当前场景背景图</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="bg-switch-interval">背景切换间隔（秒）</label>
-                            <input type="number" id="bg-switch-interval" min="30" max="600" value="120" step="10">
-                            <small>自动切换背景的最小间隔时间</small>
                         </div>
                         <div class="form-group">
                             <label for="image-cooldown">生图冷却间隔</label>

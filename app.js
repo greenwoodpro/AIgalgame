@@ -708,14 +708,12 @@
         $('#enable-thinking').addEventListener('change', e => { state.settings.enableThinking = e.target.checked; saveSettings(); });
         $('#auto-default-bg').addEventListener('change', e => { state.settings.autoDefaultBg = e.target.checked; saveSettings(); if (e.target.checked) startDefaultBgRotation(); else stopDefaultBgRotation(); });
         $('#default-bg-interval').addEventListener('change', e => { state.settings.defaultBgInterval = Math.max(10, parseInt(e.target.value) || 60); saveSettings(); if (state.settings.autoDefaultBg) { stopDefaultBgRotation(); startDefaultBgRotation(); } });
-        $('#auto-switch-bg').addEventListener('change', e => { state.settings.autoSwitchBg = e.target.checked; saveSettings(); if (e.target.checked) startBgAutoSwitch(); else stopBgAutoSwitch(); });
         $('#chat-show-bg').addEventListener('change', e => {
             state.settings.chatShowBg = e.target.checked;
             saveSettings();
             const chatBg = $('#chat-screen-bg');
             if (chatBg) chatBg.style.display = e.target.checked ? '' : 'none';
         });
-        $('#bg-switch-interval').addEventListener('change', e => { state.settings.bgSwitchInterval = Math.max(30, parseInt(e.target.value) || 120); saveSettings(); if (state.settings.autoSwitchBg) { stopBgAutoSwitch(); startBgAutoSwitch(); } });
         $('#image-cooldown').addEventListener('change', e => { state.settings.imageCooldown = parseInt(e.target.value) || 60; saveSettings(); if (pendingSceneDescription) schedulePendingImage(); });
         $('#day-night-toggle').addEventListener('change', e => {
             const mode = e.target.checked ? 'night' : 'day';
@@ -769,7 +767,7 @@
                     e.preventDefault();
                     if (dialogSegmentState.isWaitingForContinue || dialogSegmentState.isTyping) {
                         continueDialog();
-                    } else if (isInputMode && dialogTextArea.innerText.trim()) {
+                    } else if (isInputMode && dialogTextArea.value.trim()) {
                         sendDialogInput();
                     }
                 } else if (e.key === 'ArrowUp' && !isInputMode) {
@@ -911,9 +909,7 @@
         state.settings.enableThinking = $('#enable-thinking').checked;
         state.settings.autoDefaultBg = $('#auto-default-bg').checked;
         state.settings.defaultBgInterval = parseInt($('#default-bg-interval').value) || 60;
-        state.settings.autoSwitchBg = $('#auto-switch-bg').checked;
         state.settings.chatShowBg = $('#chat-show-bg').checked;
-        state.settings.bgSwitchInterval = parseInt($('#bg-switch-interval').value) || 120;
         state.settings.imageCooldown = parseInt($('#image-cooldown').value) || 60;
         state.settings.dayNightMode = $('#day-night-toggle').checked ? 'night' : 'day';
         state.dayNightMode = state.settings.dayNightMode;
@@ -1010,13 +1006,11 @@
         if (s.enableThinking !== undefined) $('#enable-thinking').checked = s.enableThinking;
         if (s.autoDefaultBg !== undefined) $('#auto-default-bg').checked = s.autoDefaultBg;
         if (s.defaultBgInterval !== undefined) $('#default-bg-interval').value = s.defaultBgInterval;
-        if (s.autoSwitchBg !== undefined) $('#auto-switch-bg').checked = s.autoSwitchBg;
         if (s.chatShowBg !== undefined) {
             $('#chat-show-bg').checked = s.chatShowBg;
             const chatBg = $('#chat-screen-bg');
             if (chatBg) chatBg.style.display = s.chatShowBg ? '' : 'none';
         }
-        if (s.bgSwitchInterval !== undefined) $('#bg-switch-interval').value = s.bgSwitchInterval;
         if (s.imageCooldown !== undefined) $('#image-cooldown').value = s.imageCooldown;
         if (s.dayNightMode) {
             const dnToggle = $('#day-night-toggle');
@@ -2318,16 +2312,13 @@
         const dialogName = $('#dialog-name');
         if (dialogName) dialogName.textContent = name;
         
-        const dialogTextAreaEl = $('#dialog-text-area');
-        if (dialogTextAreaEl) {
-            dialogTextAreaEl.contentEditable = 'false';
-            dialogTextAreaEl.dataset.mode = 'display';
+        const dialogTextArea = $('#dialog-text-area');
+        if (dialogTextArea) {
+            dialogTextArea.readOnly = true;
+            dialogTextArea.dataset.mode = 'display';
+            dialogTextArea.value = '';
+            dialogTextArea.placeholder = '';
         }
-        // Restore dialog display elements
-        const dialogText = $('#dialog-text');
-        const dialogCursor = $('#dialog-cursor');
-        if (dialogText) dialogText.style.display = '';
-        if (dialogCursor) dialogCursor.style.display = '';
         
         showCurrentSegment();
     }
@@ -2341,11 +2332,6 @@
         
         const text = segments[currentIndex];
         const dialogTextArea = $('#dialog-text-area');
-        const dialogText = $('#dialog-text');
-        const dialogCursor = $('#dialog-cursor');
-        
-        if (dialogText) dialogText.textContent = '';
-        if (dialogCursor) dialogCursor.style.display = 'inline';
 
         const dialogName = $('#dialog-name');
         if (dialogName) dialogName.textContent = name;
@@ -2356,7 +2342,7 @@
         const emotionIndicator = $('#emotion-indicator');
         if (emotionIndicator) emotionIndicator.textContent = emotion || '';
         
-        typeText(text, dialogText, dialogCursor, () => {
+        typeText(text, dialogTextArea, () => {
             dialogSegmentState.isTyping = false;
             dialogSegmentState.isWaitingForContinue = true;
 
@@ -2370,32 +2356,30 @@
                 dialogSegmentState.dialogHistory = dialogSegmentState.dialogHistory.slice(-200);
             }
 
-            const dialogTextAreaEl = $('#dialog-text-area');
-            if (dialogTextAreaEl) {
-                dialogTextAreaEl.setAttribute('data-placeholder', currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...');
+            if (dialogTextArea) {
+                dialogTextArea.placeholder = currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...';
             }
         });
     }
 
-    function typeText(text, element, cursor, callback) {
+    function typeText(text, element, callback) {
         if (!element) { if (callback) callback(); return; }
         
         dialogSegmentState.isTyping = true;
+        element.value = '';
         let i = 0;
-        element.textContent = '';
         
         const speed = state.settings.textSpeed || 50;
         
         function typeNext() {
             if (i < text.length) {
-                element.textContent += text.charAt(i);
+                element.value += text.charAt(i);
                 i++;
                 const baseDelay = speed * 0.8;
                 const randomVariation = speed * 0.4;
                 const delay = baseDelay + Math.random() * randomVariation;
                 dialogSegmentState.typingTimer = setTimeout(typeNext, delay);
             } else {
-                if (cursor) cursor.style.display = 'none';
                 dialogSegmentState.isTyping = false;
                 if (callback) callback();
             }
@@ -2410,10 +2394,8 @@
         if (dialogSegmentState.isTyping) {
             clearTimeout(dialogSegmentState.typingTimer);
             const { segments, currentIndex } = dialogSegmentState;
-            const dialogText = $('#dialog-text');
-            const dialogCursor = $('#dialog-cursor');
-            if (dialogText) dialogText.textContent = segments[currentIndex];
-            if (dialogCursor) dialogCursor.style.display = 'none';
+            const dialogTextArea = $('#dialog-text-area');
+            if (dialogTextArea) dialogTextArea.value = segments[currentIndex];
             dialogSegmentState.isTyping = false;
 
             dialogSegmentState.dialogHistory.push({
@@ -2424,9 +2406,8 @@
             });
             
             dialogSegmentState.isWaitingForContinue = true;
-            const dialogTextAreaEl = $('#dialog-text-area');
-            if (dialogTextAreaEl) {
-                dialogTextAreaEl.setAttribute('data-placeholder', currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...');
+            if (dialogTextArea) {
+                dialogTextArea.placeholder = currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...';
             }
             return;
         }
@@ -2446,23 +2427,16 @@
     }
 
     function enableDialogInput() {
-        const dialogText = $('#dialog-text');
-        const dialogCursor = $('#dialog-cursor');
         const dialogTextArea = $('#dialog-text-area');
         const dialogName = $('#dialog-name');
         const dialogMeta = $('#dialog-meta');
-        // Hide dialog display elements
-        if (dialogText) { dialogText.style.display = 'none'; dialogText.textContent = ''; }
-        if (dialogCursor) dialogCursor.style.display = 'none';
         if (dialogName) dialogName.textContent = '你';
         if (dialogMeta) dialogMeta.textContent = '';
-        // Make dialog-text-area editable for input
         if (dialogTextArea) {
-            dialogTextArea.contentEditable = 'true';
+            dialogTextArea.readOnly = false;
             dialogTextArea.dataset.mode = 'input';
-            // Don't clear dialogTextArea itself — it would destroy child spans
-            // dialogText.textContent was already cleared above
-            dialogTextArea.setAttribute('data-placeholder', '输入消息，按 Enter 发送...');
+            dialogTextArea.value = '';
+            dialogTextArea.placeholder = '输入消息，按 Enter 发送...';
             dialogTextArea.focus();
         }
         dialogSegmentState.isWaitingForContinue = false;
@@ -2478,9 +2452,9 @@
         const entry = dialogSegmentState.dialogHistory[idx];
 
         const dialogName = $('#dialog-name');
-        const dialogText = $('#dialog-text');
+        const dialogTextArea = $('#dialog-text-area');
         if (dialogName) dialogName.textContent = entry.name;
-        if (dialogText) dialogText.textContent = entry.text;
+        if (dialogTextArea) dialogTextArea.value = entry.text;
 
         if (entry.emotion) {
             const emotionEl = $('#emotion-indicator');
@@ -2490,8 +2464,7 @@
             }
         }
 
-        const dialogTextArea = $('#dialog-text-area');
-        if (dialogTextArea) dialogTextArea.setAttribute('data-placeholder', '↑↓查看历史 / 按 Enter 返回当前');
+        if (dialogTextArea) dialogTextArea.placeholder = '↑↓查看历史 / 按 Enter 返回当前';
     }
 
     function showNextDialog() {
@@ -2502,9 +2475,9 @@
         if (dialogSegmentState.historyOffset === 0) {
             const { segments, currentIndex, name, emotion } = dialogSegmentState;
             const dialogName = $('#dialog-name');
-            const dialogText = $('#dialog-text');
+            const dialogTextArea = $('#dialog-text-area');
             if (dialogName) dialogName.textContent = name;
-            if (dialogText) dialogText.textContent = segments[currentIndex];
+            if (dialogTextArea) dialogTextArea.value = segments[currentIndex];
 
             if (emotion) {
                 const emotionEl = $('#emotion-indicator');
@@ -2514,11 +2487,8 @@
                 }
             }
 
-            const dialogTextArea = $('#dialog-text-area');
-            if (dialogTextArea) {
-                if (dialogSegmentState.isWaitingForContinue) {
-                    dialogTextArea.setAttribute('data-placeholder', currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...');
-                }
+            if (dialogTextArea && dialogSegmentState.isWaitingForContinue) {
+                dialogTextArea.placeholder = currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...';
             }
             return;
         }
@@ -2527,9 +2497,9 @@
         const entry = dialogSegmentState.dialogHistory[idx];
 
         const dialogName = $('#dialog-name');
-        const dialogText = $('#dialog-text');
+        const dialogTextArea = $('#dialog-text-area');
         if (dialogName) dialogName.textContent = entry.name;
-        if (dialogText) dialogText.textContent = entry.text;
+        if (dialogTextArea) dialogTextArea.value = entry.text;
 
         if (entry.emotion) {
             const emotionEl = $('#emotion-indicator');
@@ -2544,7 +2514,7 @@
         const dialogTextArea = $('#dialog-text-area');
         if (!dialogTextArea || dialogTextArea.dataset.mode !== 'input') return;
         
-        const text = dialogTextArea.innerText.trim();
+        const text = dialogTextArea.value.trim();
         if (!text) return;
 
         dialogSegmentState.dialogHistory.push({
@@ -2554,13 +2524,10 @@
             type: 'user'
         });
         
-        dialogTextArea.contentEditable = 'false';
+        dialogTextArea.readOnly = true;
         dialogTextArea.dataset.mode = 'display';
-        // Restore dialog display elements
-        const dialogText = $('#dialog-text');
-        const dialogCursor = $('#dialog-cursor');
-        if (dialogText) dialogText.style.display = '';
-        if (dialogCursor) dialogCursor.style.display = '';
+        dialogTextArea.value = '';
+        dialogTextArea.placeholder = '等待回应中...';
         
         handleAiChoice(text);
     }
@@ -2664,7 +2631,7 @@
             setTimeout(() => {
                 enableDialogInput();
                 const dialogTextAreaEl = $('#dialog-text-area');
-                if (dialogTextAreaEl) dialogTextAreaEl.setAttribute('data-placeholder', '输入消息重试...');
+                if (dialogTextAreaEl) dialogTextAreaEl.placeholder = '输入消息重试...';
             }, 1000);
         } finally {
             apiCallInProgress = false;
@@ -2852,8 +2819,6 @@
     function showDialog(name, text) {
         const dialogBox = $('#dialog-box');
         const nameEl = $('#dialog-name');
-        const textEl = $('#dialog-text');
-        const cursor = $('#dialog-cursor');
         const dialogTextArea = $('#dialog-text-area');
 
         hideCustomInput();
@@ -2864,55 +2829,33 @@
         
         // Ensure display mode
         if (dialogTextArea) {
-            dialogTextArea.contentEditable = 'false';
+            dialogTextArea.readOnly = true;
             dialogTextArea.dataset.mode = 'display';
         }
-        if (textEl) textEl.style.display = '';
-        if (cursor) cursor.style.display = '';
 
         if (typewriterTimer) { clearInterval(typewriterTimer); typewriterTimer = null; }
 
         const effect = state.settings.textEffect || 'typewriter-fade';
 
         if (effect === 'instant') {
-            textEl.textContent = text;
-            textEl.style.opacity = '0';
-            textEl.offsetHeight;
-            textEl.style.transition = 'opacity 0.5s ease';
-            textEl.style.opacity = '1';
+            dialogTextArea.value = text;
             state.game.isTyping = false;
-            cursor.style.display = 'none';
             triggerAutoPlay();
             return;
         }
 
-        cursor.style.display = 'inline';
         state.game.isTyping = true;
         let index = 0;
-        textEl.textContent = '';
-        textEl.style.opacity = '1';
-        textEl.style.transition = '';
-
-        const useFade = effect === 'typewriter-fade';
+        dialogTextArea.value = '';
 
         typewriterTimer = setInterval(() => {
             if (index < text.length) {
-                const span = document.createElement('span');
-                span.textContent = text[index];
-                if (useFade) {
-                    span.style.opacity = '0';
-                    span.style.transition = 'opacity 0.3s ease';
-                    textEl.appendChild(span);
-                    requestAnimationFrame(() => { span.style.opacity = '1'; });
-                } else {
-                    textEl.appendChild(span);
-                }
+                dialogTextArea.value += text[index];
                 index++;
-                textEl.scrollTop = textEl.scrollHeight;
+                dialogTextArea.scrollTop = dialogTextArea.scrollHeight;
             } else {
                 clearInterval(typewriterTimer); typewriterTimer = null;
                 state.game.isTyping = false;
-                cursor.style.display = 'none';
                 triggerAutoPlay();
             }
         }, state.settings.textSpeed);
