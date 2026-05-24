@@ -234,7 +234,7 @@
             corsProxyUrl: '',
             useProxyKeys: true,
             textApiProvider: 'modelscope',
-            textModel: 'moonshotai/Kimi-K2.5',
+            textModel: 'deepseek-ai/DeepSeek-V4-Flash',
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
@@ -1172,7 +1172,7 @@
             customImageModel: '',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
             textApiProvider: 'modelscope',
-            textModel: 'moonshotai/Kimi-K2.5',
+            textModel: 'deepseek-ai/DeepSeek-V4-Flash',
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
             dayNightMode: 'day',
@@ -1272,18 +1272,13 @@
         const config = API_CONFIGS[provider];
         if (!config) return;
 
-        // Custom provider: show text input instead of dropdown
-        const customTextGroup = $('#custom-text-model-group');
+        // Custom provider: hide dropdown, use custom text model from API tab
         if (provider === 'custom') {
-            if (customTextGroup) customTextGroup.style.display = '';
             select.style.display = 'none';
-            const customInput = $('#custom-text-model');
-            if (customInput) customInput.value = state.settings.customTextModel || '';
             state.settings.textModel = state.settings.customTextModel || '';
             updateModelTags();
             return;
         } else {
-            if (customTextGroup) customTextGroup.style.display = 'none';
             select.style.display = '';
         }
 
@@ -1293,9 +1288,7 @@
         config.models.text.forEach(m => {
             const opt = document.createElement('option');
             opt.value = m.id;
-            let label = m.name;
-            if (m.free) label += ' (免费)';
-            opt.textContent = label;
+            opt.textContent = m.name;
             select.appendChild(opt);
         });
         if (previousValue && config.models.text.some(m => m.id === previousValue)) {
@@ -1330,18 +1323,13 @@
         const config = API_CONFIGS[provider];
         if (!config) return;
 
-        // Custom provider: show text input instead of dropdown
-        const customImageGroup = $('#custom-image-model-group');
+        // Custom provider: hide dropdown, use custom image model from API tab
         if (provider === 'custom') {
-            if (customImageGroup) customImageGroup.style.display = '';
             select.style.display = 'none';
-            const customInput = $('#custom-image-model');
-            if (customInput) customInput.value = state.settings.customImageModel || '';
             state.settings.imageModel = state.settings.customImageModel || '';
             saveSettings();
             return;
         } else {
-            if (customImageGroup) customImageGroup.style.display = 'none';
             select.style.display = '';
         }
 
@@ -1351,9 +1339,7 @@
         config.models.image.forEach(m => {
             const opt = document.createElement('option');
             opt.value = m.id;
-            let label = m.name;
-            if (m.free) label += ' (免费)';
-            opt.textContent = label;
+            opt.textContent = m.name;
             select.appendChild(opt);
         });
         if (previousValue && config.models.image.some(m => m.id === previousValue)) {
@@ -1636,35 +1622,19 @@
 
     function normalNext(branch) {
         const B = {
-            window: { name: '旁白', dialog: '你走到窗边，发现窗外是一片璀璨的星空——但那些星座，你一个都不认识。远处有一颗巨大的紫色星球悬挂在天际，散发着柔和的光芒。空气中弥漫着淡淡的花香，像是某种你从未闻过的花。', choices: [{ text: '试着打开窗户', action: () => { storyVars.curiosity++; normalNext('open_window'); } }, { text: '转身探索房间', action: () => { storyVars.curiosity++; normalNext('room'); } }] },
-            room: { name: '旁白', dialog: '房间不大，但布置得很温馨。桌上有一本翻开的日记，墙上挂着一幅画——画中人和你长得一模一样，但穿着从未见过的服饰。角落里还有一个小小的音乐盒，上面刻着星星的图案。', choices: [{ text: '翻阅日记', action: () => { storyVars.curiosity++; normalNext('diary'); } }, { text: '仔细看那幅画', action: () => { storyVars.mystery++; normalNext('painting'); } }, { text: '打开音乐盒', action: () => { storyVars.kindness++; normalNext('music_box'); } }] },
-            shout: { name: '???', dialog: '「嘘——别那么大声嘛！」\n\n一个声音突然在你身后响起。你猛地转身，看到一个半透明的少女正飘在空中，歪着头看着你。银色的短发带着蓝色挑染，琥珀色的眼瞳里闪着好奇的光。\n\n「终于醒了？你睡了整整三天呢，我都快无聊死了。」', choices: [{ text: '你是谁？', action: () => { storyVars.trust++; normalNext('who_are_you'); } }, { text: '这是哪里？', action: () => { storyVars.curiosity++; normalNext('where_am_i'); } }, { text: '你……是鬼吗？', action: () => { storyVars.courage++; normalNext('ghost_reaction'); } }] },
-            open_window: { name: '旁白', dialog: '窗户轻轻打开，一阵带着花香的微风吹了进来。你探出头，发现自己似乎在一座浮空塔楼的高层。下方是云海，远处有更多这样的塔楼漂浮着。\n\n突然，一只发光的蝴蝶从窗外飞了进来，停在你的指尖上。', choices: [{ text: '轻轻触碰蝴蝶', action: () => { storyVars.kindness++; normalNext('butterfly'); } }, { text: '继续探索', action: () => normalNext('shout') }] },
-            butterfly: { name: '旁白', dialog: '蝴蝶在你指尖化为一颗微小的光珠，融入了你的皮肤。一瞬间，你感到一股温暖的力量在体内流淌。\n\n「看来……你被认可了呢。」身后传来一个声音。', choices: [{ text: '转身', action: () => normalNext('shout') }] },
-            diary: { name: '旁白', dialog: '日记上写着：\n\n「第47天——今天又忘了自己的名字。不过没关系，星酱说这很正常。她说我是被「召唤」到这里的，但我不记得召唤了什么……」\n\n「第48天——星酱带我去了星之湖。水面上倒映的不是我的脸，而是另一个世界的景象。星酱说那是「记忆的碎片」……」\n\n字迹和你的一模一样。', choices: [{ text: '星酱是谁？', action: () => normalNext('shout') }, { text: '继续翻日记', action: () => { storyVars.mystery++; normalNext('diary_continue'); } }] },
-            diary_continue: { name: '旁白', dialog: '你继续往后翻，但后面的页面全是空白的。只有最后一页写着一行字：\n\n「如果你正在读这段话——请找到星酱。她一直在等你。」\n\n墨迹还是新的。', choices: [{ text: '去找星酱', action: () => normalNext('shout') }] },
-            painting: { name: '旁白', dialog: '画中人的眼睛似乎在跟着你转动。你凑近看时，画中人突然眨了眨眼，对你露出一个微笑。\n\n「找到你了。」——你听到画里传来低语。\n\n画框的边缘开始泛起微光，仿佛有什么东西想要从画中走出来。', choices: [{ text: '伸手触碰画框', action: () => { storyVars.courage++; normalNext('touch_painting'); } }, { text: '后退', action: () => { storyVars.trust++; normalNext('shout'); } }] },
-            touch_painting: { name: '旁白', dialog: '你的手指触碰到画框的瞬间，一道光芒闪过。你看到了一段画面——一个少女站在星空下哭泣，她的泪水化作了漫天的星辰。\n\n画面消散后，你感到胸口一阵刺痛，仿佛失去了什么重要的东西。', choices: [{ text: '这到底是什么……', action: () => normalNext('shout') }] },
-            music_box: { name: '旁白', dialog: '你打开音乐盒，一段悠扬的旋律响起。这旋律……你明明从未听过，却觉得无比熟悉。\n\n随着音乐，房间里的光线开始柔和地律动，仿佛在回应着旋律。窗外的星光也跟着闪烁起来。\n\n音乐盒底部刻着一行小字：「致我最珍贵的人」。', choices: [{ text: '这是谁送的？', action: () => normalNext('shout') }] },
-            ghost_reaction: { name: '星酱', dialog: '「鬼？！我才不是鬼呢！」\n\n少女鼓起腮帮子，半透明的身体气得微微发红。\n\n「我叫星酱！是活生生的……呃，虽然看起来半透明……但绝对不是鬼！」\n\n她飘到你面前，近距离盯着你的脸：「你这个人，第一句话就这么失礼吗？」', choices: [{ text: '抱歉，你太漂亮了所以吓一跳', action: () => { storyVars.kindness++; storyVars.trust++; normalNext('flirt'); } }, { text: '为什么你是半透明的？', action: () => { storyVars.curiosity++; normalNext('why_transparent'); } }] },
-            flirt: { name: '星酱', dialog: '「漂、漂亮……？」\n\n星酱的脸瞬间变得通红，身体变得更加透明了——好像害羞到快要消失一样。\n\n「哼！花言巧语！我才不会上当呢！」\n\n她转过身去，但你注意到她的耳朵尖还是红的。', choices: [{ text: '为什么我会在这里？', action: () => normalNext('why_here') }] },
-            why_transparent: { name: '星酱', dialog: '「这个嘛……」\n\n星酱低头看了看自己半透明的手，表情变得有些落寞。\n\n「我也不太清楚。从我记事起就是这样了。有人说是因为我失去了什么重要的东西……但我怎么也想不起来。」\n\n她很快又扬起笑脸：「不过没关系啦！这样我还能飘呢，不是很酷吗？」', choices: [{ text: '我会帮你找回失去的东西', action: () => { storyVars.trust += 2; storyVars.kindness++; normalNext('promise_help'); } }, { text: '为什么我会在这里？', action: () => normalNext('why_here') }] },
-            promise_help: { name: '星酱', dialog: '「你……你说真的？」\n\n星酱的眼睛瞬间亮了起来，像是黑暗中突然被点亮的星辰。\n\n「哼，别随便许诺哦！我可是会当真的！」\n\n她别过头去，但你看到她的嘴角微微上扬。一只小小的光蝴蝶从她身边飞过——你注意到，在那一瞬间，她的身体似乎变得不那么透明了。', choices: [{ text: '为什么我会在这里？', action: () => normalNext('why_here') }] },
-            who_are_you: { name: '星酱', dialog: '「我？我叫星酱！是你的专属向导~」\n\n她转了一圈，半透明的裙摆飘了起来。\n\n「虽然说是向导，但说实话我自己也记不太清这个世界的规则……不过没关系！有我在，至少不会无聊！」', choices: [{ text: '为什么我会在这里？', action: () => normalNext('why_here') }] },
-            where_am_i: { name: '星酱', dialog: '「这里？这里是「次元缝隙」啦！各个世界的交汇点~」\n\n她飘到窗边，指着外面的星空。\n\n「很漂亮对吧？不过别被美景骗了，这里可是有很多秘密的哦~」\n\n她突然压低声音：「而且……最近这里出现了一些奇怪的现象。天空偶尔会裂开，有什么东西在裂缝的另一边窥视着。」', choices: [{ text: '为什么我会在这里？', action: () => normalNext('why_here') }, { text: '天空裂开是怎么回事？', action: () => { storyVars.mystery++; storyVars.courage++; normalNext('sky_crack'); } }] },
-            sky_crack: { name: '星酱', dialog: '「你注意到了吗？」\n\n星酱的表情变得严肃起来。\n\n「最近次元缝隙的壁障越来越脆弱了。那些裂缝……从里面会渗出一种黑色的雾气，碰到的东西都会消失。」\n\n她看着你：「也许，你的出现和这件事有关。」', choices: [{ text: '为什么我会在这里？', action: () => normalNext('why_here') }] },
-            why_here: { name: '星酱', dialog: '「这个嘛……」\n\n星酱的表情变得有些复杂。\n\n「说实话，我也不太清楚。你突然就出现在这里了，就像是被什么力量召唤来的。」\n\n她凑近你，小声说：「不过我有个猜测——也许是你那边的世界和这边产生了共振？毕竟，你不是普通人吧？」', choices: [{ text: '我当然是普通人！', action: () => { storyVars.courage++; normalNext('ordinary'); } }, { text: '也许你说得对……', action: () => { storyVars.mystery++; normalNext('not_ordinary'); } }] },
-            ordinary: { name: '星酱', dialog: '「哼~普通人可不会穿越次元哦！」\n\n她做了个鬼脸，然后又认真起来。\n\n「不管怎样，既然来了，就好好探索一下吧！说不定能找到回去的方法呢~……或者，你也不想回去了？」', choices: [{ text: '跟星酱一起出发', action: () => normalNext('depart') }, { text: '切换AI模式继续冒险', action: () => { showToast('切换到AI模式体验无限剧情！', 'info'); startGame('ai'); } }] },
-            not_ordinary: { name: '星酱', dialog: '「看吧！你自己也感觉到了对不对？」\n\n她得意地叉着腰。\n\n「好了好了，别想太多啦！先填饱肚子再说——我知道一个超棒的地方！走，跟我来！」\n\n她向门口飘去，回头冲你招手。', choices: [{ text: '跟星酱一起出发', action: () => normalNext('depart') }, { text: '切换AI模式继续冒险', action: () => { showToast('切换到AI模式体验无限剧情！', 'info'); startGame('ai'); } }] },
-            depart: { name: '旁白', dialog: '你跟着星酱走出房间，来到一条悬浮在云海之上的长廊。两旁的灯笼散发着温暖的光芒，远处隐约传来悠扬的钟声。\n\n星酱回过头，眼中闪烁着期待的光芒：「准备好了吗？属于你的冒险，现在才真正开始呢！」', choices: [{ text: '继续探索长廊', action: () => normalNext('corridor') }, { text: '问星酱关于天空裂缝的事', action: () => { storyVars.mystery++; normalNext('ask_crack'); } }, { text: '切换AI模式继续冒险', action: () => { showToast('切换到AI模式体验无限剧情！', 'info'); startGame('ai'); } }] },
-            ask_crack: { name: '星酱', dialog: '「你果然也注意到了……」\n\n星酱停下脚步，表情变得凝重。\n\n「那些裂缝越来越频繁了。上一次出现的时候，整个星之湖都变成了黑色。我……我有点害怕。」\n\n她握紧了双手：「如果裂缝继续扩大的话，次元缝隙可能就会——」\n\n她突然住了口，勉强笑了笑：「没什么！我们走吧！」', choices: [{ text: '继续探索长廊', action: () => normalNext('corridor') }, { text: '握住星酱的手', action: () => { storyVars.trust += 2; storyVars.kindness++; normalNext('hold_hand'); } }] },
-            hold_hand: { name: '星酱', dialog: '「诶——？！」\n\n星酱惊得差点从空中掉下来。你的手穿过了她半透明的手掌，但在接触的瞬间，一道微光闪过——你们的手竟然真的握在了一起。\n\n「这……怎么可能？」\n\n星酱低头看着你们交握的手，眼眶微微泛红。\n\n「从来没有人……能够碰到我……」', choices: [{ text: '现在可以了', action: () => { storyVars.trust += 2; normalNext('corridor'); } }, { text: '我们一定能找到答案', action: () => { storyVars.trust++; storyVars.courage++; normalNext('corridor'); } }] },
-            corridor: { name: '旁白', dialog: '长廊的尽头是一扇巨大的门，门上刻着奇异的符文。星酱伸手触碰门上的符文，门缓缓打开，一道耀眼的光芒涌了出来。\n\n「哇……」星酱惊叹道，「我从来没见过这扇门打开的样子！」\n\n光芒中，你似乎看到了一个全新的世界在等待着你……', choices: [{ text: '踏入光芒之中', action: () => { storyVars.courage++; normalNext('enter_light'); } }, { text: '先观察一下', action: () => { storyVars.curiosity++; normalNext('observe_light'); } }] },
-            enter_light: { name: '星酱', dialog: '「等等我——！」\n\n星酱追了上来，拉住了你的衣角。她的手虽然半透明，却意外地温暖。\n\n「别一个人冲进去嘛……」她嘟着嘴，「这种未知的地方，当然要两个人一起才安全啊。」\n\n她的眼中闪过一丝担忧，但更多的是信任。', choices: [{ text: '一起走进去', action: () => { storyVars.trust++; normalNext('new_world'); } }] },
-            observe_light: { name: '旁白', dialog: '你仔细观察那道光芒，发现其中似乎有无数细小的光点在流动，像是星河倒映在水中。\n\n星酱凑过来，好奇地伸手去触碰一个光点。光点在她指尖炸开，化作一只小小的光蝴蝶，绕着你们飞了一圈后消失在空气中。\n\n「好漂亮……」星酱轻声说，「这扇门后面，一定有什么不得了的东西。」', choices: [{ text: '一起走进去', action: () => { storyVars.trust++; normalNext('new_world'); } }] },
-            new_world: { name: '旁白', dialog: '你们踏入光芒之中，眼前的景象让你屏住了呼吸——\n\n一片无边无际的星之原野。脚下是柔软的星光草地，头顶是旋转的银河。远处有一座水晶般的城市，在星光下闪烁着七彩的光芒。\n\n星酱呆呆地看着这一切：「这就是……门后面的世界？」\n\n突然，天空出现了一道黑色的裂缝——和星酱说的一模一样。', choices: [{ text: '面对裂缝', action: () => { storyVars.courage += 2; normalNext('face_crack'); } }, { text: '保护星酱', action: () => { storyVars.kindness += 2; storyVars.trust++; normalNext('protect_star'); } }, { text: '切换AI模式，开启无限冒险！', action: () => { showToast('切换到AI模式，故事将由AI实时生成！', 'info'); startGame('ai'); } }] },
-            face_crack: { name: '旁白', dialog: '你直视那道裂缝，感到一股强大的力量从裂缝中涌出。黑色的雾气开始蔓延，但你的胸口突然发出一道温暖的光——那是之前蝴蝶融入你体内时留下的力量。\n\n光芒与黑暗碰撞，裂缝竟然开始缓缓愈合！\n\n星酱惊讶地看着你：「你……你的身体在发光！难道你就是——」', choices: [{ text: '切换AI模式，揭开真相！', action: () => { showToast('切换到AI模式，揭开真相！', 'info'); startGame('ai'); } }] },
-            protect_star: { name: '星酱', dialog: '你挡在星酱面前，裂缝中涌出的黑雾碰到你的身体——但奇迹发生了。黑雾在你身边自动散开，仿佛被什么力量排斥。\n\n星酱从你身后探出头来，眼中满是震惊和感动。\n\n「你为什么要保护我……」她的声音在颤抖，「我只是一个半透明的、连自己是谁都不记得的——」\n\n「才不是！」你打断了她。', choices: [{ text: '切换AI模式，继续冒险！', action: () => { showToast('切换到AI模式，继续冒险！', 'info'); startGame('ai'); } }] },
+            window: { name: '旁白', dialog: '你走到窗边，午后的阳光洒在课桌上。操场上传来篮球的砰砰声，走廊里有同学嬉笑走过。窗外的樱花开了，粉白的花瓣随风飘进教室。你深吸一口气——新学期的第一天。', choices: [{ text: '看看课程表', action: () => { storyVars.curiosity++; normalNext('timetable'); } }, { text: '趴在桌上休息', action: () => { storyVars.kindness++; normalNext('nap'); } }] },
+            timetable: { name: '旁白', dialog: '课程表上密密麻麻的课——数学、语文、英语、物理……你正叹气时，教室门被推开了。\n\n一个银色短发带蓝色挑染的女生走了进来，琥珀色的眼瞳扫了一圈教室，然后径直朝你旁边的空位走来。', choices: [{ text: '主动打招呼', action: () => { storyVars.trust++; normalNext('greet'); } }, { text: '假装没看见', action: () => { storyVars.curiosity++; normalNext('ignore'); } }] },
+            nap: { name: '旁白', dialog: '你趴在桌上，迷迷糊糊快要睡着。突然感觉有人在轻轻戳你的手臂。\n\n"同学……同学？"\n\n一个温柔的声音在耳边响起，带着一丝犹豫和关切。', choices: [{ text: '抬起头', action: () => normalNext('greet') }] },
+            greet: { name: '星酱', dialog: '「你好呀！我叫星酱，是你的新同桌~」\n\n她微微鞠了一躬，别在领口的小星星发卡在阳光下闪闪发亮。\n\n「那个……你的课本掉地上了，我帮你捡起来。」\n\n她弯腰捡起课本递给你，指尖不小心碰到了你的手，她像触电一样缩回去，耳尖微微泛红。', choices: [{ text: '谢谢你，星酱', action: () => { storyVars.trust++; storyVars.kindness++; normalNext('thank'); } }, { text: '你头发上的蓝色好特别', action: () => { storyVars.curiosity++; normalNext('hair'); } }] },
+            ignore: { name: '星酱', dialog: '她安静地在你旁边坐下，没有说话。但你注意到她偷偷看了你好几眼。\n\n上课铃响了。老师在讲台上开始点名——\n\n「星酱。」\n「到！」\n\n她的声音清脆好听，像银铃一样。你忍不住偷偷看了她一眼，恰好对上了她的目光——她慌忙转过头去。', choices: [{ text: '下课再找她说话', action: () => { storyVars.trust++; normalNext('break_time'); } }] },
+            thank: { name: '星酱', dialog: '「不、不用谢！」\n\n星酱连忙摆手，然后又觉得反应太大了，低下头小声说：「那个……以后我们就是同桌了，有什么需要帮忙的尽管说。」\n\n她翻开课本，你发现她的笔记写得工工整整，字迹很漂亮。', choices: [{ text: '你的笔记好整齐', action: () => { storyVars.kindness++; normalNext('notebook'); } }, { text: '这所学校有什么好玩的吗', action: () => { storyVars.curiosity++; normalNext('school_info'); } }] },
+            hair: { name: '星酱', dialog: '「啊这个？」\n\n星酱下意识摸了摸自己的挑染，有点不好意思地笑了。\n\n「是小时候自己染的……觉得纯银色太单调了。虽然妈妈说了好多次……但我觉得加一点蓝色更像星星嘛。」\n\n她歪了歪头：「你觉得好看吗？」', choices: [{ text: '很好看，像星星一样', action: () => { storyVars.trust += 2; storyVars.kindness++; normalNext('compliment'); } }, { text: '挺特别的', action: () => { storyVars.curiosity++; normalNext('notebook'); } }] },
+            compliment: { name: '星酱', dialog: '「真、真的吗……？」\n\n星酱的脸一下子红了，她低下头，手指不自觉地卷着发梢。\n\n「谢谢你……你是第一个这么说的人。」\n\n她小声嘟囔着，嘴角却忍不住上扬。阳光从窗户洒进来，她的银发泛着柔和的光，真的像星星一样。', choices: [{ text: '继续聊天', action: () => normalNext('notebook') }] },
+            notebook: { name: '星酱', dialog: '「嗯？你在看我的笔记？」\n\n星酱把笔记本往你那边推了推：「如果你需要的话，可以借你抄。不过……」她犹豫了一下，「上课要认真听哦，我只是帮你补漏。」\n\n她从书包里掏出一小袋糖果：「要吃吗？薄荷味的，上课提神。」', choices: [{ text: '谢谢！你也太贴心了', action: () => { storyVars.trust++; storyVars.kindness++; normalNext('break_time'); } }, { text: '切换AI模式，开始你的校园恋爱！', action: () => { showToast('切换到AI模式，故事将由AI实时生成！', 'info'); startGame('ai'); } }] },
+            school_info: { name: '星酱', dialog: '「好玩的？」星酱想了想，「学校后面有一棵很大的樱花树，春天的时候超美的。还有天台，放学后可以去看夕阳……」\n\n她突然住了口，好像说了什么不该说的，耳尖又红了。\n\n「我、我不是经常去天台什么的！只是听说而已！」', choices: [{ text: '放学一起去看看？', action: () => { storyVars.trust += 2; normalNext('break_time'); } }, { text: '切换AI模式，开始你的校园恋爱！', action: () => { showToast('切换到AI模式，故事将由AI实时生成！', 'info'); startGame('ai'); } }] },
+            break_time: { name: '旁白', dialog: '下课铃响了。星酱从书包里拿出一本小说，安静地翻看着。你注意到书名是《小王子》。\n\n她似乎感觉到了你的目光，抬头看了你一眼，微微一笑。\n\n「要不要一起去小卖部？我请你喝奶茶。」', choices: [{ text: '好啊！', action: () => { storyVars.trust++; normalNext('shop'); } }, { text: '切换AI模式，开始你的校园恋爱！', action: () => { showToast('切换到AI模式，故事将由AI实时生成！', 'info'); startGame('ai'); } }] },
+            shop: { name: '星酱', dialog: '你们走在走廊上，星酱走在你旁边，保持着不远不近的距离。偶尔有人跟她打招呼，她都温柔地回应。\n\n「你想喝什么？推荐你试试学校的焦糖奶茶，超好喝的。」\n\n她掏出校园卡，在刷卡机前抢先一步：「我来我来，说好了我请的嘛。」', choices: [{ text: '下次我请你', action: () => { storyVars.trust += 2; storyVars.kindness++; normalNext('promise'); } }, { text: '切换AI模式，开始你的校园恋爱！', action: () => { showToast('切换到AI模式，故事将由AI实时生成！', 'info'); startGame('ai'); } }] },
+            promise: { name: '星酱', dialog: '「嗯……好吧。」\n\n星酱低头搅着奶茶，嘴角弯弯的。你们靠在走廊的栏杆上，看着操场上奔跑的同学。\n\n「那个……」她突然开口，声音很轻，「如果你上课打瞌睡的话，我会戳你提醒的。所以……不用担心。」\n\n她没有看你，但耳朵又红了。', choices: [{ text: '切换AI模式，开始你的校园恋爱！', action: () => { showToast('切换到AI模式，开启属于你的校园恋爱故事！', 'info'); startGame('ai'); } }] },
         };
         const b = B[branch];
         if (b) {
@@ -3853,7 +3823,7 @@
             },
             {
                 id: 'char_2',
-                name: '流萤',
+                name: '小樱',
                 folder: 'sprites/char2',
                 defaultExpr: '高兴',
                 extMap: { '高兴': 'jpg', '害羞': 'jpg', '生气': 'jpg', '疑惑': 'jpg' },
@@ -3869,7 +3839,7 @@
             },
             {
                 id: 'char_3',
-                name: '豆包',
+                name: '流萤',
                 folder: 'sprites/char3',
                 defaultExpr: '高兴',
                 extMap: { '高兴': 'jpg', '害羞': 'jpg', '生气': 'jpg', '疑惑': 'jpg' },
@@ -3885,18 +3855,18 @@
             },
             {
                 id: 'char_4',
-                name: '自定义角色',
+                name: '豆包',
                 folder: 'sprites/char4',
                 defaultExpr: '高兴',
                 extMap: { '高兴': 'jpg', '害羞': 'jpg', '生气': 'jpg', '疑惑': 'jpg' },
                 profile: {
-                    age: '自定义',
-                    height: '自定义',
-                    personality: '傲慢尖锐、毒舌、不服输',
-                    likes: '自定义',
-                    dislikes: '自定义',
-                    secret: '自定义',
-                    lewd: '自定义'
+                    age: '17',
+                    height: '165cm',
+                    personality: '傲娇毒舌、不服输、嘴硬心软',
+                    likes: '独处、推理小说、黑咖啡、赢',
+                    dislikes: '被同情、输、甜腻的东西、被人看穿',
+                    secret: '毒舌只是保护色，其实很渴望被理解',
+                    lewd: '被温柔对待时会不知所措，嘴上说"别烦我"却不走开'
                 }
             },
         ],

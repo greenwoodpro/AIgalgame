@@ -2002,8 +2002,12 @@ html, body {
 }
 
 .form-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
     margin-right: 0.5rem;
     accent-color: var(--accent-color);
+    cursor: pointer;
+    vertical-align: middle;
 }
 
 .form-group input[type="color"] {

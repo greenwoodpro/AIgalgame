@@ -306,16 +306,23 @@
                             <div class="form-group">
                                 <label for="custom-base-url">Base URL</label>
                                 <input type="text" id="custom-base-url" placeholder="例如: https://api.openai.com/v1">
-                                <small>兼容 OpenAI API 格式的服务地址，如 OpenAI、DeepSeek、硅基流动等</small>
+                                <small>兼容 OpenAI API 格式的服务地址</small>
                             </div>
                             <div class="form-group">
                                 <label for="custom-api-key">API Key</label>
                                 <input type="password" id="custom-api-key" placeholder="输入自定义 API Key">
-                                <small>自定义 API 的密钥，直连调用不经过代理</small>
                             </div>
                             <div class="form-group">
-                                <button id="test-api-btn" class="menu-btn" style="padding:8px 16px;font-size:14px;width:auto;display:inline-flex;">测试连接</button>
-                                <span id="test-api-result" style="margin-left:8px;font-size:13px;"></span>
+                                <label for="custom-text-model">文本模型 ID</label>
+                                <input type="text" id="custom-text-model" placeholder="例如: gpt-4o, deepseek-chat">
+                            </div>
+                            <div class="form-group">
+                                <label for="custom-image-model">图像模型 ID</label>
+                                <input type="text" id="custom-image-model" placeholder="例如: dall-e-3, flux-1">
+                            </div>
+                            <div class="form-group" style="display:flex;align-items:center;gap:8px;">
+                                <button id="test-api-btn" style="padding:8px 16px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);cursor:pointer;">测试连接</button>
+                                <span id="test-api-result" style="font-size:13px;"></span>
                             </div>
                         </div>
                         <div class="form-group">
@@ -344,11 +351,6 @@
                                 <option value="custom">自定义 (Custom)</option>
                             </select>
                         </div>
-                        <div class="form-group" id="custom-text-model-group" style="display:none">
-                            <label for="custom-text-model">自定义文本模型 ID</label>
-                            <input type="text" id="custom-text-model" placeholder="例如: gpt-4o, deepseek-chat">
-                            <small>输入模型 ID，需与 API 服务商支持的模型名一致</small>
-                        </div>
                         <div class="form-group">
                             <label for="text-model">文本模型 <span id="model-tags" class="model-tags"></span></label>
                             <select id="text-model"></select>
@@ -356,15 +358,10 @@
                         <div class="form-group">
                             <label for="image-api-provider">图像生成 API</label>
                             <select id="image-api-provider">
-                                <option value="zhipu">智谱AI (CogView) 推荐</option>
-                                <option value="modelscope">魔搭社区 (Z-Image/FLUX) 备用-较慢</option>
+                                <option value="zhipu">智谱AI (CogView)</option>
+                                <option value="modelscope">魔搭社区 (Z-Image/FLUX)</option>
                                 <option value="custom">自定义 (Custom)</option>
                             </select>
-                        </div>
-                        <div class="form-group" id="custom-image-model-group" style="display:none">
-                            <label for="custom-image-model">自定义图像模型 ID</label>
-                            <input type="text" id="custom-image-model" placeholder="例如: dall-e-3, flux-1">
-                            <small>输入图像模型 ID，需与 API 服务商支持的模型名一致</small>
                         </div>
                         <div class="form-group">
                             <label for="image-model">图像模型</label>
