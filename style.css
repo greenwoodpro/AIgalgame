@@ -3,17 +3,17 @@
    ================================================================ */
 
 :root {
-    /* === Base Colors === */
-    --bg: #f5f0e8;
-    --bg-secondary: #e8e0d0;
+    /* === Base Colors — 古风 (Ancient Chinese) === */
+    --bg: #f5efe0;
+    --bg-secondary: #e8dcc8;
     --bg-card: rgba(255, 255, 255, 0.45);
-    --text: #2c2c2c;
-    --text-secondary: rgba(44, 44, 44, 0.7);
-    --text-muted: rgba(44, 44, 44, 0.4);
-    --primary: #6b8fd4;
-    --accent: #4a6fa5;
-    --gradient: linear-gradient(135deg, #6b8fd4, #4a6fa5);
-    --border: rgba(74, 111, 165, 0.2);
+    --text: #3a2e22;
+    --text-secondary: rgba(58, 46, 34, 0.7);
+    --text-muted: rgba(58, 46, 34, 0.4);
+    --primary: #7b9e6b;
+    --accent: #5a7d4a;
+    --gradient: linear-gradient(135deg, #7b9e6b, #5a7d4a);
+    --border: rgba(90, 125, 74, 0.2);
     --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     --radius: 12px;
     --radius-sm: 6px;
@@ -30,25 +30,25 @@
     /* === Dialog === */
     --dialog-bg: rgba(255, 255, 255, 0.35);
     --dialog-bg-light: rgba(255, 255, 255, 0.2);
-    --dialog-border: rgba(74, 111, 165, 0.15);
+    --dialog-border: rgba(90, 125, 74, 0.15);
     --dialog-blur: blur(16px) saturate(150%);
-    --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(245, 240, 232, 0.2) 40%, rgba(245, 240, 232, 0.5) 100%);
+    --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(245, 239, 224, 0.2) 40%, rgba(245, 239, 224, 0.5) 100%);
     --dialog-width: 85%;
     --nameplate-bg: var(--gradient);
-    --dialog-text-color: #2c2c2c;
+    --dialog-text-color: #3a2e22;
 
     /* === Character Colors === */
-    --accent-color: #6b8fd4;
-    --name-color: #4a6fa5;
-    --emotion-color: #d4567a;
-    --send-color: #6b8fd4;
-    --send-hover-color: rgba(107, 143, 212, 0.7);
+    --accent-color: #7b9e6b;
+    --name-color: #5a7d4a;
+    --emotion-color: #c45656;
+    --send-color: #7b9e6b;
+    --send-hover-color: rgba(123, 158, 107, 0.7);
 
     /* === Sprite === */
     --sprite-scale: 1.0;
     --sprite-height: 75vh;
     --sprite-origin: bottom center;
-    --sprite-shadow: drop-shadow(0 0 18px rgba(255, 255, 255, 0.5));
+    --sprite-shadow: drop-shadow(0 0 18px rgba(123, 158, 107, 0.4));
     --sprite-transition: 300ms ease-in-out;
 
     /* === Layout === */
@@ -56,54 +56,54 @@
     --choices-width: 78%;
 
     /* === Menu & Buttons === */
-    --menu-btn-bg: #dce6f5;
-    --menu-btn-color: #4a6fa5;
-    --menu-header-bg: #4a6fa5;
-    --big-button-bg: #4a6fa5;
-    --slider-track: linear-gradient(to left, #6b8fd4, #a8c4e8);
-    --slider-thumb-border: 2px solid #6b8fd4;
+    --menu-btn-bg: #dce8d4;
+    --menu-btn-color: #5a7d4a;
+    --menu-header-bg: #5a7d4a;
+    --big-button-bg: #5a7d4a;
+    --slider-track: linear-gradient(to left, #7b9e6b, #a8c8a0);
+    --slider-thumb-border: 2px solid #7b9e6b;
     --text-shadow: none;
 
     /* === Title === */
     --title-panel-bg: rgba(255, 255, 255, 0.7);
-    --title-panel-border: 1px solid rgba(74, 111, 165, 0.15);
+    --title-panel-border: 1px solid rgba(90, 125, 74, 0.15);
     --title-panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     --title-panel-hover-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
     --title-text-color: #fff;
     --title-subtitle-color: rgba(255, 255, 255, 0.9);
     --title-tag-color: rgba(255, 255, 255, 0.8);
-    --title-btn-primary-bg: #4a6fa5;
-    --title-btn-primary-hover-bg: #3a5f95;
-    --title-btn-primary-shadow: 0 4px 12px rgba(74, 111, 165, 0.25);
-    --title-btn-bg: #dce6f5;
-    --title-btn-color: #4a6fa5;
-    --title-btn-hover-bg: #c8d8ef;
-    --title-btn-secondary-bg: #e8e0d0;
-    --title-btn-secondary-color: #3c2a1e;
+    --title-btn-primary-bg: #5a7d4a;
+    --title-btn-primary-hover-bg: #4a6d3a;
+    --title-btn-primary-shadow: 0 4px 12px rgba(90, 125, 74, 0.25);
+    --title-btn-bg: #dce8d4;
+    --title-btn-color: #5a7d4a;
+    --title-btn-hover-bg: #c8d8c0;
+    --title-btn-secondary-bg: #e8dcc8;
+    --title-btn-secondary-color: #3a2e22;
 
     /* === Settings === */
     --settings-panel-bg: #fff;
     --settings-panel-shadow: 0 5px 30px rgba(0, 0, 0, 0.15);
-    --settings-tab-color: #5a6a7a;
-    --settings-tab-active-color: #6b8fd4;
-    --settings-tab-indicator: #6b8fd4;
+    --settings-tab-color: #6a7a5a;
+    --settings-tab-active-color: #7b9e6b;
+    --settings-tab-indicator: #7b9e6b;
     --settings-input-bg: rgba(255, 255, 255, 0.9);
-    --settings-input-border: rgba(74, 111, 165, 0.15);
-    --settings-input-focus-border: #6b8fd4;
-    --settings-input-focus-shadow: 0 0 5px rgba(107, 143, 212, 0.3);
-    --settings-input-color: #2c2c2c;
-    --settings-label-color: #4a5568;
-    --settings-divider: #e8e0d0;
-    --settings-item-bg: rgba(74, 111, 165, 0.06);
-    --settings-item-border: rgba(74, 111, 165, 0.12);
+    --settings-input-border: rgba(90, 125, 74, 0.15);
+    --settings-input-focus-border: #7b9e6b;
+    --settings-input-focus-shadow: 0 0 5px rgba(123, 158, 107, 0.3);
+    --settings-input-color: #3a2e22;
+    --settings-label-color: #5a6a4a;
+    --settings-divider: #e0d8c8;
+    --settings-item-bg: rgba(90, 125, 74, 0.06);
+    --settings-item-border: rgba(90, 125, 74, 0.12);
 
     /* === Input === */
-    --input-bg: rgba(74, 111, 165, 0.08);
-    --input-border: rgba(74, 111, 165, 0.25);
-    --menu-btn-border: 0.5px solid rgba(74, 111, 165, 0.15);
+    --input-bg: rgba(90, 125, 74, 0.08);
+    --input-border: rgba(90, 125, 74, 0.25);
+    --menu-btn-border: 0.5px solid rgba(90, 125, 74, 0.15);
     --menu-btn-radius: 8px;
     --menu-btn-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    --title-btn-border: 0.5px solid rgba(74, 111, 165, 0.15);
+    --title-btn-border: 0.5px solid rgba(90, 125, 74, 0.15);
     --title-panel-blur: blur(10px);
     --title-panel-radius: 16px;
     --slider-thumb-bg: #ffffff;
@@ -120,7 +120,7 @@
 
     /* === Sidebar === */
     --sidebar-bg: rgba(255, 255, 255, 0.25);
-    --sidebar-border: rgba(74, 111, 165, 0.15);
+    --sidebar-border: rgba(90, 125, 74, 0.15);
     --sidebar-width: 220px;
     --sidebar-toggle-bg: rgba(255, 255, 255, 0.45);
 }
@@ -215,84 +215,84 @@
     --sidebar-toggle-bg: rgba(240, 235, 224, 0.5);
 }
 
-/* ==================== Ink Wash Theme ==================== */
+/* ==================== Ink Wash Theme — 浅墨 ==================== */
 [data-theme="ink-wash"] {
-    --bg: #f0ebe0;
-    --bg-secondary: #e2d9c8;
-    --bg-card: rgba(255, 255, 255, 0.35);
-    --text: #3a3a3a;
-    --text-secondary: rgba(58, 58, 58, 0.7);
-    --text-muted: rgba(58, 58, 58, 0.4);
-    --primary: #8b7355;
-    --accent: #6b5b45;
-    --gradient: linear-gradient(135deg, #8b7355, #6b5b45);
-    --border: rgba(107, 91, 69, 0.2);
-    --shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    --bg: #f7f5f0;
+    --bg-secondary: #edeae2;
+    --bg-card: rgba(255, 255, 255, 0.5);
+    --text: #4a4a4a;
+    --text-secondary: rgba(74, 74, 74, 0.7);
+    --text-muted: rgba(74, 74, 74, 0.4);
+    --primary: #9a9a9a;
+    --accent: #7a7a7a;
+    --gradient: linear-gradient(135deg, #b0b0b0, #8a8a8a);
+    --border: rgba(120, 120, 120, 0.15);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
 
-    --dialog-bg: rgba(240, 235, 224, 0.5);
-    --dialog-bg-light: rgba(240, 235, 224, 0.3);
-    --dialog-border: rgba(107, 91, 69, 0.15);
-    --dialog-blur: blur(12px) saturate(120%);
-    --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(240, 235, 224, 0.2) 40%, rgba(240, 235, 224, 0.5) 100%);
-    --dialog-text-color: #3a3a3a;
-    --nameplate-bg: linear-gradient(135deg, rgba(139, 115, 85, 0.6), rgba(107, 91, 69, 0.6));
+    --dialog-bg: rgba(247, 245, 240, 0.55);
+    --dialog-bg-light: rgba(247, 245, 240, 0.35);
+    --dialog-border: rgba(120, 120, 120, 0.1);
+    --dialog-blur: blur(12px) saturate(110%);
+    --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(247, 245, 240, 0.15) 40%, rgba(247, 245, 240, 0.4) 100%);
+    --dialog-text-color: #4a4a4a;
+    --nameplate-bg: linear-gradient(135deg, rgba(160, 160, 160, 0.5), rgba(120, 120, 120, 0.5));
 
-    --accent-color: #8b7355;
-    --name-color: #6b5b45;
-    --emotion-color: #b85c5c;
-    --send-color: #8b7355;
-    --send-hover-color: rgba(139, 115, 85, 0.7);
+    --accent-color: #9a9a9a;
+    --name-color: #7a7a7a;
+    --emotion-color: #a08070;
+    --send-color: #9a9a9a;
+    --send-hover-color: rgba(154, 154, 154, 0.7);
 
-    --sprite-shadow: drop-shadow(0 0 18px rgba(139, 115, 85, 0.3));
+    --sprite-shadow: drop-shadow(0 0 18px rgba(154, 154, 154, 0.2));
 
     --text-shadow: none;
 
-    --title-panel-bg: rgba(240, 235, 224, 0.7);
-    --title-panel-border: 1px solid rgba(107, 91, 69, 0.15);
-    --title-panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-    --title-panel-hover-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    --title-panel-bg: rgba(247, 245, 240, 0.7);
+    --title-panel-border: 1px solid rgba(120, 120, 120, 0.1);
+    --title-panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+    --title-panel-hover-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
     --title-text-color: #fff;
     --title-subtitle-color: rgba(255, 255, 255, 0.85);
     --title-tag-color: rgba(255, 255, 255, 0.75);
-    --title-btn-primary-bg: #6b5b45;
-    --title-btn-primary-hover-bg: #5a4b35;
-    --title-btn-primary-shadow: 0 4px 12px rgba(107, 91, 69, 0.25);
-    --title-btn-bg: rgba(139, 115, 85, 0.2);
-    --title-btn-color: #6b5b45;
-    --title-btn-hover-bg: rgba(139, 115, 85, 0.35);
+    --title-btn-primary-bg: #7a7a7a;
+    --title-btn-primary-hover-bg: #6a6a6a;
+    --title-btn-primary-shadow: 0 4px 12px rgba(120, 120, 120, 0.2);
+    --title-btn-bg: rgba(154, 154, 154, 0.15);
+    --title-btn-color: #7a7a7a;
+    --title-btn-hover-bg: rgba(154, 154, 154, 0.25);
 
-    --menu-btn-bg: rgba(139, 115, 85, 0.2);
-    --menu-btn-color: #6b5b45;
-    --menu-header-bg: #6b5b45;
+    --menu-btn-bg: rgba(154, 154, 154, 0.15);
+    --menu-btn-color: #7a7a7a;
+    --menu-header-bg: #7a7a7a;
 
-    --big-button-bg: #6b5b45;
-    --slider-track: linear-gradient(to left, #8b7355, #b8a080);
-    --slider-thumb-border: 2px solid #8b7355;
+    --big-button-bg: #7a7a7a;
+    --slider-track: linear-gradient(to left, #b0b0b0, #8a8a8a);
+    --slider-thumb-border: 2px solid #9a9a9a;
     --slider-thumb-bg: #fff;
 
-    --settings-panel-bg: #f5f0e5;
-    --settings-panel-shadow: 0 5px 30px rgba(0, 0, 0, 0.1);
-    --settings-tab-color: #8b7355;
-    --settings-tab-active-color: #6b5b45;
-    --settings-tab-indicator: #6b5b45;
-    --settings-input-bg: rgba(255, 255, 255, 0.7);
-    --settings-input-border: rgba(107, 91, 69, 0.15);
-    --settings-input-focus-border: #8b7355;
-    --settings-input-focus-shadow: 0 0 5px rgba(139, 115, 85, 0.3);
-    --settings-input-color: #3a3a3a;
-    --settings-label-color: #6b5b45;
-    --settings-divider: #e2d9c8;
-    --settings-item-bg: rgba(107, 91, 69, 0.06);
-    --settings-item-border: rgba(107, 91, 69, 0.1);
+    --settings-panel-bg: #faf8f5;
+    --settings-panel-shadow: 0 5px 30px rgba(0, 0, 0, 0.08);
+    --settings-tab-color: #8a8a8a;
+    --settings-tab-active-color: #7a7a7a;
+    --settings-tab-indicator: #7a7a7a;
+    --settings-input-bg: rgba(255, 255, 255, 0.8);
+    --settings-input-border: rgba(120, 120, 120, 0.12);
+    --settings-input-focus-border: #9a9a9a;
+    --settings-input-focus-shadow: 0 0 5px rgba(154, 154, 154, 0.2);
+    --settings-input-color: #4a4a4a;
+    --settings-label-color: #7a7a7a;
+    --settings-divider: #edeae2;
+    --settings-item-bg: rgba(120, 120, 120, 0.04);
+    --settings-item-border: rgba(120, 120, 120, 0.08);
 
-    --input-bg: rgba(107, 91, 69, 0.08);
-    --input-border: rgba(107, 91, 69, 0.2);
+    --input-bg: rgba(120, 120, 120, 0.06);
+    --input-border: rgba(120, 120, 120, 0.15);
     --title-panel-blur: blur(10px);
 
-    --glass-bg: rgba(255, 255, 255, 0.12);
-    --glass-blur: blur(16px) saturate(150%);
-    --glass-border: 1px solid rgba(107, 91, 69, 0.15);
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+    --glass-bg: rgba(255, 255, 255, 0.15);
+    --glass-blur: blur(16px) saturate(140%);
+    --glass-border: 1px solid rgba(120, 120, 120, 0.1);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
 
     --scene-transition-bg: var(--bg);
 }
@@ -485,11 +485,11 @@ html, body {
 [data-theme="ink-wash"] .title-text {
     background: linear-gradient(
         135deg,
-        #d4a574,
-        #8b7355,
-        #c9b896,
-        #6b5b45,
-        #d4a574
+        #c0c0c0,
+        #8a8a8a,
+        #b0b0b0,
+        #7a7a7a,
+        #c0c0c0
     );
     background-size: 300% 300%;
     -webkit-background-clip: text;
@@ -1014,8 +1014,8 @@ html, body {
     background: radial-gradient(
         ellipse at center,
         transparent 0%,
-        transparent 55%,
-        rgba(40, 30, 20, 0.2) 100%
+        transparent 60%,
+        rgba(80, 80, 80, 0.12) 100%
     );
 }
 
@@ -1059,16 +1059,16 @@ html, body {
 
 #info-badge {
     position: absolute;
-    top: 0;
-    left: 0;
+    bottom: 230px;
+    left: 12px;
     z-index: 10;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
-    padding: 0.5rem;
-    padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
     opacity: 0.4;
     transition: opacity var(--transition);
+    font-size: 14px;
+    cursor: pointer;
 }
 
 #info-badge:hover {
@@ -1082,7 +1082,7 @@ html, body {
 #info-tooltip {
     display: none;
     position: absolute;
-    top: 100%;
+    bottom: 100%;
     left: 0;
     min-width: 200px;
     padding: 0.8rem;
@@ -1094,6 +1094,7 @@ html, body {
     font-size: 0.78rem;
     pointer-events: none;
     color: var(--text);
+    margin-bottom: 6px;
 }
 
 #info-badge.active #info-tooltip {
@@ -1302,7 +1303,7 @@ html, body {
     background: linear-gradient(
         180deg,
         transparent 60%,
-        rgba(139, 115, 85, 0.06) 100%
+        rgba(154, 154, 154, 0.04) 100%
     );
 }
 
@@ -1407,7 +1408,7 @@ html, body {
 /* ==================== Character Sprite ==================== */
 #character-sprite {
     position: absolute;
-    bottom: 120px;
+    bottom: 140px;
     left: 50%;
     transform: translateX(-50%) scale(var(--sprite-scale));
     transform-origin: center bottom;
@@ -2080,13 +2081,13 @@ html, body {
 }
 
 .light-preview {
-    background: linear-gradient(135deg, #f8f9fc, #e8e0d0);
-    box-shadow: inset 0 0 20px rgba(139, 69, 19, 0.15);
+    background: linear-gradient(135deg, #f5efe0, #dce8d4);
+    box-shadow: inset 0 0 20px rgba(90, 125, 74, 0.2);
 }
 
 .ink-wash-preview {
-    background: linear-gradient(135deg, #f0ebe0, #e2d9c8);
-    box-shadow: inset 0 0 20px rgba(139, 115, 85, 0.2);
+    background: linear-gradient(135deg, #f7f5f0, #e8e6e0);
+    box-shadow: inset 0 0 20px rgba(154, 154, 154, 0.15);
 }
 
 /* ==================== Save Slots ==================== */

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#f5f0e8">
+    <meta name="theme-color" content="#f5efe0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" href="galgame.ico" type="image/x-icon">
@@ -306,7 +306,7 @@
                             <div class="form-group">
                                 <label for="custom-base-url">Base URL</label>
                                 <input type="text" id="custom-base-url" placeholder="例如: https://api.openai.com/v1">
-                                <small>兼容 OpenAI API 格式的服务地址</small>
+                                <small>兼容 OpenAI API 格式的服务地址，可填完整端点（含 /chat/completions）或基础路径</small>
                             </div>
                             <div class="form-group">
                                 <label for="custom-api-key">API Key</label>
@@ -345,8 +345,8 @@
                         <div class="form-group">
                             <label for="text-api-provider">文本生成 API</label>
                             <select id="text-api-provider">
-                                <option value="zhipu">智谱AI</option>
                                 <option value="modelscope">魔搭社区</option>
+                                <option value="zhipu">智谱AI</option>
                                 <option value="nvidia">NVIDIA</option>
                                 <option value="custom">自定义 (Custom)</option>
                             </select>
@@ -384,7 +384,7 @@
                         <div class="theme-grid">
                             <div class="theme-card active" data-theme="light">
                                 <div class="theme-preview light-preview"></div>
-                                <span>浅色</span>
+                                <span>古风</span>
                             </div>
                             <div class="theme-card" data-theme="dark-star">
                                 <div class="theme-preview dark-star-preview"></div>
@@ -392,7 +392,7 @@
                             </div>
                             <div class="theme-card" data-theme="ink-wash">
                                 <div class="theme-preview ink-wash-preview"></div>
-                                <span>水墨丹青</span>
+                                <span>浅墨</span>
                             </div>
                         </div>
                     </div>

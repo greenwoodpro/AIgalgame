@@ -170,13 +170,14 @@
             baseUrl: 'https://api-inference.modelscope.cn/v1',
             models: {
                 text: [
+                    { id: 'deepseek-ai/DeepSeek-V4-Flash', name: 'DeepSeek-V4-Flash', free: true },
+                    { id: 'deepseek-ai/DeepSeek-V4-Pro', name: 'DeepSeek-V4-Pro' },
                     { id: 'moonshotai/Kimi-K2.5', name: 'Kimi-K2.5', free: true },
                     { id: 'MiniMax/MiniMax-M2.5', name: 'MiniMax-M2.5', free: true },
                     { id: 'Qwen/Qwen3.5-35B-A3B', name: 'Qwen3.5-35B', free: true },
                     { id: 'deepseek-ai/DeepSeek-V3.2', name: 'DeepSeek-V3.2' },
                     { id: 'deepseek-ai/DeepSeek-R1-0528', name: 'DeepSeek-R1', thinking: true },
                     { id: 'ZhipuAI/GLM-5', name: 'GLM-5' },
-                    { id: 'deepseek-ai/DeepSeek-V4-Flash', name: 'DeepSeek-V4-Flash', free: true },
                 ],
                 image: [
                     { id: 'Z-Image/Z-Image-Turbo', name: 'Z-Image-Turbo', imageGen: true },
@@ -243,6 +244,7 @@
             customTextModel: '',
             customImageModel: '',
             dayNightMode: 'day',
+            theme: 'light',
             bgmVolume: 30,
             bgmEnabled: false,
             ttsEnabled: false,
@@ -478,6 +480,7 @@
                 state.settings = { ...state.settings, ...saved };
                 if (saved.apiKeys) state.settings.apiKeys = { ...state.settings.apiKeys, ...saved.apiKeys };
                 if (saved.dayNightMode) state.dayNightMode = saved.dayNightMode;
+                if (saved.theme) state.theme = saved.theme;
             }
         } catch (e) { console.warn('加载设置失败'); }
         try {
@@ -516,6 +519,7 @@
         const validThemes = ['dark-star', 'ink-wash', 'light'];
         if (!validThemes.includes(themeName)) themeName = 'light';
         state.theme = themeName;
+        state.settings.theme = themeName;
         if (themeName === 'light') {
             document.documentElement.removeAttribute('data-theme');
         } else {
@@ -1453,22 +1457,31 @@
         resultEl.textContent = '测试中...';
         resultEl.style.color = '#999';
 
-        const baseUrl = $('#custom-base-url')?.value?.trim();
+        const baseUrlInput = $('#custom-base-url')?.value?.trim();
         const apiKey = $('#custom-api-key')?.value?.trim();
         const model = $('#custom-text-model')?.value?.trim() || 'test';
 
-        if (!baseUrl) { resultEl.textContent = '请填写 Base URL'; resultEl.style.color = '#e74c3c'; return; }
+        if (!baseUrlInput) { resultEl.textContent = '请填写 Base URL'; resultEl.style.color = '#e74c3c'; return; }
         if (!apiKey) { resultEl.textContent = '请填写 API Key'; resultEl.style.color = '#e74c3c'; return; }
 
         try {
-            const url = baseUrl.replace(/\/+$/, '') + '/chat/completions';
+            const baseUrl = baseUrlInput.replace(/\/+$/, '');
+            // 如果base URL已经包含 /chat/completions，直接使用；否则拼接
+            const targetUrl = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`;
+            const useCorsProxy = state.settings.corsProxy;
+            const proxyBase = state.settings.corsProxyUrl || window.location.origin;
+            const requestUrl = useCorsProxy ? `${proxyBase}/api/custom/chat/completions` : targetUrl;
+            const requestHeaders = { 'Content-Type': 'application/json' };
+            if (useCorsProxy) {
+                requestHeaders['X-Custom-Target-URL'] = targetUrl;
+                requestHeaders['X-Custom-API-Key'] = apiKey;
+            } else {
+                requestHeaders['Authorization'] = `Bearer ${apiKey}`;
+            }
             const startTime = Date.now();
-            const response = await fetch(url, {
+            const response = await fetch(requestUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`,
-                },
+                headers: requestHeaders,
                 body: JSON.stringify({
                     model: model || 'test',
                     messages: [{ role: 'user', content: 'Hi' }],
@@ -1729,10 +1742,22 @@
 
         let url;
         let headers = { 'Content-Type': 'application/json' };
+        let useCustomProxy = false;
         if (isCustom) {
             const baseUrl = state.settings.customBaseUrl.replace(/\/+$/, '');
-            url = `${baseUrl}/chat/completions`;
-            headers['Authorization'] = `Bearer ${apiKey}`;
+            // 如果base URL已经包含 /chat/completions，直接使用；否则拼接
+            const targetUrl = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`;
+            // 如果启用了CORS代理，通过服务端代理转发自定义API请求
+            if (state.settings.corsProxy) {
+                const proxyBase = state.settings.corsProxyUrl || window.location.origin;
+                url = `${proxyBase}/api/custom/chat/completions`;
+                headers['X-Custom-Target-URL'] = targetUrl;
+                headers['X-Custom-API-Key'] = apiKey;
+                useCustomProxy = true;
+            } else {
+                url = targetUrl;
+                headers['Authorization'] = `Bearer ${apiKey}`;
+            }
         } else if (canDirectConnect && !useProxy) {
             url = `${config.baseUrl}/chat/completions`;
             headers['Authorization'] = `Bearer ${apiKey}`;
@@ -1891,8 +1916,18 @@
         let headers = { 'Content-Type': 'application/json' };
         if (isCustom) {
             const baseUrl = state.settings.customBaseUrl.replace(/\/+$/, '');
-            url = `${baseUrl}/images/generations`;
-            headers['Authorization'] = `Bearer ${apiKey}`;
+            // 如果base URL已经包含 /images/generations，直接使用；否则拼接
+            const targetUrl = baseUrl.endsWith('/images/generations') ? baseUrl : `${baseUrl}/images/generations`;
+            // 如果启用了CORS代理，通过服务端代理转发自定义API请求
+            if (state.settings.corsProxy) {
+                const proxyBase = state.settings.corsProxyUrl || window.location.origin;
+                url = `${proxyBase}/api/custom/images/generations`;
+                headers['X-Custom-Target-URL'] = targetUrl;
+                headers['X-Custom-API-Key'] = apiKey;
+            } else {
+                url = targetUrl;
+                headers['Authorization'] = `Bearer ${apiKey}`;
+            }
         } else if (useProxyUrl) {
             url = `${proxyBase}/api/${provider}/images/generations`;
         } else {

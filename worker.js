@@ -13,14 +13,14 @@ function getApiKey(env, provider) {
     return map[provider] || null;
 }
 
-const ALLOWED_ORIGINS = ['https://galai.dpdns.org', 'https://aigalgame.pages.dev', 'http://localhost:3000', 'http://localhost:5500'];
+const ALLOWED_ORIGINS = ['https://galai.dpdns.org', 'https://aigalgame.pages.dev', 'http://localhost:3000', 'http://localhost:5500', 'http://localhost:8788', 'http://127.0.0.1:8788'];
 
 function getCorsHeaders(origin) {
     const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
     return {
         'Access-Control-Allow-Origin': allowedOrigin,
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-ModelScope-Async-Mode, X-ModelScope-Task-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-ModelScope-Async-Mode, X-ModelScope-Task-Type, X-Custom-Target-URL, X-Custom-API-Key',
         'Access-Control-Expose-Headers': 'modelscope-ratelimit-requests-limit, modelscope-ratelimit-requests-remaining, modelscope-ratelimit-model-requests-limit, modelscope-ratelimit-model-requests-remaining',
     };
 }
@@ -110,6 +110,83 @@ async function proxyApi(request, env, provider, apiPath) {
     }
 }
 
+async function proxyCustomApi(request, env) {
+    const origin = request.headers.get('Origin') || '';
+    const corsHeaders = getCorsHeaders(origin);
+
+    const targetUrl = request.headers.get('X-Custom-Target-URL');
+    const apiKey = request.headers.get('X-Custom-API-Key');
+
+    if (!targetUrl) {
+        return errorResponse('缺少 X-Custom-Target-URL 头', 400, origin);
+    }
+
+    try {
+        const parsed = new URL(targetUrl);
+        if (!['https:', 'http:'].includes(parsed.protocol)) {
+            return errorResponse('不支持的协议', 400, origin);
+        }
+    } catch {
+        return errorResponse('无效的目标URL', 400, origin);
+    }
+
+    let body = null;
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+        body = await request.arrayBuffer();
+    }
+
+    const proxyHeaders = new Headers();
+    if (apiKey) proxyHeaders.set('Authorization', `Bearer ${apiKey}`);
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+        proxyHeaders.set('Content-Type', request.headers.get('Content-Type') || 'application/json');
+    }
+
+    try {
+        const proxyRequest = new Request(targetUrl, {
+            method: request.method,
+            headers: proxyHeaders,
+            body: body ? body : undefined,
+        });
+
+        const response = await fetch(proxyRequest);
+
+        const isStream = response.headers.get('content-type')?.includes('text/event-stream');
+
+        if (isStream) {
+            const { readable, writable } = new TransformStream();
+            response.body.pipeTo(writable).catch((err) => {
+                console.error('Stream pipe error:', err);
+                try { writable.close(); } catch {}
+            });
+            return new Response(readable, {
+                status: response.status,
+                statusText: response.statusText,
+                headers: {
+                    'Content-Type': 'text/event-stream;charset=UTF-8',
+                    'Cache-Control': 'no-cache',
+                    'Connection': 'keep-alive',
+                    ...corsHeaders,
+                },
+            });
+        }
+
+        const respBody = await response.text();
+
+        const newHeaders = new Headers();
+        newHeaders.set('Content-Type', response.headers.get('Content-Type') || 'application/json');
+        Object.entries(corsHeaders).forEach(([k, v]) => newHeaders.set(k, v));
+
+        return new Response(respBody, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: newHeaders,
+        });
+    } catch (e) {
+        console.error(`Custom proxy error [${targetUrl}]:`, e.message);
+        return errorResponse('上游API请求失败', 502, origin);
+    }
+}
+
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
@@ -131,6 +208,10 @@ export default {
             const apiPath = parts.slice(1).join('/') + url.search;
 
             if (!provider || !API_BASES[provider]) {
+                // 支持自定义 API 代理：/api/custom/...
+                if (provider === 'custom') {
+                    return proxyCustomApi(request, env);
+                }
                 return errorResponse(`Unknown provider: ${provider}`);
             }
 
