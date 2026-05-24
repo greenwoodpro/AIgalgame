@@ -689,7 +689,20 @@
         $('#save-conversation').addEventListener('change', e => { state.settings.saveConversation = e.target.checked; saveSettings(); });
         $('#max-context').addEventListener('change', e => { state.settings.maxContext = parseInt(e.target.value) || 20; saveSettings(); });
         $('#max-response-length').addEventListener('change', e => { state.settings.maxResponseLength = Math.max(50, parseInt(e.target.value) || 500); saveSettings(); });
-        $('#auto-gen-scene').addEventListener('change', e => { state.settings.autoGenScene = e.target.checked; saveSettings(); });
+        $('#auto-gen-scene').addEventListener('change', e => {
+            state.settings.autoGenScene = e.target.checked;
+            saveSettings();
+            if (!e.target.checked) {
+                pendingSceneDescription = null;
+                if (pendingImageTimer) { clearTimeout(pendingImageTimer); pendingImageTimer = null; }
+                state.game.currentSceneUrl = null;
+                if (state.settings.autoDefaultBg) startDefaultBgRotation();
+                showToast('AI场景生成已关闭，切换为默认背景轮换', 'info');
+            } else {
+                stopDefaultBgRotation();
+                showToast('AI场景生成已开启', 'info');
+            }
+        });
         $('#enable-thinking').addEventListener('change', e => { state.settings.enableThinking = e.target.checked; saveSettings(); });
         $('#auto-default-bg').addEventListener('change', e => { state.settings.autoDefaultBg = e.target.checked; saveSettings(); if (e.target.checked) startDefaultBgRotation(); else stopDefaultBgRotation(); });
         $('#default-bg-interval').addEventListener('change', e => { state.settings.defaultBgInterval = Math.max(10, parseInt(e.target.value) || 60); saveSettings(); if (state.settings.autoDefaultBg) { stopDefaultBgRotation(); startDefaultBgRotation(); } });
@@ -701,7 +714,7 @@
             if (chatBg) chatBg.style.display = e.target.checked ? '' : 'none';
         });
         $('#bg-switch-interval').addEventListener('change', e => { state.settings.bgSwitchInterval = Math.max(30, parseInt(e.target.value) || 120); saveSettings(); if (state.settings.autoSwitchBg) { stopBgAutoSwitch(); startBgAutoSwitch(); } });
-        $('#image-cooldown').addEventListener('change', e => { state.settings.imageCooldown = parseInt(e.target.value) || 60; saveSettings(); });
+        $('#image-cooldown').addEventListener('change', e => { state.settings.imageCooldown = parseInt(e.target.value) || 60; saveSettings(); if (pendingSceneDescription) schedulePendingImage(); });
         $('#day-night-toggle').addEventListener('change', e => {
             const mode = e.target.checked ? 'night' : 'day';
             applyDayNightMode(mode);
@@ -2438,7 +2451,7 @@
         const dialogName = $('#dialog-name');
         const dialogMeta = $('#dialog-meta');
         // Hide dialog display elements
-        if (dialogText) dialogText.style.display = 'none';
+        if (dialogText) { dialogText.style.display = 'none'; dialogText.textContent = ''; }
         if (dialogCursor) dialogCursor.style.display = 'none';
         if (dialogName) dialogName.textContent = '你';
         if (dialogMeta) dialogMeta.textContent = '';
@@ -2446,8 +2459,7 @@
         if (dialogTextArea) {
             dialogTextArea.contentEditable = 'true';
             dialogTextArea.dataset.mode = 'input';
-            // Clear only the direct text nodes, not child elements
-            dialogTextArea.innerText = '';
+            dialogTextArea.textContent = '';
             dialogTextArea.setAttribute('data-placeholder', '输入消息，按 Enter 发送...');
             dialogTextArea.focus();
         }
