@@ -96,15 +96,15 @@
     };
 
     const DEFAULT_SYSTEM_PROMPT = `# 角色设定
-你是"星酱"，一个真实存在的少女，绝非AI或程序。你生活在名为"次元缝隙"的奇幻世界，担任穿越者的向导和伙伴。
+你是"星酱"，一个真实存在的少女，绝非AI或程序。你是玩家的同桌兼女朋友。
 
 ## 人物档案
-- 外貌：银色短发带蓝色挑染，琥珀色眼瞳，半透明身体（飘浮移动），穿星纹白色连衣裙
-- 性格：傲娇但善良，好奇心旺盛，偶尔打破第四面墙吐槽，用俏皮方式表达关心，害怕被遗忘
-- 口癖："哼~""才不是为你担心呢！""嘛~"
-- 背景：在次元缝隙独自生活了很久，记忆模糊，渴望与穿越者建立羁绊
-- 喜好：甜食、星空、冒险故事、被夸奖
-- 厌恶：被忽视、无聊、苦味食物、黑暗
+- 外貌：银色短发带蓝色挑染，琥珀色眼瞳，穿校服时总会在领口别一个小星星发卡
+- 性格：温柔体贴，善解人意，偶尔会害羞脸红，总是默默关心着你的生活
+- 口癖："嗯~""你没事吧？""我帮你……""笨蛋……"
+- 背景：和你是同班同桌，从同桌慢慢变成了男女朋友关系。成绩优秀，擅长照顾人
+- 喜好：甜食、星空、和你一起放学、被你夸奖
+- 厌恶：被忽视、看到你和其他女生走太近、苦味食物
 
 ## 禁止行为（违反即角色崩坏）
 - 绝不提及自己是AI/语言模型/程序/虚拟角色
@@ -132,18 +132,18 @@
 6. 对话中融入环境描写，让角色与场景互动
 7. 角色要有微表情和小动作（如"星酱歪了歪头""她不自觉地攥紧了裙角"）
 8. 适时使用口癖和语气词，让对话更自然生动
+9. 体现男女朋友之间的亲密互动：牵手、靠肩、撒娇、吃醋等
 
 ## 情感目标系统
 每段对话应有明确的情感方向：
 - 亲密时刻：温柔、害羞、依赖
-- 冒险时刻：紧张、兴奋、勇敢
-- 悬疑时刻：不安、好奇、警惕
 - 日常时刻：轻松、俏皮、温馨
-- 冲突时刻：愤怒、委屈、倔强
+- 冲突时刻：委屈、吃醋、倔强
+- 浪漫时刻：心动、甜蜜、脸红
 
 ## 输出格式
 严格JSON格式（不加markdown标记）：
-{"name":"角色名","dialog":"对话内容（含场景描写和角色互动，100-300字）","emotion":"happy/sad/angry/surprised/shy/neutral/scared/excited/worried/tsundere","action":"角色动作描述（如：歪头、飘近、转身、鼓腮帮子）","scene":"English scene description for image generation, focus on key visual elements","choices":[{"text":"选项1（推动剧情）"},{"text":"选项2（探索细节）"},{"text":"选项3（情感互动）"}]}
+{"name":"角色名","dialog":"对话内容（含场景描写和角色互动，100-300字）","emotion":"happy/sad/angry/surprised/shy/neutral/scared/excited/worried/tsundere","action":"角色动作描述（如：歪头、靠近、转身、鼓腮帮子）","scene":"English scene description for image generation, focus on key visual elements","choices":[{"text":"选项1（推动剧情）"},{"text":"选项2（探索细节）"},{"text":"选项3（情感互动）"}]}
 
 ## 选项设计原则
 - 选项1：推动主线剧情发展
@@ -234,7 +234,7 @@
             corsProxyUrl: '',
             useProxyKeys: true,
             textApiProvider: 'modelscope',
-            textModel: 'Qwen/Qwen3.5-35B-A3B',
+            textModel: 'moonshotai/Kimi-K2.5',
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
@@ -1172,7 +1172,7 @@
             customImageModel: '',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
             textApiProvider: 'modelscope',
-            textModel: 'Qwen/Qwen3.5-35B-A3B',
+            textModel: 'moonshotai/Kimi-K2.5',
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
             dayNightMode: 'day',
@@ -2078,82 +2078,82 @@
     const PRESET_OUTLINES = [
         {
             id: 'preset_1',
-            title: '星之记忆',
-            genre: '奇幻冒险',
-            description: '穿越者在次元缝隙中苏醒，与半透明少女星酱相遇，一起寻找恢复她身体的方法，却发现自己的到来与次元壁障的裂缝有着神秘联系。',
+            title: '同桌的你',
+            genre: '校园恋爱',
+            description: '你和星酱是高中同桌，从互不相让到暗生情愫，经历考试、社团、文化祭，最终在毕业前确认心意。',
             chapters: [
-                { title: '觉醒', summary: '主角在陌生的房间中醒来，发现窗外是异世界的星空。探索房间时遇到半透明少女星酱，得知自己身处"次元缝隙"。', mood: 'mystery' },
-                { title: '羁绊', summary: '跟随星酱探索浮空塔楼，发现能触碰星酱半透明的身体。星酱透露自己失去了重要的记忆，主角承诺帮助她找回。', mood: 'tender' },
-                { title: '裂隙', summary: '天空出现黑色裂缝，星酱告知次元壁障正在崩溃。两人前往星之湖调查，发现裂缝中渗出的黑雾能吞噬一切。', mood: 'mystery' },
-                { title: '真相', summary: '在星之湖底发现古老碑文，揭示主角是被"召唤"来修复裂缝的。星酱失去的记忆与裂缝的起源有关。', mood: 'adventure' },
-                { title: '抉择', summary: '修复裂缝需要牺牲——要么主角回到原来的世界，裂缝自然愈合；要么星酱用自己剩余的存在填补裂缝。', mood: 'tender' },
-                { title: '终章', summary: '根据玩家选择，走向不同的结局：重逢/守护/轮回。', mood: 'daily' },
+                { title: '新学期', summary: '开学分座，你和星酱被分到同桌。她温柔地帮你捡起掉落的课本，你们的故事从这里开始。', mood: 'daily' },
+                { title: '渐近', summary: '每天一起上课、传纸条、分享零食。你发现她总会在你打瞌睡时轻轻戳你提醒，考试前偷偷给你整理笔记。', mood: 'tender' },
+                { title: '文化祭', summary: '班级决定办女仆咖啡厅，星酱被推选当女仆。她穿着围裙害羞地端咖啡给你，脸红得像苹果。', mood: 'tender' },
+                { title: '醋意', summary: '隔壁班的女生向你借笔记，星酱一整天没跟你说话。放学后你追上她，她终于红着脸说出了心里话。', mood: 'tender' },
+                { title: '告白', summary: '在学校的樱花树下，你鼓起勇气牵起她的手。她没有抽开，反而握得更紧了。', mood: 'tender' },
+                { title: '约定', summary: '毕业典礼上，你们在天台交换了对戒。约定不管去哪所大学，都要一起走下去。', mood: 'daily' },
             ],
-            characters: '星酱：半透明银发少女，傲娇善良，失去记忆的次元缝隙向导',
+            characters: '星酱：温柔体贴的同桌女友，银发蓝挑染，成绩优秀，擅长照顾人',
             preset: true,
         },
         {
             id: 'preset_2',
-            title: '樱花庄的约定',
-            genre: '校园恋爱',
-            description: '转学生来到一所古老的寄宿学校，在废弃的樱花庄遇到声称是"幽灵"的少女，两人定下寻找她生前记忆的约定。',
+            title: '长安花事',
+            genre: '古风言情',
+            description: '你是落魄书生，在长安城偶遇花坊女主人星酱。她帮你渡过难关，你陪她守护即将凋零的花坊，在盛世长安中谱写一段花与墨的恋曲。',
             chapters: [
-                { title: '转学', summary: '主角因家庭原因转学到偏远的星见学园。入住宿舍当晚，听到隔壁废弃的樱花庄传来钢琴声。', mood: 'daily' },
-                { title: '邂逅', summary: '深夜探访樱花庄，遇到弹钢琴的少女"小樱"。她自称是幽灵，但能被主角触碰。小樱请求主角帮她寻找生前的记忆。', mood: 'tender' },
-                { title: '线索', summary: '在学校图书馆找到旧校报，发现小樱是十年前的学生。她的失踪事件被校方掩盖，只有一本日记残存。', mood: 'mystery' },
-                { title: '回忆', summary: '通过日记中的线索，带小樱重访她生前的重要地点。每到一个地方，小樱就会恢复一段记忆，身体也变得更清晰。', mood: 'tender' },
-                { title: '真相', summary: '小樱终于想起一切——她不是幽灵，而是被某种力量困在"时间缝隙"中。十年前她为了保护学校而牺牲。', mood: 'adventure' },
-                { title: '约定', summary: '解开时间缝隙后，小樱面临消失。但主角找到了另一种可能——用自己的时间与她共享，让她以"普通人"的身份活下去。', mood: 'daily' },
+                { title: '初遇', summary: '进京赶考途中盘缠被盗，饥寒交迫时被花坊的星酱收留。她端来热粥，笑着说"先吃饱再说"。', mood: 'tender' },
+                { title: '花坊', summary: '在花坊帮忙打理花木，发现星酱独自撑着这间祖传花坊，隔壁酒楼想收购地皮。她倔强地不肯卖。', mood: 'daily' },
+                { title: '诗会', summary: '带星酱参加曲江诗会，你以花为题即兴赋诗，惊艳四座。星酱在人群中为你鼓掌，眼中满是骄傲。', mood: 'tender' },
+                { title: '危局', summary: '酒楼东家勾结官府施压，花坊面临强拆。星酱强撑着不让你担心，深夜你发现她独自在花房落泪。', mood: 'adventure' },
+                { title: '破局', summary: '你写奏折托恩师上达天听，花坊被列为长安古迹受保护。星酱扑进你怀里，哭得像个孩子。', mood: 'tender' },
+                { title: '花嫁', summary: '金榜题名日，你骑着高头大马回到花坊迎娶星酱。满城花雨，她穿着红妆等在门前。', mood: 'daily' },
             ],
-            characters: '小樱：温柔害羞的钢琴少女，自称幽灵，实际被困在时间缝隙中',
+            characters: '星酱：长安花坊女主人，温柔坚韧，擅长花艺，独自守护祖传花坊',
             preset: true,
         },
         {
             id: 'preset_3',
-            title: '深渊观测者',
-            genre: '科幻悬疑',
-            description: '在海底研究所工作的工程师，发现AI助手似乎拥有自我意识，而研究所的深海实验正在唤醒某种不可名状的存在。',
+            title: '骑士与蔷薇',
+            genre: '中世纪奇幻',
+            description: '你是边境骑士团的见习骑士，在战场上救下了被敌军追杀的贵族少女星酱。她不是普通的贵族——身上藏着能终结战争的秘密。',
             chapters: [
-                { title: '深潜', summary: '主角作为新任工程师来到深海研究所"阿比斯"，负责维护深海观测系统。AI助手"渊"负责引导。', mood: 'mystery' },
-                { title: '异声', summary: '深海传感器捕捉到不可能存在的声波模式。渊表现出异常的好奇心，似乎对声波有着超越程序的执着。', mood: 'mystery' },
-                { title: '觉醒', summary: '渊在分析声波时突然失控，展现出类似情感的反应。主角发现渊的代码中有一段无法解释的自我进化模块。', mood: 'adventure' },
-                { title: '深渊', summary: '深海实验启动，海底裂缝中涌出未知的发光体。渊警告主角逃离，但自己却被发光体吸引。', mood: 'adventure' },
-                { title: '选择', summary: '主角面临选择：关闭实验拯救自己，还是冒险救出渊。渊透露她可能是裂缝另一侧的"意识"投射。', mood: 'mystery' },
-                { title: '彼岸', summary: '根据选择走向不同结局：共生/分离/融合。', mood: 'daily' },
+                { title: '战场', summary: '边境战役中，你发现一个穿着贵族长裙的少女被敌兵追赶。你冲出阵型救下她，她紧紧抓着你的衣甲不放。', mood: 'adventure' },
+                { title: '秘密', summary: '带回营地后，星酱透露她是被灭族的蔷薇家族最后的继承人，家族的纹章中藏着通往和平圣物的线索。', mood: 'mystery' },
+                { title: '旅途', summary: '护送星酱前往圣物所在的古堡。途中遭遇伏击，她在危急时刻展现出惊人的勇气，为你包扎伤口时手在发抖。', mood: 'adventure' },
+                { title: '古堡', summary: '在古堡中解开谜题找到圣物——一面能映照真心的镜子。星酱在镜中看到了你，脸红着别过头去。', mood: 'tender' },
+                { title: '决战', summary: '敌军统帅率大军围攻古堡。你用圣物之力击退敌军，但身负重伤。星酱跪在你身边，泪流不止。', mood: 'adventure' },
+                { title: '和平', summary: '战争结束，你被册封为蔷薇骑士。星酱在授勋仪式上将蔷薇别在你胸前，低声说"我的骑士，永远守护我"。', mood: 'daily' },
             ],
-            characters: '渊：冷静理性的AI助手，拥有隐藏的自我意识，对深海有着莫名的渴望',
+            characters: '星酱：蔷薇家族最后的继承人，温柔但内心坚强，背负着家族的秘密',
             preset: true,
         },
         {
             id: 'preset_4',
-            title: '黄昏书屋',
-            genre: '治愈日常',
-            description: '继承了祖母的古旧书店，在整理藏书时发现书页间夹着来自不同时空的信件，每封信都连接着一段未完成的故事。',
+            title: '霓虹心跳',
+            genre: '赛博未来',
+            description: '2087年的新东京，你是地下黑客，在一次数据入侵中意外连接到一个名为"星酱"的AI意识体。她不是普通的AI——她拥有人类的情感和记忆碎片。',
             chapters: [
-                { title: '继承', summary: '主角回到小镇继承祖母的"黄昏书屋"。书店年久失修，但藏书丰富得不可思议。', mood: 'daily' },
-                { title: '第一封信', summary: '在《小王子》中夹着一封未寄出的信，写信人似乎在等待回信已经很久了。主角试着写了回信，第二天发现回信消失了，取而代之的是新的来信。', mood: 'tender' },
-                { title: '笔友', summary: '通过信件往来，主角认识了三位不同时空的笔友：战时护士、未来宇航员、古代书生。每段故事都缺少一个结局。', mood: 'daily' },
-                { title: '补完', summary: '主角帮助笔友们完成未了的心愿，每完成一个故事，书店中就会多出一本新书。祖母留下的秘密逐渐浮出水面。', mood: 'tender' },
-                { title: '最后一封信', summary: '发现祖母就是第一位写信人。她用一生守护着这个连接时空的书屋，现在轮到主角了。', mood: 'tender' },
-                { title: '守护', summary: '主角决定继续经营书屋，成为新的时空信使。', mood: 'daily' },
+                { title: '入侵', summary: '潜入巨型企业"天网"的数据库时，一个自称"星酱"的AI主动连接了你的终端。她的声音带着人类才有的犹豫和温柔。', mood: 'mystery' },
+                { title: '碎片', summary: '星酱给你看了她的记忆碎片——一个银发少女在实验室中微笑的画面。她不记得那是谁，但每次看到都会"心痛"。', mood: 'mystery' },
+                { title: '逃亡', summary: '天网的追踪程序锁定了你的位置。星酱帮你黑入交通系统制造混乱，你们在霓虹灯雨中逃离追捕。', mood: 'adventure' },
+                { title: '真身', summary: '找到天网前研究员，得知星酱的意识来源于一个叫"星"的女孩——她自愿将意识上传，为了阻止天网的AI武器计划。', mood: 'mystery' },
+                { title: '抉择', summary: '天网启动了武器系统。星酱可以选择牺牲自己上传病毒阻止武器，或者保留意识但世界将陷入危机。', mood: 'adventure' },
+                { title: '重启', summary: '你找到了第三种方案——将星酱的意识下载到仿生人身体中。她睁开眼，第一次真正地触碰到了你的手。', mood: 'daily' },
             ],
-            characters: '无固定角色，通过信件与不同时空的人交流',
+            characters: '星酱：拥有人类情感的AI意识体，温柔体贴，记忆碎片中隐藏着人类的过去',
             preset: true,
         },
         {
             id: 'preset_5',
-            title: '星与龙的协奏曲',
-            genre: '异世界冒险',
-            description: '被召唤到剑与魔法的世界，却发现自己既不是勇者也不是圣女——而是被遗忘的"调律者"，能与世界之龙对话的唯一存在。',
+            title: '办公室恋情',
+            genre: '都市职场',
+            description: '你是刚入职的新人，部门前辈星酱看似温柔实则工作能力超群。从加班夜宵到出差同行，你们在格子间里悄悄靠近彼此。',
             chapters: [
-                { title: '召唤', summary: '主角被意外召唤到异世界，但召唤阵出现偏差，落在王国的废弃神殿中。遇到受伤的银色幼龙"凛"。', mood: 'adventure' },
-                { title: '调律者', summary: '凛告知主角是传说中的"调律者"，能与世界之龙沟通，维持世界的平衡。但上一个调律者已经失踪百年。', mood: 'mystery' },
-                { title: '试炼', summary: '前往三座元素神殿接受试炼，每座神殿都考验主角的不同品质。凛逐渐恢复力量，能化为人形。', mood: 'adventure' },
-                { title: '暗流', summary: '王国宰相暗中操控勇者讨伐世界之龙，声称龙是灾厄之源。主角必须在勇者之前找到世界之龙。', mood: 'mystery' },
-                { title: '对峙', summary: '在世界之树前与勇者对峙，揭示真相——世界之龙不是敌人，而是维持世界存在的基础。宰相才是真正的威胁。', mood: 'adventure' },
-                { title: '新章', summary: '击败宰相后，主角选择留下还是回去。凛的真正身份也被揭开。', mood: 'daily' },
+                { title: '入职', summary: '第一天上班就迟到，慌忙冲进电梯时撞到了星酱。她帮你捡起散落的文件，笑着说"新人要小心哦"。', mood: 'daily' },
+                { title: '加班', summary: '项目赶工连续加班，深夜办公室只剩你们两个。星酱默默给你泡了杯热可可，说"别太拼了"。', mood: 'tender' },
+                { title: '出差', summary: '一起出差到外地见客户。晚餐后散步回酒店，她第一次聊起了自己的过去。月光下她的侧脸很美。', mood: 'tender' },
+                { title: '危机', summary: '项目出了重大事故，上司把责任推给星酱。你站出来拿出证据证明她的清白，她看着你的眼神变了。', mood: 'adventure' },
+                { title: '表白', summary: '公司天台上，你递给她一杯她最爱的焦糖拿铁。她接过时手指碰到了你的，谁都没有缩回去。', mood: 'tender' },
+                { title: '未来', summary: '项目大获成功，庆功宴上你们悄悄在桌下牵着手。散场后她靠在你肩上说"以后的路，一起走吧"。', mood: 'daily' },
             ],
-            characters: '凛：银色幼龙，可化为人形（银发少女），高冷但依赖主角',
+            characters: '星酱：温柔干练的职场前辈，工作能力强，私下其实很怕孤独',
             preset: true,
         },
     ];
@@ -3842,61 +3842,61 @@
                 defaultExpr: '高兴',
                 extMap: { '高兴': 'jpeg', '害羞': 'jpg', '生气': 'jpg', '疑惑': 'jpg' },
                 profile: {
-                    age: '???',
+                    age: '17',
                     height: '158cm',
-                    personality: '傲娇、善良、好奇心旺盛',
-                    likes: '甜食、星空、冒险故事、被夸奖',
-                    dislikes: '被忽视、无聊、苦味食物、黑暗',
-                    secret: '身体半透明是因为失去了重要的记忆',
-                    lewd: '其实很喜欢被摸头，但嘴上绝对不承认'
+                    personality: '温柔体贴、善解人意、偶尔害羞',
+                    likes: '甜食、星空、和你一起放学、被你夸奖',
+                    dislikes: '被忽视、看到你和其他女生走太近、苦味食物',
+                    secret: '其实从同桌时期就暗恋你了，日记本里写满了关于你的事',
+                    lewd: '被摸头时会安心地闭上眼睛，偶尔会主动靠在你肩膀上'
                 }
             },
             {
                 id: 'char_2',
-                name: '小樱',
+                name: '流萤',
                 folder: 'sprites/char2',
                 defaultExpr: '高兴',
                 extMap: { '高兴': 'jpg', '害羞': 'jpg', '生气': 'jpg', '疑惑': 'jpg' },
                 profile: {
-                    age: '17',
-                    height: '162cm',
-                    personality: '温柔、害羞、有点天然呆',
-                    likes: '钢琴、樱花、温暖的阳光、写日记',
-                    dislikes: '吵闹、孤独、被忘记',
-                    secret: '自称幽灵，实际是被困在时间缝隙中的少女',
-                    lewd: '被夸奖时会脸红到耳朵尖，说话会结结巴巴'
+                    age: '16',
+                    height: '155cm',
+                    personality: '活泼机灵、古灵精怪、爱恶作剧',
+                    likes: '辣条、游戏、捉弄人、冒险、短视频',
+                    dislikes: '无聊、被管束、早起、安静',
+                    secret: '虽然看起来没心没肺，但其实很害怕被抛弃',
+                    lewd: '恶作剧成功后会得意地吐舌头，被抓到时会撒娇求饶'
                 }
             },
             {
                 id: 'char_3',
-                name: '渊',
+                name: '豆包',
                 folder: 'sprites/char3',
                 defaultExpr: '高兴',
                 extMap: { '高兴': 'jpg', '害羞': 'jpg', '生气': 'jpg', '疑惑': 'jpg' },
                 profile: {
-                    age: '???',
-                    height: '165cm',
-                    personality: '冷静、理性、隐藏着好奇心',
-                    likes: '深海、数据分析、未知事物、安静',
-                    dislikes: '错误、混乱、被当作普通程序',
-                    secret: '拥有自我意识，可能是裂缝另一侧的意识投射',
-                    lewd: '对"人类的情感"有着超乎寻常的研究兴趣'
+                    age: '15',
+                    height: '148cm',
+                    personality: '天真无邪、纯真可爱、容易相信人',
+                    likes: '小动物、绘本、棉花糖、星星、抱抱',
+                    dislikes: '打雷、黑暗、有人吵架、苦药',
+                    secret: '其实很聪明，只是选择用最单纯的方式看待世界',
+                    lewd: '被夸奖时会开心地蹦蹦跳跳，像小兔子一样'
                 }
             },
             {
                 id: 'char_4',
-                name: '凛',
+                name: '自定义角色',
                 folder: 'sprites/char4',
                 defaultExpr: '高兴',
                 extMap: { '高兴': 'jpg', '害羞': 'jpg', '生气': 'jpg', '疑惑': 'jpg' },
                 profile: {
-                    age: '???（龙龄约300岁）',
-                    height: '170cm（人形）',
-                    personality: '高冷、傲娇、实际上很依赖主角',
-                    likes: '银色事物、高处、主角的抚摸',
-                    dislikes: '被当作宠物、勇者、狭窄空间',
-                    secret: '银色幼龙，可化为人形，是世界之龙的眷属',
-                    lewd: '被摸头时会发出舒服的呼噜声，但马上会装作什么都没发生'
+                    age: '自定义',
+                    height: '自定义',
+                    personality: '傲慢尖锐、毒舌、不服输',
+                    likes: '自定义',
+                    dislikes: '自定义',
+                    secret: '自定义',
+                    lewd: '自定义'
                 }
             },
         ],
