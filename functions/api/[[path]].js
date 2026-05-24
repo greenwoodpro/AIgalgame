@@ -38,7 +38,11 @@ async function proxyApi(request, env, provider, apiPath) {
     const apiKey = getApiKey(env, provider);
     const baseUrl = API_BASES[provider];
     if (!apiKey || !baseUrl) {
-        return errorResponse(`Provider ${provider} not configured`, 500, origin);
+        return errorResponse('服务不可用', 404, origin);
+    }
+
+    if (apiPath.includes('..')) {
+        return errorResponse('无效的API路径', 400, origin);
     }
 
     const targetUrl = `${baseUrl}/${apiPath}`;

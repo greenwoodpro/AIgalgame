@@ -38,7 +38,11 @@ async function proxyApi(request, env, provider, apiPath) {
     const apiKey = getApiKey(env, provider);
     const baseUrl = API_BASES[provider];
     if (!apiKey || !baseUrl) {
-        return errorResponse(`Provider ${provider} not configured`, 500, origin);
+        return errorResponse('服务不可用', 404, origin);
+    }
+
+    if (apiPath.includes('..')) {
+        return errorResponse('无效的API路径', 400, origin);
     }
 
     const targetUrl = `${baseUrl}/${apiPath}`;
@@ -133,6 +137,7 @@ export default {
             return proxyApi(request, env, provider, apiPath);
         }
 
-        return new Response('Not Found', { status: 404 });
+        const origin = request.headers.get('Origin') || '';
+        return errorResponse('Not Found', 404, origin);
     },
 };

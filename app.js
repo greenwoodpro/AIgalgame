@@ -439,6 +439,8 @@
         bindEvents();
         restoreSettingsUI();
         document.addEventListener('click', (e) => {
+            if (state.currentScreen !== 'game' && state.currentScreen !== 'chat') return;
+            if (e.target.closest('.modal, .modal-backdrop, .settings-panel')) return;
             const heart = document.createElement('div');
             heart.className = 'click-heart';
             heart.textContent = '♥';
@@ -870,13 +872,16 @@
 
     function handleKeyDown(e) {
         if (state.currentScreen !== 'game') return;
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable) return;
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleDialogClick(); }
         if (e.key === 'ArrowDown') { e.preventDefault(); handleDialogClick(); }
         if (e.key === 'ArrowUp') { e.preventDefault(); showPreviousDialog(); }
         if (e.key === 'Escape') {
-            if (!$('#settings-modal').classList.contains('hidden')) hideModal('settings-modal');
-            else if (!$('#gallery-modal').classList.contains('hidden')) hideModal('gallery-modal');
+            const modals = ['settings-modal', 'gallery-modal', 'outline-modal', 'outline-preview-modal', 'save-modal', 'history-modal', 'api-status-modal', 'continue-dialog-modal'];
+            for (const id of modals) {
+                const el = $(`#${id}`);
+                if (el && !el.classList.contains('hidden')) { hideModal(id); break; }
+            }
         }
     }
 
@@ -1215,6 +1220,7 @@
             if (state.settings.autoSwitchBg) startBgAutoSwitch();
         } catch (e) {
             showAiGenerating(false);
+            if (e.message === 'REQUEST_ABORTED') return;
             showToast('AI 调用失败: ' + e.message, 'error');
             showDialog('系统', 'AI连接失败，请检查API设置或CORS代理配置。错误: ' + e.message);
         } finally {
@@ -1490,13 +1496,8 @@
             return result;
         } catch (e) {
             if (e.name === 'AbortError') {
-                if (retryCount < MAX_RETRIES) {
-                    const delay = BASE_DELAY * Math.pow(2, retryCount);
-                    showToast(`请求被取消，${Math.ceil(delay/1000)}秒后重试...`, 'warning');
-                    await new Promise(r => setTimeout(r, delay));
-                    return await callAiApi(userMessage, retryCount + 1);
-                }
-                throw new Error('请求超时，请检查网络连接');
+                // 不重试 — 用户取消或页面切换时直接中止
+                throw new Error('REQUEST_ABORTED');
             }
             
             if (e.message && e.message.includes('fetch')) {
@@ -1982,8 +1983,8 @@
             div.innerHTML = `
                 <span style="color:var(--primary);font-size:0.8rem;min-width:2rem;padding-top:0.5rem;">第${i + 1}章</span>
                 <div style="flex:1;">
-                    <input type="text" class="chapter-title" value="${ch.title}" placeholder="章节标题" maxlength="20" style="width:100%;padding:0.3rem 0.5rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--input-bg,var(--bg));color:var(--text);font-size:0.85rem;margin-bottom:0.3rem;">
-                    <textarea class="chapter-summary" rows="2" placeholder="章节概要" maxlength="200" style="width:100%;padding:0.3rem 0.5rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--input-bg,var(--bg));color:var(--text);font-size:0.8rem;resize:vertical;">${ch.summary}</textarea>
+                    <input type="text" class="chapter-title" value="${esc(ch.title)}" placeholder="章节标题" maxlength="20" style="width:100%;padding:0.3rem 0.5rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--input-bg,var(--bg));color:var(--text);font-size:0.85rem;margin-bottom:0.3rem;">
+                    <textarea class="chapter-summary" rows="2" placeholder="章节概要" maxlength="200" style="width:100%;padding:0.3rem 0.5rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--input-bg,var(--bg));color:var(--text);font-size:0.8rem;resize:vertical;">${esc(ch.summary)}</textarea>
                     <select class="chapter-mood" style="padding:0.2rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--input-bg,var(--bg));color:var(--text);font-size:0.75rem;">
                         <option value="daily" ${ch.mood === 'daily' ? 'selected' : ''}>🏠 日常</option>
                         <option value="adventure" ${ch.mood === 'adventure' ? 'selected' : ''}>⚔️ 冒险</option>
@@ -2459,7 +2460,8 @@
         if (dialogTextArea) {
             dialogTextArea.contentEditable = 'true';
             dialogTextArea.dataset.mode = 'input';
-            dialogTextArea.textContent = '';
+            // Don't clear dialogTextArea itself — it would destroy child spans
+            // dialogText.textContent was already cleared above
             dialogTextArea.setAttribute('data-placeholder', '输入消息，按 Enter 发送...');
             dialogTextArea.focus();
         }
@@ -2617,8 +2619,11 @@
             
             const result = await Promise.race([
                 callAiApi(contextHint),
-                new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('请求超时')), maxWaitTime)
+                new Promise((_, reject) =>
+                    setTimeout(() => {
+                        if (currentAbortController) currentAbortController.abort();
+                        reject(new Error('请求超时'));
+                    }, maxWaitTime)
                 )
             ]);
             
@@ -2633,10 +2638,13 @@
             showAiGenerating(false);
             const elapsed = Date.now() - startTime;
             console.error('AI调用失败:', e, '耗时:', elapsed + 'ms');
-            
+
+            // 用户取消或页面切换，静默处理
+            if (e.message === 'REQUEST_ABORTED') return;
+
             let errorMsg = e.message || '未知错误';
             let friendlyMsg = '';
-            
+
             if (errorMsg.includes('timeout') || errorMsg.includes('超时')) {
                 friendlyMsg = '连接超时了……是不是网络有点慢？我们再试一次吧！';
             } else if (errorMsg.includes('限流') || errorMsg.includes('429')) {
@@ -3165,6 +3173,9 @@
 
     function backToTitle() {
         if (typewriterTimer) { clearInterval(typewriterTimer); typewriterTimer = null; }
+        if (dialogSegmentState.typingTimer) { clearTimeout(dialogSegmentState.typingTimer); dialogSegmentState.typingTimer = null; }
+        dialogSegmentState.isTyping = false;
+        dialogSegmentState.isWaitingForContinue = false;
         if (currentAbortController) { try { currentAbortController.abort(); } catch {} currentAbortController = null; }
         apiCallInProgress = false;
         state.game.isTyping = false;
