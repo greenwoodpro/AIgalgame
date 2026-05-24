@@ -1124,22 +1124,13 @@
     }
 
     async function startGame(mode) {
-        if (state.game.dialogHistory.length > 0) {
-            // 页面刷新后直接重新开始，不弹框
-            if (!sessionStorage.getItem('galgame_session_active')) {
-                state.game.dialogHistory = [];
-                state.game.aiContext = [];
-                state.game.variables = {};
-                state.game.currentSceneUrl = null;
-                state.game.currentScene = '';
-                Storage.set(STORAGE_KEYS.currentGame, state.game);
-            } else {
-                // 同一会话内，弹出自定义模态框
-                state._pendingGameMode = mode;
-                showModal('continue-dialog-modal');
-                return;
-            }
-        }
+        // 每次都清空旧对话，直接重新开始
+        state.game.dialogHistory = [];
+        state.game.aiContext = [];
+        state.game.variables = {};
+        state.game.currentSceneUrl = null;
+        state.game.currentScene = '';
+        Storage.set(STORAGE_KEYS.currentGame, state.game);
         doStartGame(mode);
     }
 
@@ -1155,10 +1146,12 @@
                 return;
             }
             state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, currentSceneUrl: null, currentScene: '' };
-            setSceneBackground(DEFAULT_BG);
             const outlineBtn = $('#outline-select-btn');
             if (outlineBtn) outlineBtn.classList.remove('hidden');
-            showSprite('char_1', '高兴');
+            // 随机选择角色立绘
+            const chars = SPRITE_CONFIG.characters;
+            const randomChar = chars[Math.floor(Math.random() * chars.length)];
+            showSprite(randomChar.id, randomChar.defaultExpr);
             await startAiStory();
         } else {
             state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, currentSceneUrl: null, currentScene: '' };
@@ -2315,7 +2308,6 @@
         if (dialogTextAreaEl) {
             dialogTextAreaEl.contentEditable = 'false';
             dialogTextAreaEl.dataset.mode = 'display';
-            dialogTextAreaEl.innerText = '';
         }
         // Restore dialog display elements
         const dialogText = $('#dialog-text');
@@ -2550,7 +2542,6 @@
         
         dialogTextArea.contentEditable = 'false';
         dialogTextArea.dataset.mode = 'display';
-        dialogTextArea.innerText = '';
         // Restore dialog display elements
         const dialogText = $('#dialog-text');
         const dialogCursor = $('#dialog-cursor');
