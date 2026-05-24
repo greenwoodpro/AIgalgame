@@ -980,6 +980,9 @@
                         continueDialog();
                     } else if (isInputMode && dialogTextArea.value.trim()) {
                         sendDialogInput();
+                    } else if (!isInputMode) {
+                        // In display mode, Enter triggers dialog click (continue or enable input)
+                        handleDialogClick();
                     }
                 } else if (e.key === 'ArrowUp' && !isInputMode) {
                     e.preventDefault();

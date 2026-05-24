@@ -52,7 +52,7 @@
     --sprite-transition: 300ms ease-in-out;
 
     /* === Layout === */
-    --choices-bottom: 250px;
+    --choices-bottom: 230px;
     --choices-width: 78%;
 
     /* === Menu & Buttons === */
@@ -1032,9 +1032,11 @@ html, body {
     right: 0;
     z-index: 10;
     display: flex;
-    gap: 0.3rem;
+    flex-wrap: wrap;
+    gap: 0.4rem;
     padding: 0.5rem;
     padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
+    max-width: 280px;
     opacity: 0.4;
     transition: opacity var(--transition);
 }
@@ -1443,24 +1445,14 @@ html, body {
     to { opacity: 0; transform: translateX(-50%) scale(var(--sprite-scale)) translateY(10px); }
 }
 
-/* Sprite idle breathing + sway animation */
+/* Sprite idle breathing animation */
 #character-sprite.idle {
-    animation: spriteIdle 6s ease-in-out infinite;
+    animation: spriteBreathing 4s ease-in-out infinite;
 }
 
-@keyframes spriteIdle {
-    0%, 100% {
-        transform: translateX(calc(-50% - 2px)) scale(var(--sprite-scale));
-    }
-    25% {
-        transform: translateX(calc(-50% + 1px)) scale(calc(var(--sprite-scale) * 1.0035));
-    }
-    50% {
-        transform: translateX(calc(-50% + 2px)) scale(var(--sprite-scale));
-    }
-    75% {
-        transform: translateX(calc(-50% - 1px)) scale(calc(var(--sprite-scale) * 1.0035));
-    }
+@keyframes spriteBreathing {
+    0%, 100% { transform: translateX(-50%) scale(var(--sprite-scale)); }
+    50% { transform: translateX(-50%) scale(calc(var(--sprite-scale) * 1.0035)); }
 }
 
 /* Sprite emotion animations */
@@ -2570,12 +2562,12 @@ html, body {
 /* ==================== Scene Download ==================== */
 #scene-download-btn {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 8px;
+    left: 8px;
     z-index: 11;
     padding: 0.3rem 0.6rem;
     border: none;
-    border-radius: 0 0 var(--radius-sm) 0;
+    border-radius: var(--radius-sm);
     background: var(--bg-card);
     color: var(--text);
     font-size: 0.7rem;
