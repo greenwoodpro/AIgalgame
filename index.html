@@ -18,6 +18,8 @@
     <div id="app">
         <div id="title-screen" class="screen active">
             <canvas id="title-canvas"></canvas>
+            <div id="title-bg"></div>
+            <div id="title-bg-next"></div>
             <div class="title-content">
                 <div class="title-logo">
                     <span class="title-icon">✦</span>
@@ -58,69 +60,6 @@
             <div id="status-badge" class="hidden">
                 <span class="status-name" id="status-name"></span>
                 <span class="status-emotion" id="status-emotion"></span>
-            </div>
-
-            <!-- Left Sidebar -->
-            <div id="left-sidebar" class="sidebar collapsed">
-                <button id="left-sidebar-toggle" class="sidebar-toggle" title="角色信息">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                </button>
-                <div class="sidebar-content">
-                    <div class="sidebar-section sidebar-char">
-                        <div class="sidebar-avatar" id="sidebar-avatar"></div>
-                        <div class="sidebar-char-name" id="sidebar-char-name">星酱</div>
-                        <div class="sidebar-char-emotion" id="sidebar-char-emotion">--</div>
-                    </div>
-                    <div class="sidebar-divider"></div>
-                    <div class="sidebar-section">
-                        <div class="sidebar-label">当前章节</div>
-                        <div class="sidebar-value" id="sidebar-chapter">--</div>
-                    </div>
-                    <div class="sidebar-section">
-                        <div class="sidebar-label">对话轮数</div>
-                        <div class="sidebar-value" id="sidebar-turns">0</div>
-                    </div>
-                    <div class="sidebar-section">
-                        <div class="sidebar-label">场景</div>
-                        <div class="sidebar-value" id="sidebar-scene">--</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Sidebar -->
-            <div id="right-sidebar" class="sidebar collapsed">
-                <button id="right-sidebar-toggle" class="sidebar-toggle" title="系统信息">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m4.22-10.22l4.24-4.24M6.34 6.34L2.1 2.1m17.9 9.9h6m-6 6h6m-4.24 4.24l4.24 4.24M6.34 17.66l-4.24 4.24M23 12h-6m-6 0H1m4.24-4.24L1.1 3.52m17.8 17.8l4.24 4.24"/></svg>
-                </button>
-                <div class="sidebar-content">
-                    <div class="sidebar-section">
-                        <div class="sidebar-label">文本模型</div>
-                        <div class="sidebar-value" id="sidebar-text-model">--</div>
-                    </div>
-                    <div class="sidebar-section">
-                        <div class="sidebar-label">图像模型</div>
-                        <div class="sidebar-value" id="sidebar-image-model">--</div>
-                    </div>
-                    <div class="sidebar-section">
-                        <div class="sidebar-label">连接方式</div>
-                        <div class="sidebar-value" id="sidebar-connection">--</div>
-                    </div>
-                    <div class="sidebar-divider"></div>
-                    <div class="sidebar-section sidebar-actions">
-                        <button class="sidebar-action-btn" data-action="open-settings">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
-                            设置
-                        </button>
-                        <button class="sidebar-action-btn" data-action="open-gallery">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-                            画廊
-                        </button>
-                        <button class="sidebar-action-btn" data-action="open-history">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            历史
-                        </button>
-                    </div>
-                </div>
             </div>
 
             <div id="character-sprite" class="hidden">
@@ -371,6 +310,10 @@
                                 <label for="custom-api-key">API Key</label>
                                 <input type="password" id="custom-api-key" placeholder="输入自定义 API Key">
                                 <small>自定义 API 的密钥，直连调用不经过代理</small>
+                            </div>
+                            <div class="form-group">
+                                <button id="test-api-btn" class="menu-btn" style="padding:8px 16px;font-size:14px;width:auto;display:inline-flex;">测试连接</button>
+                                <span id="test-api-result" style="margin-left:8px;font-size:13px;"></span>
                             </div>
                         </div>
                         <div class="form-group">

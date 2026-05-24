@@ -33,7 +33,7 @@
     --dialog-border: rgba(74, 111, 165, 0.15);
     --dialog-blur: blur(16px) saturate(150%);
     --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(245, 240, 232, 0.2) 40%, rgba(245, 240, 232, 0.5) 100%);
-    --dialog-width: 92%;
+    --dialog-width: 85%;
     --nameplate-bg: var(--gradient);
     --dialog-text-color: #2c2c2c;
 
@@ -45,8 +45,8 @@
     --send-hover-color: rgba(107, 143, 212, 0.7);
 
     /* === Sprite === */
-    --sprite-scale: 1.15;
-    --sprite-height: 82vh;
+    --sprite-scale: 1.0;
+    --sprite-height: 75vh;
     --sprite-origin: bottom center;
     --sprite-shadow: drop-shadow(0 0 18px rgba(255, 255, 255, 0.5));
     --sprite-transition: 300ms ease-in-out;
@@ -370,23 +370,25 @@ html, body {
     overflow: hidden;
 }
 
-#title-screen::before {
-    content: '';
+#title-bg {
     position: absolute;
     inset: 0;
-    background: var(--title-bg-url, url('sprites/background/pic1.png')) center center/cover no-repeat;
-    opacity: 1;
+    background: url('sprites/background/pic1.png') center center/cover no-repeat;
     z-index: 0;
     transition: opacity 1.5s ease;
 }
 
-#title-screen::after {
-    content: '';
+#title-bg-next {
     position: absolute;
     inset: 0;
     background: none;
+    opacity: 0;
     z-index: 0;
-    pointer-events: none;
+    transition: opacity 1.5s ease;
+}
+
+#title-bg-next.active {
+    opacity: 1;
 }
 
 #title-canvas {
@@ -551,6 +553,48 @@ html, body {
     animation: menuBtnIn 0.5s var(--ease-smooth) forwards;
 }
 
+/* Rotating border highlight on hover */
+.menu-btn::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 14px;
+    background: conic-gradient(
+        from var(--border-angle, 0deg),
+        transparent 0%,
+        var(--accent-color) 10%,
+        transparent 20%
+    );
+    z-index: -2;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    animation: borderRotate 3s linear infinite;
+}
+
+@keyframes borderRotate {
+    to { --border-angle: 360deg; }
+}
+
+@property --border-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+.menu-btn:hover::before {
+    opacity: 1;
+}
+
+.menu-btn::after {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    border-radius: 11px;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    z-index: -1;
+}
+
 .menu-btn:nth-child(1) { animation-delay: 0.1s; }
 .menu-btn:nth-child(2) { animation-delay: 0.2s; }
 .menu-btn:nth-child(3) { animation-delay: 0.3s; }
@@ -588,9 +632,33 @@ html, body {
 }
 
 .menu-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    transform: translateY(-4px) scale(1.03);
+    transform: translateY(-4px) scale(1.02);
+}
+
+/* Click heart animation */
+.click-heart {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    font-size: 20px;
+    animation: heartFloat 1.2s ease-out forwards;
+    user-select: none;
+}
+
+@keyframes heartFloat {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(0.5);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateY(-30px) scale(1.1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-60px) scale(0.8);
+    }
 }
 
 .menu-btn.primary {
@@ -649,8 +717,6 @@ html, body {
     flex-direction: column;
     background: #0a0a0a;
     overflow: hidden;
-    --parallax-x: 0px;
-    --parallax-y: 0px;
 }
 
 /* ==================== Sidebars ==================== */
@@ -850,8 +916,6 @@ html, body {
     background-repeat: no-repeat;
     background-image: url('sprites/background/pic1.png');
     transition: opacity 1.2s ease;
-    transform: scale(1.02) translate(var(--parallax-x), var(--parallax-y));
-    will-change: transform;
 }
 
 #scene-bg.fade-out {
@@ -870,8 +934,6 @@ html, body {
     opacity: 0;
     transition: opacity 1.2s ease;
     z-index: 0;
-    transform: scale(1.02) translate(var(--parallax-x), var(--parallax-y));
-    will-change: transform;
 }
 
 #scene-bg-next.active {
@@ -1336,14 +1398,13 @@ html, body {
     position: absolute;
     bottom: 100px;
     left: 50%;
-    transform: translateX(calc(-50% + var(--parallax-x) * -0.7)) scale(var(--sprite-scale)) translateY(calc(var(--parallax-y) * -0.5));
+    transform: translateX(-50%) scale(var(--sprite-scale));
     transform-origin: center bottom;
     z-index: 1;
     width: 100%;
     height: var(--sprite-height);
     pointer-events: none;
     filter: var(--sprite-shadow);
-    will-change: transform;
 }
 
 /* Sprite layers for cross-fade */
@@ -1389,16 +1450,16 @@ html, body {
 
 @keyframes spriteIdle {
     0%, 100% {
-        transform: translateX(calc(-50% - 2px)) scale(var(--sprite-scale)) translateY(calc(var(--parallax-y) * -0.5));
+        transform: translateX(calc(-50% - 2px)) scale(var(--sprite-scale));
     }
     25% {
-        transform: translateX(calc(-50% + 1px)) scale(calc(var(--sprite-scale) * 1.0035)) translateY(calc(var(--parallax-y) * -0.5));
+        transform: translateX(calc(-50% + 1px)) scale(calc(var(--sprite-scale) * 1.0035));
     }
     50% {
-        transform: translateX(calc(-50% + 2px)) scale(var(--sprite-scale)) translateY(calc(var(--parallax-y) * -0.5));
+        transform: translateX(calc(-50% + 2px)) scale(var(--sprite-scale));
     }
     75% {
-        transform: translateX(calc(-50% - 1px)) scale(calc(var(--sprite-scale) * 1.0035)) translateY(calc(var(--parallax-y) * -0.5));
+        transform: translateX(calc(-50% - 1px)) scale(calc(var(--sprite-scale) * 1.0035));
     }
 }
 
@@ -3046,8 +3107,8 @@ html, body {
 /* ==================== Responsive ==================== */
 @media (max-width: 768px) {
     :root {
-        --sprite-scale: 1.35;
-        --dialog-width: 88%;
+        --sprite-scale: 1.2;
+        --dialog-width: 85%;
         --choices-width: 82%;
         --choices-bottom: 220px;
     }
@@ -3119,8 +3180,8 @@ html, body {
 
 @media (max-width: 480px) {
     :root {
-        --sprite-scale: 1.0;
-        --dialog-width: 94%;
+        --sprite-scale: 0.85;
+        --dialog-width: 92%;
         --choices-width: 92%;
         --choices-bottom: 200px;
     }

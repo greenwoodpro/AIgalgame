@@ -158,7 +158,7 @@
             baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
             models: {
                 text: [
-                    { id: 'glm-4-flash-250414', name: 'GLM-4-Flash✨最快', free: true },
+                    { id: 'glm-4-flash-250414', name: 'GLM-4-Flash', free: true },
                 ],
                 image: [
                     { id: 'cogview-3-flash', name: 'CogView-3-Flash', free: true, imageGen: true },
@@ -170,13 +170,13 @@
             baseUrl: 'https://api-inference.modelscope.cn/v1',
             models: {
                 text: [
-                    { id: 'moonshotai/Kimi-K2.5', name: 'Kimi-K2.5✨最佳', free: true },
-                    { id: 'MiniMax/MiniMax-M2.5', name: 'MiniMax-M2.5⚡快速', free: true },
-                    { id: 'deepseek-ai/DeepSeek-V3.2', name: 'DeepSeek-V3.2⚡快速' },
-                    { id: 'Qwen/Qwen3.5-35B-A3B', name: 'Qwen3.5-35B（推荐）', free: true },
-                    { id: 'deepseek-ai/DeepSeek-R1-0528', name: 'DeepSeek-R1🧠', thinking: true },
-                    { id: 'deepseek-ai/DeepSeek-V4-Flash', name: 'DeepSeek-V4-Flash⚠️不稳定', free: true },
-                    { id: 'ZhipuAI/GLM-5', name: 'GLM-5🐢慢速' },
+                    { id: 'moonshotai/Kimi-K2.5', name: 'Kimi-K2.5', free: true },
+                    { id: 'MiniMax/MiniMax-M2.5', name: 'MiniMax-M2.5', free: true },
+                    { id: 'Qwen/Qwen3.5-35B-A3B', name: 'Qwen3.5-35B', free: true },
+                    { id: 'deepseek-ai/DeepSeek-V3.2', name: 'DeepSeek-V3.2' },
+                    { id: 'deepseek-ai/DeepSeek-R1-0528', name: 'DeepSeek-R1', thinking: true },
+                    { id: 'ZhipuAI/GLM-5', name: 'GLM-5' },
+                    { id: 'deepseek-ai/DeepSeek-V4-Flash', name: 'DeepSeek-V4-Flash', free: true },
                 ],
                 image: [
                     { id: 'Z-Image/Z-Image-Turbo', name: 'Z-Image-Turbo', imageGen: true },
@@ -189,12 +189,12 @@
             baseUrl: 'https://integrate.api.nvidia.com/v1',
             models: {
                 text: [
-                    { id: 'openai/gpt-oss-20b', name: 'GPT-OSS-20B⚡最快' },
-                    { id: 'qwen/qwen2.5-coder-32b-instruct', name: 'Qwen2.5-Coder-32B⚡快速' },
-                    { id: 'meta/llama-3.1-8b-instruct', name: 'Llama-3.1-8B⚡快速' },
-                    { id: 'openai/gpt-oss-120b', name: 'GPT-OSS-120B✨高质量' },
-                    { id: 'meta/llama-4-maverick-17b-128e-instruct', name: 'Llama-4-Maverick' },
+                    { id: 'openai/gpt-oss-20b', name: 'GPT-OSS-20B' },
+                    { id: 'meta/llama-3.1-8b-instruct', name: 'Llama-3.1-8B' },
+                    { id: 'qwen/qwen2.5-coder-32b-instruct', name: 'Qwen2.5-Coder-32B' },
+                    { id: 'openai/gpt-oss-120b', name: 'GPT-OSS-120B' },
                     { id: 'moonshotai/kimi-k2-instruct', name: 'Kimi-K2' },
+                    { id: 'meta/llama-4-maverick-17b-128e-instruct', name: 'Llama-4-Maverick' },
                 ],
             },
         },
@@ -449,7 +449,6 @@
         applyTheme(state.theme);
         applyDayNightMode(state.dayNightMode || state.settings.dayNightMode || 'day');
         bindEvents();
-        initParallax();
         restoreSettingsUI();
         document.addEventListener('click', (e) => {
             if (state.currentScreen !== 'game' && state.currentScreen !== 'chat') return;
@@ -625,14 +624,22 @@
         }
         function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); connect(); animFrameId = requestAnimationFrame(animate); }
         animate();
-        // Title screen background rotation (always active on title)
+        // Title screen background rotation with fade (always active on title)
         const titleBgs = SPRITE_CONFIG.defaultBackgrounds;
         let currentTitleBgIdx = 0;
         if (titleBgInterval) clearInterval(titleBgInterval);
         titleBgInterval = setInterval(() => {
             currentTitleBgIdx = (currentTitleBgIdx + 1) % titleBgs.length;
-            const titleEl = $('#title-screen');
-            if (titleEl) titleEl.style.setProperty('--title-bg-url', `url('${titleBgs[currentTitleBgIdx]}')`);
+            const titleBgNext = $('#title-bg-next');
+            const titleBg = $('#title-bg');
+            if (titleBgNext && titleBg) {
+                titleBgNext.style.backgroundImage = `url('${titleBgs[currentTitleBgIdx]}')`;
+                titleBgNext.classList.add('active');
+                setTimeout(() => {
+                    titleBg.style.backgroundImage = `url('${titleBgs[currentTitleBgIdx]}')`;
+                    titleBgNext.classList.remove('active');
+                }, 1600);
+            }
         }, 30000);
         // Game screen default background rotation
         startDefaultBgRotation();
@@ -943,8 +950,20 @@
         $('#image-model').addEventListener('change', e => { state.settings.imageModel = e.target.value; saveSettings(); });
         $('#system-prompt').addEventListener('change', e => { state.settings.systemPrompt = e.target.value || DEFAULT_SYSTEM_PROMPT; saveSettings(); });
 
-        $('#left-sidebar-toggle').addEventListener('click', toggleLeftSidebar);
-        $('#right-sidebar-toggle').addEventListener('click', toggleRightSidebar);
+        $('#left-sidebar-toggle').addEventListener('click', () => {});
+        $('#right-sidebar-toggle').addEventListener('click', () => {});
+
+        // Click heart effect on title menu buttons
+        $$('.title-menu .menu-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                spawnClickHearts(e.clientX, e.clientY);
+            });
+        });
+
+        // API test button
+        const testApiBtn = $('#test-api-btn');
+        if (testApiBtn) testApiBtn.addEventListener('click', testApiConnection);
+
         $('#dialog-box').addEventListener('click', handleDialogClick);
         $('#custom-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') { e.preventDefault(); sendCustomInput(); }
@@ -1272,9 +1291,7 @@
             const opt = document.createElement('option');
             opt.value = m.id;
             let label = m.name;
-            if (m.free) label += ' ✨';
-            if (m.thinking) label += ' 🧠';
-            if (m.vision) label += ' 👁';
+            if (m.free) label += ' (免费)';
             opt.textContent = label;
             select.appendChild(opt);
         });
@@ -1332,7 +1349,7 @@
             const opt = document.createElement('option');
             opt.value = m.id;
             let label = m.name;
-            if (m.free) label += ' ✨';
+            if (m.free) label += ' (免费)';
             opt.textContent = label;
             select.appendChild(opt);
         });
@@ -1420,39 +1437,82 @@
     }
 
     function toggleRightSidebar() {
-        const sb = $('#right-sidebar');
-        if (sb) sb.classList.toggle('collapsed');
+        // Sidebar removed - no-op
     }
 
-    // ==================== Parallax Effect ====================
-    let parallaxActive = false;
-    let mouseX = 0, mouseY = 0;
-    let targetX = 0, targetY = 0;
-
-    function initParallax() {
-        if (window.innerWidth <= 768 || 'ontouchstart' in window) return;
-        document.addEventListener('mousemove', (e) => {
-            mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-            mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-        });
-        parallaxActive = true;
-        animateParallax();
-    }
-
-    function animateParallax() {
-        if (!parallaxActive) return;
-        targetX += (mouseX - targetX) * 0.08;
-        targetY += (mouseY - targetY) * 0.08;
-        const screen = $('#game-screen');
-        if (screen) {
-            screen.style.setProperty('--parallax-x', `${targetX * -8}px`);
-            screen.style.setProperty('--parallax-y', `${targetY * -5}px`);
+    // ==================== Click Heart Effect ====================
+    function spawnClickHearts(x, y) {
+        const count = Math.floor(Math.random() * 3) + 1;
+        for (let i = 0; i < count; i++) {
+            const heart = document.createElement('span');
+            heart.className = 'click-heart';
+            heart.textContent = '❤';
+            const offsetX = (Math.random() - 0.5) * 40;
+            const offsetY = Math.random() * -10;
+            heart.style.left = (x + offsetX) + 'px';
+            heart.style.top = (y + offsetY) + 'px';
+            heart.style.fontSize = (16 + Math.random() * 10) + 'px';
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 1200);
         }
-        requestAnimationFrame(animateParallax);
     }
 
-    function stopParallax() {
-        parallaxActive = false;
+    // ==================== API Test ====================
+    async function testApiConnection() {
+        const resultEl = $('#test-api-result');
+        if (!resultEl) return;
+        resultEl.textContent = '测试中...';
+        resultEl.style.color = '#999';
+
+        const baseUrl = $('#custom-base-url')?.value?.trim();
+        const apiKey = $('#custom-api-key')?.value?.trim();
+        const model = $('#custom-text-model')?.value?.trim() || 'test';
+
+        if (!baseUrl) { resultEl.textContent = '请填写 Base URL'; resultEl.style.color = '#e74c3c'; return; }
+        if (!apiKey) { resultEl.textContent = '请填写 API Key'; resultEl.style.color = '#e74c3c'; return; }
+
+        try {
+            const url = baseUrl.replace(/\/+$/, '') + '/chat/completions';
+            const startTime = Date.now();
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`,
+                },
+                body: JSON.stringify({
+                    model: model || 'test',
+                    messages: [{ role: 'user', content: 'Hi' }],
+                    max_tokens: 5,
+                    stream: false,
+                }),
+                signal: AbortSignal.timeout(15000),
+            });
+            const elapsed = Date.now() - startTime;
+
+            if (response.ok) {
+                const data = await response.json();
+                const content = data.choices?.[0]?.message?.content || '';
+                resultEl.textContent = `连接成功 (${elapsed}ms) ${content ? '— ' + content.substring(0, 30) : ''}`;
+                resultEl.style.color = '#27ae60';
+            } else {
+                const errText = await response.text();
+                let errMsg = `HTTP ${response.status}`;
+                try {
+                    const errJson = JSON.parse(errText);
+                    if (errJson.error?.message) errMsg = errJson.error.message;
+                    else if (errJson.message) errMsg = errJson.message;
+                } catch {}
+                resultEl.textContent = `失败: ${errMsg}`;
+                resultEl.style.color = '#e74c3c';
+            }
+        } catch (e) {
+            let msg = e.message || '未知错误';
+            if (e.name === 'TimeoutError' || e.name === 'AbortError') msg = '连接超时 (15s)';
+            else if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) msg = '网络错误，请检查URL或CORS设置';
+            resultEl.textContent = `失败: ${msg}`;
+            resultEl.style.color = '#e74c3c';
+        }
     }
 
     async function startGame(mode) {
