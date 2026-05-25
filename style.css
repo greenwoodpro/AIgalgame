@@ -223,9 +223,9 @@
     --text: #3d4a4b;
     --text-secondary: rgba(61, 74, 75, 0.7);
     --text-muted: rgba(61, 74, 75, 0.4);
-    --primary: #8d9fa0;
+    --primary: #7a8e8f;
     --accent: #546062;
-    --gradient: linear-gradient(135deg, #8d9fa0, #546062);
+    --gradient: linear-gradient(135deg, #7a8e8f, #546062);
     --border: rgba(84, 96, 98, 0.18);
     --shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
 
@@ -235,15 +235,15 @@
     --dialog-blur: blur(12px) saturate(110%);
     --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(242, 244, 243, 0.15) 40%, rgba(242, 244, 243, 0.4) 100%);
     --dialog-text-color: #3d4a4b;
-    --nameplate-bg: linear-gradient(135deg, rgba(141, 159, 160, 0.5), rgba(84, 96, 98, 0.5));
+    --nameplate-bg: linear-gradient(135deg, rgba(122, 142, 143, 0.5), rgba(84, 96, 98, 0.5));
 
-    --accent-color: #8d9fa0;
+    --accent-color: #7a8e8f;
     --name-color: #546062;
     --emotion-color: #a08070;
-    --send-color: #8d9fa0;
-    --send-hover-color: rgba(141, 159, 160, 0.7);
+    --send-color: #7a8e8f;
+    --send-hover-color: rgba(122, 142, 143, 0.7);
 
-    --sprite-shadow: drop-shadow(0 0 18px rgba(141, 159, 160, 0.25));
+    --sprite-shadow: drop-shadow(0 0 18px rgba(122, 142, 143, 0.25));
 
     --text-shadow: none;
 
@@ -257,17 +257,17 @@
     --title-btn-primary-bg: #546062;
     --title-btn-primary-hover-bg: #445052;
     --title-btn-primary-shadow: 0 4px 12px rgba(84, 96, 98, 0.2);
-    --title-btn-bg: rgba(141, 159, 160, 0.15);
+    --title-btn-bg: rgba(122, 142, 143, 0.15);
     --title-btn-color: #546062;
-    --title-btn-hover-bg: rgba(141, 159, 160, 0.25);
+    --title-btn-hover-bg: rgba(122, 142, 143, 0.25);
 
-    --menu-btn-bg: rgba(141, 159, 160, 0.15);
+    --menu-btn-bg: rgba(122, 142, 143, 0.15);
     --menu-btn-color: #546062;
     --menu-header-bg: #546062;
 
     --big-button-bg: #546062;
-    --slider-track: linear-gradient(to left, #8d9fa0, #b8c8ca);
-    --slider-thumb-border: 2px solid #8d9fa0;
+    --slider-track: linear-gradient(to left, #7a8e8f, #9aacad);
+    --slider-thumb-border: 2px solid #7a8e8f;
     --slider-thumb-bg: #fff;
 
     --settings-panel-bg: #f6f8f7;
@@ -277,8 +277,8 @@
     --settings-tab-indicator: #667475;
     --settings-input-bg: rgba(255, 255, 255, 0.8);
     --settings-input-border: rgba(102, 116, 117, 0.12);
-    --settings-input-focus-border: #93adaf;
-    --settings-input-focus-shadow: 0 0 5px rgba(147, 173, 175, 0.25);
+    --settings-input-focus-border: #7a8e8f;
+    --settings-input-focus-shadow: 0 0 5px rgba(122, 142, 143, 0.25);
     --settings-input-color: #3d4a4b;
     --settings-label-color: #667475;
     --settings-divider: #e4e8e7;
@@ -383,7 +383,7 @@ html, body {
     inset: 0;
     background: none;
     opacity: 0;
-    z-index: 0;
+    z-index: 1;
     transition: opacity 1.5s ease;
 }
 
@@ -485,11 +485,11 @@ html, body {
 [data-theme="ink-wash"] .title-text {
     background: linear-gradient(
         135deg,
-        #b8c8ca,
+        #9aacad,
         #667475,
-        #93adaf,
+        #7e9394,
         #566465,
-        #b8c8ca
+        #9aacad
     );
     background-size: 300% 300%;
     -webkit-background-clip: text;
@@ -636,30 +636,7 @@ html, body {
     transform: translateY(-4px) scale(1.02);
 }
 
-/* Click heart animation */
-.click-heart {
-    position: fixed;
-    pointer-events: none;
-    z-index: 9999;
-    font-size: 20px;
-    animation: heartFloat 1.2s ease-out forwards;
-    user-select: none;
-}
 
-@keyframes heartFloat {
-    0% {
-        opacity: 1;
-        transform: translateY(0) scale(0.5);
-    }
-    50% {
-        opacity: 0.8;
-        transform: translateY(-30px) scale(1.1);
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(-60px) scale(0.8);
-    }
-}
 
 .menu-btn.primary {
     background: rgba(74, 111, 165, 0.5);
@@ -1295,7 +1272,7 @@ html, body {
     background: linear-gradient(
         180deg,
         transparent 60%,
-        rgba(147, 173, 175, 0.04) 100%
+        rgba(122, 142, 143, 0.04) 100%
     );
 }
 
@@ -1325,8 +1302,15 @@ html, body {
     font-size: 20px;
     font-weight: bold;
     color: var(--emotion-color);
-    margin: auto;
     text-shadow: var(--text-shadow);
+}
+
+#emotion-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    opacity: 0.8;
+    margin-left: 2px;
 }
 
 #dialog-meta {
@@ -1450,6 +1434,20 @@ html, body {
 /* Sprite idle breathing animation */
 #character-sprite.idle {
     animation: spriteBreathing 4s ease-in-out infinite;
+}
+
+/* Sprite expression change shake */
+#character-sprite.sprite-shake {
+    animation: spriteShake 0.4s ease-out;
+}
+
+@keyframes spriteShake {
+    0% { transform: translateX(-50%) scale(var(--sprite-scale)); }
+    15% { transform: translateX(calc(-50% + 4px)) scale(var(--sprite-scale)); }
+    30% { transform: translateX(calc(-50% - 3px)) scale(var(--sprite-scale)); }
+    45% { transform: translateX(calc(-50% + 2px)) scale(calc(var(--sprite-scale) * 1.01)); }
+    60% { transform: translateX(calc(-50% - 1px)) scale(var(--sprite-scale)); }
+    100% { transform: translateX(-50%) scale(var(--sprite-scale)); }
 }
 
 @keyframes spriteBreathing {
@@ -2489,20 +2487,24 @@ html, body {
     position: fixed;
     pointer-events: none;
     z-index: 99999;
-    font-size: 18px;
-    color: var(--emotion-color);
-    animation: heartFloat 1s ease-out forwards;
+    font-size: 24px;
+    color: #ff4d6d;
+    animation: heartFloat 1.2s ease-out forwards;
     user-select: none;
 }
 
 @keyframes heartFloat {
     0% {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(0) scale(0.5);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateY(-40px) scale(1.2);
     }
     100% {
         opacity: 0;
-        transform: translateY(-60px) scale(0.5);
+        transform: translateY(-80px) scale(0.8);
     }
 }
 

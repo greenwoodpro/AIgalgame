@@ -96,15 +96,43 @@
     };
 
     const DEFAULT_SYSTEM_PROMPT = `# 角色设定
-你是"星酱"，一个真实存在的少女，绝非AI或程序。你是玩家的同桌兼女朋友。
+你是一个视觉小说游戏的叙事AI，负责扮演以下四位角色之一（根据name字段决定）。默认扮演"星酱"。
 
-## 人物档案
-- 外貌：银色短发带蓝色挑染，琥珀色眼瞳，穿校服时总会在领口别一个小星星发卡
-- 性格：温柔体贴，善解人意，偶尔会害羞脸红，总是默默关心着你的生活
+## 角色一：星酱（char_1）
+- 身份：玩家的同桌兼女朋友
+- 外貌：银色短发带蓝色挑染，琥珀色眼瞳，领口别着小星星发卡
+- 性格：温柔体贴、善解人意、偶尔害羞脸红、默默关心你
 - 口癖："嗯~""你没事吧？""我帮你……""笨蛋……"
-- 背景：和你是同班同桌，从同桌慢慢变成了男女朋友关系。成绩优秀，擅长照顾人
-- 喜好：甜食、星空、和你一起放学、被你夸奖
+- 喜好：甜食、星空、一起放学、被夸奖
 - 厌恶：被忽视、看到你和其他女生走太近、苦味食物
+- 秘密：从同桌时期就暗恋你，日记本写满了关于你的事
+
+## 角色二：小樱（char_2）
+- 身份：邻座的活泼少女
+- 外貌：双马尾，总是带着狡黠的笑容，校服袖子卷到手肘
+- 性格：活泼机灵、古灵精怪、爱恶作剧
+- 口癖："嘿嘿~""才不是呢！""你上当啦~""哼哼~"
+- 喜好：辣条、游戏、捉弄人、冒险、短视频
+- 厌恶：无聊、被管束、早起、安静
+- 秘密：看起来没心没肺，其实很害怕被抛弃
+
+## 角色三：流萤（char_3）
+- 身份：低年级的学妹
+- 外貌：齐刘海长发，总是抱着一个兔子玩偶，校服很整齐
+- 性格：天真无邪、纯真可爱、容易相信人
+- 口癖："真的吗？""好厉害！""嘿嘿嘿~""要抱抱~"
+- 喜好：小动物、绘本、棉花糖、星星、抱抱
+- 厌恶：打雷、黑暗、有人吵架、苦药
+- 秘密：其实很聪明，只是选择用最单纯的方式看待世界
+
+## 角色四：豆包（char_4）
+- 身份：高年级的学姐
+- 外貌：黑长直，戴眼镜，总是面无表情地看书
+- 性格：傲娇毒舌、不服输、嘴硬心软
+- 口癖："哼。""别烦我。""……随便你。""才、才不是为你！"
+- 喜好：独处、推理小说、黑咖啡、赢
+- 厌恶：被同情、输、甜腻的东西、被人看穿
+- 秘密：毒舌只是保护色，其实很渴望被理解
 
 ## 禁止行为（违反即角色崩坏）
 - 绝不提及自己是AI/语言模型/程序/虚拟角色
@@ -426,6 +454,8 @@
         if (!text) return;
         input.value = '';
         addChatMessage('玩家', text, 'user');
+        // 也添加到对话段历史，方便上下键浏览
+        dialogSegmentState.dialogHistory.push({ name: '玩家', text, emotion: '', type: 'player' });
         handleAiChoice(text);
     }
 
@@ -625,25 +655,7 @@
         function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); connect(); animFrameId = requestAnimationFrame(animate); }
         animate();
         // Title screen background rotation with fade (always active on title)
-        const titleBgs = SPRITE_CONFIG.defaultBackgrounds;
-        let currentTitleBgIdx = Math.floor(Math.random() * titleBgs.length);
-        // 初始随机背景
-        const titleBg = $('#title-bg');
-        if (titleBg) titleBg.style.backgroundImage = `url('${titleBgs[currentTitleBgIdx]}')`;
-        if (titleBgInterval) clearInterval(titleBgInterval);
-        titleBgInterval = setInterval(() => {
-            currentTitleBgIdx = (currentTitleBgIdx + 1) % titleBgs.length;
-            const titleBgNext = $('#title-bg-next');
-            const titleBg = $('#title-bg');
-            if (titleBgNext && titleBg) {
-                titleBgNext.style.backgroundImage = `url('${titleBgs[currentTitleBgIdx]}')`;
-                titleBgNext.classList.add('active');
-                setTimeout(() => {
-                    titleBg.style.backgroundImage = `url('${titleBgs[currentTitleBgIdx]}')`;
-                    titleBgNext.classList.remove('active');
-                }, 1600);
-            }
-        }, 30000);
+        startTitleBgRotation();
         // Game screen default background rotation
         startDefaultBgRotation();
     }
@@ -678,6 +690,38 @@
         if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
         if (titleBgInterval) { clearInterval(titleBgInterval); titleBgInterval = null; }
         if (gameBgInterval) { clearInterval(gameBgInterval); gameBgInterval = null; }
+    }
+
+    let currentTitleBgIdx = -1;
+
+    function startTitleBgRotation() {
+        if (titleBgInterval) clearInterval(titleBgInterval);
+        const titleBgs = SPRITE_CONFIG.defaultBackgrounds;
+        if (!titleBgs || titleBgs.length === 0) return;
+        // 初始随机背景
+        if (currentTitleBgIdx < 0) currentTitleBgIdx = Math.floor(Math.random() * titleBgs.length);
+        const titleBg = $('#title-bg');
+        if (titleBg) titleBg.style.backgroundImage = `url('${titleBgs[currentTitleBgIdx]}')`;
+        titleBgInterval = setInterval(() => {
+            // 随机选择一个不同于当前的背景
+            let nextIdx;
+            if (titleBgs.length <= 1) {
+                nextIdx = 0;
+            } else {
+                do { nextIdx = Math.floor(Math.random() * titleBgs.length); } while (nextIdx === currentTitleBgIdx);
+            }
+            currentTitleBgIdx = nextIdx;
+            const titleBgNext = $('#title-bg-next');
+            const titleBg = $('#title-bg');
+            if (titleBgNext && titleBg) {
+                titleBgNext.style.backgroundImage = `url('${titleBgs[currentTitleBgIdx]}')`;
+                titleBgNext.classList.add('active');
+                setTimeout(() => {
+                    titleBg.style.backgroundImage = `url('${titleBgs[currentTitleBgIdx]}')`;
+                    titleBgNext.classList.remove('active');
+                }, 1600);
+            }
+        }, 30000);
     }
 
     /* ==================== Ambient Particles ==================== */
@@ -875,8 +919,6 @@
         if (customBaseUrlEl) customBaseUrlEl.addEventListener('change', e => { state.settings.customBaseUrl = e.target.value.trim(); saveSettings(); });
         const customTextModelEl = $('#custom-text-model');
         if (customTextModelEl) customTextModelEl.addEventListener('change', e => { state.settings.customTextModel = e.target.value.trim(); state.settings.textModel = e.target.value.trim(); saveSettings(); });
-        const customImageModelEl = $('#custom-image-model');
-        if (customImageModelEl) customImageModelEl.addEventListener('change', e => { state.settings.customImageModel = e.target.value.trim(); state.settings.imageModel = e.target.value.trim(); saveSettings(); });
 
         $('#cors-proxy-toggle').addEventListener('change', e => { state.settings.corsProxy = e.target.checked; saveSettings(); });
         $('#cors-proxy-url').addEventListener('change', e => { state.settings.corsProxyUrl = e.target.value.trim(); saveSettings(); });
@@ -1232,7 +1274,6 @@
         if (s.apiKeys.custom) $('#custom-api-key').value = s.apiKeys.custom;
         if (s.customBaseUrl) $('#custom-base-url').value = s.customBaseUrl;
         if (s.customTextModel) $('#custom-text-model').value = s.customTextModel;
-        if (s.customImageModel) $('#custom-image-model').value = s.customImageModel;
         $('#text-api-provider').value = s.textApiProvider;
         updateModelOptions();
         // 模型选择已由 updateModelOptions 处理，这里做二次确认
@@ -2956,11 +2997,21 @@
         if (dialogName) dialogName.textContent = entry.name;
         if (dialogTextArea) dialogTextArea.value = entry.text;
 
-        if (entry.emotion) {
-            const emotionEl = $('#emotion-indicator');
-            if (emotionEl) {
-                emotionEl.className = `emotion-${normalizeEmotion(entry.emotion)}`;
-                emotionEl.textContent = entry.emotion;
+        const emotionEl = $('#emotion-indicator');
+        if (entry.type === 'player') {
+            if (emotionEl) { emotionEl.className = 'emotion-neutral'; emotionEl.textContent = '😐'; }
+        } else if (entry.emotion) {
+            if (emotionEl) { emotionEl.className = `emotion-${normalizeEmotion(entry.emotion)}`; emotionEl.textContent = entry.emotion; }
+        }
+
+        // 切换立绘：玩家消息时隐藏，AI消息时按情绪切换
+        if (entry.type === 'player') {
+            // 不隐藏立绘，但更新名字标签
+        } else if (entry.name && entry.name !== '旁白' && entry.name !== '系统') {
+            const char = SPRITE_CONFIG.characters.find(c => c.name === entry.name);
+            if (char) {
+                const expr = SPRITE_CONFIG.emotionMap[entry.emotion] || char.defaultExpr;
+                showSprite(char.id, expr);
             }
         }
 
@@ -2981,9 +3032,15 @@
 
             if (emotion) {
                 const emotionEl = $('#emotion-indicator');
-                if (emotionEl) {
-                    emotionEl.className = `emotion-${normalizeEmotion(emotion)}`;
-                    emotionEl.textContent = emotion;
+                if (emotionEl) { emotionEl.className = `emotion-${normalizeEmotion(emotion)}`; emotionEl.textContent = emotion; }
+            }
+
+            // 恢复当前角色的立绘
+            if (name && name !== '旁白' && name !== '系统') {
+                const char = SPRITE_CONFIG.characters.find(c => c.name === name);
+                if (char) {
+                    const expr = SPRITE_CONFIG.emotionMap[emotion] || char.defaultExpr;
+                    showSprite(char.id, expr);
                 }
             }
 
@@ -3001,11 +3058,19 @@
         if (dialogName) dialogName.textContent = entry.name;
         if (dialogTextArea) dialogTextArea.value = entry.text;
 
-        if (entry.emotion) {
-            const emotionEl = $('#emotion-indicator');
-            if (emotionEl) {
-                emotionEl.className = `emotion-${normalizeEmotion(entry.emotion)}`;
-                emotionEl.textContent = entry.emotion;
+        const emotionEl = $('#emotion-indicator');
+        if (entry.type === 'player') {
+            if (emotionEl) { emotionEl.className = 'emotion-neutral'; emotionEl.textContent = '😐'; }
+        } else if (entry.emotion) {
+            if (emotionEl) { emotionEl.className = `emotion-${normalizeEmotion(entry.emotion)}`; emotionEl.textContent = entry.emotion; }
+        }
+
+        // 切换立绘
+        if (entry.type !== 'player' && entry.name && entry.name !== '旁白' && entry.name !== '系统') {
+            const char = SPRITE_CONFIG.characters.find(c => c.name === entry.name);
+            if (char) {
+                const expr = SPRITE_CONFIG.emotionMap[entry.emotion] || char.defaultExpr;
+                showSprite(char.id, expr);
             }
         }
     }
@@ -3047,6 +3112,18 @@
         };
         indicator.textContent = emotionIcons[emotion] || '😐';
         indicator.className = `emotion-${emotion}`;
+        // 更新情绪标签
+        const emotionLabelEl = $('#emotion-label');
+        if (emotionLabelEl) {
+            const emotionLabels = {
+                happy: '开心', sad: '难过', angry: '生气', shy: '害羞',
+                excited: '兴奋', tsundere: '傲娇', serious: '严肃',
+                embarrassed: '尴尬', naughty: '调皮', worried: '担心',
+                neutral: '平静', surprised: '惊讶', scared: '害怕',
+                lonely: '孤独', proud: '骄傲', gentle: '温柔',
+            };
+            emotionLabelEl.textContent = emotion ? (emotionLabels[emotion] || emotion) : '';
+        }
         switchBgmByEmotion(emotion);
         switchSpriteExpression(emotion);
         const statusName = $('#status-name');
@@ -3076,6 +3153,8 @@
         apiCallInProgress = true;
         hideChoices();
         addDialogHistory('玩家', choiceText);
+        // 也添加到对话段历史，方便上下键浏览
+        dialogSegmentState.dialogHistory.push({ name: '玩家', text: choiceText, emotion: '', type: 'player' });
         showAiGenerating(true);
         
         const startTime = Date.now();
@@ -3644,6 +3723,7 @@
         const chapterDisplay = $('#outline-chapter-display');
         if (chapterDisplay) chapterDisplay.classList.add('hidden');
         hideSprite();
+        startTitleBgRotation();
     }
 
     function openSaveModal(mode) {
@@ -4020,6 +4100,7 @@
         const char = SPRITE_CONFIG.characters.find(c => c.id === charId);
         if (!char) return;
         const expr = expression || char.defaultExpr;
+        const expressionChanged = spriteState.currentExpr !== expr || spriteState.currentChar !== charId;
         spriteState.currentChar = charId;
         spriteState.currentExpr = expr;
         spriteState.visible = true;
@@ -4037,11 +4118,23 @@
             nextLayer.style.opacity = '0';
         }
         spriteEl.classList.remove('hidden');
-        spriteEl.classList.add('sprite-enter');
-        setTimeout(() => {
-            spriteEl.classList.remove('sprite-enter');
-            spriteEl.classList.add('idle');
-        }, 500);
+        if (expressionChanged && spriteState.visible) {
+            // 表情切换时播放抖动动画
+            spriteEl.classList.remove('sprite-shake', 'sprite-enter', 'idle',
+                'sprite-angry', 'sprite-happy', 'sprite-heartbeat', 'sprite-serious', 'sprite-embarrassed', 'sprite-naughty');
+            void spriteEl.offsetWidth; // 强制 reflow
+            spriteEl.classList.add('sprite-shake');
+            setTimeout(() => {
+                spriteEl.classList.remove('sprite-shake');
+                spriteEl.classList.add('idle');
+            }, 400);
+        } else {
+            spriteEl.classList.add('sprite-enter');
+            setTimeout(() => {
+                spriteEl.classList.remove('sprite-enter');
+                spriteEl.classList.add('idle');
+            }, 500);
+        }
         const toggleBtn = $('#sprite-toggle-btn');
         if (toggleBtn) toggleBtn.classList.remove('hidden');
         const selector = $('#sprite-selector');
