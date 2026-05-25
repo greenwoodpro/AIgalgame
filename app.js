@@ -1860,7 +1860,8 @@
                 url = targetUrl;
                 headers['Authorization'] = `Bearer ${apiKey}`;
             }
-        } else if (canDirectConnect && !useProxy) {
+        } else if ((provider === 'modelscope' && apiKey) || (canDirectConnect && !useProxy)) {
+            // 魔搭社区：填了自己的Key就直连（无CORS限制，速度快3倍）
             url = `${config.baseUrl}/chat/completions`;
             headers['Authorization'] = `Bearer ${apiKey}`;
         } else {
@@ -2023,7 +2024,7 @@
         if (!useProxy && !canDirectConnect && !apiKey) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
 
         const proxyBase = state.settings.corsProxyUrl || window.location.origin;
-        const useProxyUrl = useProxy || !canDirectConnect;
+        const useProxyUrl = !((provider === 'modelscope' && apiKey) || (canDirectConnect && !useProxy));
 
         let url;
         let headers = { 'Content-Type': 'application/json' };
