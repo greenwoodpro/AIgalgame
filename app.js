@@ -1874,9 +1874,12 @@
         const messages = [{ role: 'system', content: state.settings.systemPrompt }];
         if (state.game.characterName) {
             const currentChar = SPRITE_CONFIG.characters.find(c => c.id === state.game.character);
-            const charHint = currentChar
-                ? `[当前角色：请扮演"${currentChar.name}"。性格：${currentChar.profile.personality}。回复中name字段必须填"${currentChar.name}"。]`
-                : `[当前角色：请扮演"${state.game.characterName}"。回复中name字段必须填"${state.game.characterName}"。]`;
+            const charName = currentChar?.name || state.game.characterName;
+            const p = currentChar?.profile;
+            const charDetail = p
+                ? `性格：${p.personality}。喜好：${p.likes}。秘密：${p.secret}`
+                : '';
+            const charHint = `[!!!最重要的规则：你必须扮演"${charName}"。${charDetail}。回复中name字段只能填"${charName}"，绝对不能填其他角色名。当前只有这一个角色与玩家互动，其他角色不在场。]`;
             messages.push({ role: 'system', content: charHint });
         }
         const timeContext = getTimeContext();
@@ -2767,7 +2770,10 @@
         }
 
         if (parsed && parsed.dialog) {
-            const name = parsed.name || '???';
+            const rawName = parsed.name || '???';
+            const name = (state.game.characterName && rawName !== '旁白' && rawName !== '系统')
+                ? state.game.characterName
+                : rawName;
             let dialog = parsed.dialog;
             const emotion = normalizeEmotion(parsed.emotion);
             const action = parsed.action || '';
@@ -2794,7 +2800,10 @@
             if (scene && state.settings.autoGenScene !== false) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
         } else if (parsed && (parsed['开场白'] || parsed['对话'] || parsed['场景'])) {
             // Fallback: 模型返回了中文key的JSON
-            const name = parsed['角色'] || parsed['name'] || state.game.characterName || '星酱';
+            const rawName2 = parsed['角色'] || parsed['name'] || '???';
+            const name = (state.game.characterName && rawName2 !== '旁白' && rawName2 !== '系统')
+                ? state.game.characterName
+                : rawName2;
             const dialog = parsed['开场白'] || parsed['对话'] || parsed['dialog'] || '';
             const emotion = normalizeEmotion(parsed['情绪'] || parsed['emotion']);
             const scene = parsed['场景'] || parsed['scene'] || '';
