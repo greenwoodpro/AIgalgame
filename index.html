@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
     <title>次元邂逅 · AI Galgame</title>
-    <link rel="stylesheet" href="style.css?v=20250525">
+    <link rel="stylesheet" href="style.css?v=20250526">
 </head>
 <body>
     <div id="app">
@@ -321,7 +321,7 @@
                                 <input type="text" id="custom-image-model" placeholder="例如: dall-e-3, flux-1">
                             </div>
                             <div class="form-group" style="display:flex;align-items:center;gap:8px;">
-                                <button id="test-api-btn" style="padding:8px 16px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);cursor:pointer;">测试连接</button>
+                                <button id="test-api-btn" type="button" style="padding:8px 16px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);cursor:pointer;">测试连接</button>
                                 <span id="test-api-result" style="font-size:13px;"></span>
                             </div>
                         </div>
@@ -355,19 +355,21 @@
                             <label for="text-model">文本模型 <span id="model-tags" class="model-tags"></span></label>
                             <select id="text-model"></select>
                         </div>
-                        <div class="form-group">
-                            <label for="image-api-provider">图像生成 API</label>
-                            <select id="image-api-provider">
-                                <option value="zhipu">智谱AI (CogView)</option>
-                                <option value="modelscope">魔搭社区 (Z-Image/FLUX)</option>
-                                <option value="custom">自定义 (Custom)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="image-model">图像模型</label>
-                            <select id="image-model">
-                                <option value="cogview-3-flash">CogView-3-Flash (免费生图)</option>
-                            </select>
+                        <div id="image-api-group">
+                            <div class="form-group">
+                                <label for="image-api-provider">图像生成 API</label>
+                                <select id="image-api-provider">
+                                    <option value="zhipu">智谱AI (CogView)</option>
+                                    <option value="modelscope">魔搭社区 (Z-Image/FLUX)</option>
+                                    <option value="custom">自定义 (Custom)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="image-model">图像模型</label>
+                                <select id="image-model">
+                                    <option value="cogview-3-flash">CogView-3-Flash (免费生图)</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="system-prompt">AI 人设提示词</label>
@@ -418,11 +420,6 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="auto-wait">自动播放等待时间 (秒)</label>
-                            <input type="range" id="auto-wait" min="1" max="10" value="3">
-                            <span id="auto-wait-label">3s</span>
-                        </div>
-                        <div class="form-group">
                             <label>
                                 <input type="checkbox" id="save-conversation" checked>
                                 保存AI对话记录（用于上下文记忆）
@@ -436,12 +433,6 @@
                             <label for="max-response-length">AI最大回复字数</label>
                             <input type="number" id="max-response-length" min="50" max="4096" value="500" step="50">
                             <small>控制AI每次回复的最大token数，值越小回复越短</small>
-                        </div>
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="auto-gen-scene" checked>
-                                AI模式自动生成场景图
-                            </label>
                         </div>
                         <div class="form-group">
                             <label>
@@ -592,6 +583,6 @@
         <div id="toast-container"></div>
     </div>
 
-    <script src="app.js?v=20250525" defer></script>
+    <script src="app.js?v=20250526" defer></script>
 </body>
 </html>

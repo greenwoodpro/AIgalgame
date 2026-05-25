@@ -175,8 +175,8 @@
                     { id: 'moonshotai/Kimi-K2.5', name: 'Kimi-K2.5', free: true },
                     { id: 'MiniMax/MiniMax-M2.5', name: 'MiniMax-M2.5', free: true },
                     { id: 'Qwen/Qwen3.5-35B-A3B', name: 'Qwen3.5-35B', free: true },
+                    { id: 'Qwen/Qwen3.5-397B-A17B', name: 'Qwen3.5-397B' },
                     { id: 'deepseek-ai/DeepSeek-V3.2', name: 'DeepSeek-V3.2' },
-                    { id: 'deepseek-ai/DeepSeek-R1-0528', name: 'DeepSeek-R1', thinking: true },
                     { id: 'ZhipuAI/GLM-5', name: 'GLM-5' },
                 ],
                 image: [
@@ -219,10 +219,8 @@
         settings: {
             textSpeed: 40,
             textEffect: 'typewriter-fade',
-            autoWait: 3,
             saveConversation: true,
             maxContext: 20,
-            autoGenScene: true,
             enableThinking: false,
             autoDefaultBg: true,
             defaultBgInterval: 60,
@@ -866,7 +864,6 @@
 
         $('#text-speed').addEventListener('input', e => { state.settings.textSpeed = parseInt(e.target.value); $('#text-speed-label').textContent = e.target.value + 'ms'; saveSettings(); });
         $('#text-effect').addEventListener('change', e => { state.settings.textEffect = e.target.value; saveSettings(); });
-        $('#auto-wait').addEventListener('input', e => { state.settings.autoWait = parseInt(e.target.value); $('#auto-wait-label').textContent = e.target.value + 's'; saveSettings(); });
 
         ['zhipu-api-key', 'modelscope-api-key', 'nvidia-api-key', 'custom-api-key'].forEach(id => {
             const el = $(`#${id}`);
@@ -886,20 +883,7 @@
         $('#save-conversation').addEventListener('change', e => { state.settings.saveConversation = e.target.checked; saveSettings(); });
         $('#max-context').addEventListener('change', e => { state.settings.maxContext = parseInt(e.target.value) || 20; saveSettings(); });
         $('#max-response-length').addEventListener('change', e => { state.settings.maxResponseLength = Math.max(50, parseInt(e.target.value) || 500); saveSettings(); });
-        $('#auto-gen-scene').addEventListener('change', e => {
-            state.settings.autoGenScene = e.target.checked;
-            saveSettings();
-            if (!e.target.checked) {
-                pendingSceneDescription = null;
-                if (pendingImageTimer) { clearTimeout(pendingImageTimer); pendingImageTimer = null; }
-                state.game.currentSceneUrl = null;
-                if (state.settings.autoDefaultBg) startDefaultBgRotation();
-                showToast('AI场景生成已关闭，切换为默认背景轮换', 'info');
-            } else {
-                stopDefaultBgRotation();
-                showToast('AI场景生成已开启', 'info');
-            }
-        });
+        
         $('#enable-thinking').addEventListener('change', e => { state.settings.enableThinking = e.target.checked; saveSettings(); });
         $('#auto-default-bg').addEventListener('change', e => { state.settings.autoDefaultBg = e.target.checked; saveSettings(); if (e.target.checked) startDefaultBgRotation(); else stopDefaultBgRotation(); });
         $('#default-bg-interval').addEventListener('change', e => { state.settings.defaultBgInterval = Math.max(10, parseInt(e.target.value) || 60); saveSettings(); if (state.settings.autoDefaultBg) { stopDefaultBgRotation(); startDefaultBgRotation(); } });
@@ -1149,12 +1133,10 @@
         state.settings.maxResponseLength = parseInt($('#max-response-length').value) || 500;
         state.settings.textSpeed = parseInt($('#text-speed').value) || 40;
         state.settings.textEffect = $('#text-effect').value;
-        state.settings.autoWait = parseInt($('#auto-wait').value) || 3;
         state.settings.saveConversation = $('#save-conversation').checked;
         state.settings.maxContext = parseInt($('#max-context').value) || 20;
         state.settings.corsProxy = $('#cors-proxy-toggle').checked;
         state.settings.useProxyKeys = $('#use-proxy-keys').checked;
-        state.settings.autoGenScene = $('#auto-gen-scene').checked;
         state.settings.enableThinking = $('#enable-thinking').checked;
         state.settings.autoDefaultBg = $('#auto-default-bg').checked;
         state.settings.defaultBgInterval = parseInt($('#default-bg-interval').value) || 60;
@@ -1178,10 +1160,8 @@
         state.settings = {
             textSpeed: 40,
             textEffect: 'typewriter-fade',
-            autoWait: 3,
             saveConversation: true,
             maxContext: 20,
-            autoGenScene: true,
             enableThinking: false,
             autoDefaultBg: true,
             defaultBgInterval: 60,
@@ -1251,15 +1231,12 @@
         $('#text-speed').value = s.textSpeed;
         $('#text-speed-label').textContent = s.textSpeed + 'ms';
         if (s.textEffect) $('#text-effect').value = s.textEffect;
-        $('#auto-wait').value = s.autoWait;
-        $('#auto-wait-label').textContent = s.autoWait + 's';
         $('#save-conversation').checked = s.saveConversation;
         $('#max-context').value = s.maxContext;
         if (s.maxResponseLength) $('#max-response-length').value = s.maxResponseLength;
         $('#cors-proxy-toggle').checked = s.corsProxy;
         if (s.corsProxyUrl) $('#cors-proxy-url').value = s.corsProxyUrl;
         if (s.useProxyKeys !== undefined) $('#use-proxy-keys').checked = s.useProxyKeys;
-        if (s.autoGenScene !== undefined) $('#auto-gen-scene').checked = s.autoGenScene;
         if (s.enableThinking !== undefined) $('#enable-thinking').checked = s.enableThinking;
         if (s.autoDefaultBg !== undefined) $('#auto-default-bg').checked = s.autoDefaultBg;
         if (s.defaultBgInterval !== undefined) $('#default-bg-interval').value = s.defaultBgInterval;
@@ -1306,14 +1283,18 @@
         const config = API_CONFIGS[provider];
         if (!config) return;
 
-        // Custom provider: hide dropdown, use custom text model from API tab
+        // Custom provider: hide dropdown and image API group
         if (provider === 'custom') {
             select.style.display = 'none';
             state.settings.textModel = state.settings.customTextModel || '';
             updateModelTags();
+            const imageApiGroup = $('#image-api-group');
+            if (imageApiGroup) imageApiGroup.style.display = 'none';
             return;
         } else {
             select.style.display = '';
+            const imageApiGroup = $('#image-api-group');
+            if (imageApiGroup) imageApiGroup.style.display = '';
         }
 
         if (!config.models.text) return;
@@ -1489,14 +1470,15 @@
 
         const baseUrlInput = $('#custom-base-url')?.value?.trim();
         const apiKey = $('#custom-api-key')?.value?.trim();
-        const model = $('#custom-text-model')?.value?.trim() || 'test';
+        const model = $('#custom-text-model')?.value?.trim() || 'gpt-3.5-turbo';
 
         if (!baseUrlInput) { resultEl.textContent = '请填写 Base URL'; resultEl.style.color = '#e74c3c'; return; }
         if (!apiKey) { resultEl.textContent = '请填写 API Key'; resultEl.style.color = '#e74c3c'; return; }
 
+        resultEl.textContent = '发送测试请求...'; resultEl.style.color = '#f39c12';
+
         try {
             const baseUrl = baseUrlInput.replace(/\/+$/, '');
-            // 如果base URL已经包含 /chat/completions，直接使用；否则拼接
             const targetUrl = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`;
             const useCorsProxy = state.settings.corsProxy;
             const proxyBase = state.settings.corsProxyUrl || window.location.origin;
@@ -1513,7 +1495,7 @@
                 method: 'POST',
                 headers: requestHeaders,
                 body: JSON.stringify({
-                    model: model || 'test',
+                    model: model,
                     messages: [{ role: 'user', content: 'Hi' }],
                     max_tokens: 5,
                     stream: false,
@@ -1522,26 +1504,32 @@
             });
             const elapsed = Date.now() - startTime;
 
+            const respText = await response.text();
             if (response.ok) {
-                const data = await response.json();
-                const content = data.choices?.[0]?.message?.content || '';
-                resultEl.textContent = `连接成功 (${elapsed}ms) ${content ? '— ' + content.substring(0, 30) : ''}`;
+                let content = '';
+                try {
+                    const data = JSON.parse(respText);
+                    content = data.choices?.[0]?.message?.content || '';
+                } catch {}
+                const short = content ? content.substring(0, 30).replace(/\n/g, ' ') : 'OK';
+                resultEl.textContent = `连接成功 (${elapsed}ms) ${short}`;
                 resultEl.style.color = '#27ae60';
             } else {
-                const errText = await response.text();
                 let errMsg = `HTTP ${response.status}`;
                 try {
-                    const errJson = JSON.parse(errText);
+                    const errJson = JSON.parse(respText);
                     if (errJson.error?.message) errMsg = errJson.error.message;
                     else if (errJson.message) errMsg = errJson.message;
-                } catch {}
+                } catch {
+                    errMsg += ' - ' + respText.substring(0, 80);
+                }
                 resultEl.textContent = `失败: ${errMsg}`;
                 resultEl.style.color = '#e74c3c';
             }
         } catch (e) {
             let msg = e.message || '未知错误';
             if (e.name === 'TimeoutError' || e.name === 'AbortError') msg = '连接超时 (15s)';
-            else if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) msg = '网络错误，请检查URL或CORS设置';
+            else if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) msg = '网络错误，请检查URL格式或CORS设置（可尝试开启API代理）';
             resultEl.textContent = `失败: ${msg}`;
             resultEl.style.color = '#e74c3c';
         }
@@ -2332,10 +2320,13 @@
     }
 
     function getOutlines() {
+        const OUTLINES_VERSION = 2;
+        const savedVersion = Storage.get('outlines_version');
         let outlines = Storage.get(STORAGE_KEYS.outlines);
-        if (!outlines) {
+        if (!outlines || savedVersion !== OUTLINES_VERSION) {
             outlines = PRESET_OUTLINES.map(o => ({ ...o }));
             Storage.set(STORAGE_KEYS.outlines, outlines);
+            Storage.set('outlines_version', OUTLINES_VERSION);
         }
         return outlines;
     }
@@ -2701,7 +2692,19 @@
                 addChatMessage(name, dialog, 'ai');
             }
             if (scene) state.game.currentScene = scene;
-            if (scene && state.settings.autoGenScene) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
+            if (scene) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
+        } else if (parsed && (parsed['开场白'] || parsed['对话'] || parsed['场景'])) {
+            // Fallback: 模型返回了中文key的JSON
+            const name = parsed['角色'] || parsed['name'] || '星酱';
+            const dialog = parsed['开场白'] || parsed['对话'] || parsed['dialog'] || '';
+            const emotion = normalizeEmotion(parsed['情绪'] || parsed['emotion']);
+            const scene = parsed['场景'] || parsed['scene'] || '';
+            showSegmentedDialog(name, splitDialogIntoSegments(dialog), emotion);
+            addDialogHistory(name, dialog);
+            updateEmotionIndicator(emotion);
+            if (state.uiMode === 'chat') addChatMessage(name, dialog, 'ai');
+            if (scene) state.game.currentScene = scene;
+            if (scene) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
         } else {
             let content = rawContent;
             content = content.replace(/作为(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
@@ -3338,7 +3341,7 @@
                         handleDialogClick();
                     }
                 }
-            }, (state.settings.autoWait || 3) * 1000);
+            }, 3000);
         }
     }
 
