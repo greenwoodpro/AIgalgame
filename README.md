@@ -1,5 +1,10 @@
 # AI Galgame — 次元邂逅
 
+<!-- 封面图 -->
+<p align="center">
+  <img src="preview.jpg" width="800" alt="AI Galgame 预览">
+</p>
+
 一个纯前端 AI 驱动的视觉小说游戏，通过大语言模型实时生成剧情对话，支持多角色、多情绪、AI 生图背景，无需后端服务器即可运行。
 
 **在线体验**: [galai.dpdns.org](https://galai.dpdns.org) / [aigalgame.pages.dev](https://aigalgame.pages.dev)
@@ -133,6 +138,8 @@ NVIDIA_API_KEY=your_key_here
 3. 配置环境变量（`ZHIPU_API_KEY`, `MODELSCOPE_API_KEY`, `NVIDIA_API_KEY`）
 4. Push 到 `master` 分支即自动部署
 
+> **注意**: 部署通常需要 1-3 分钟，首次绑定域名可能需要更长时间。部署期间网站仍可正常访问旧版本。
+
 ---
 
 ## 已知问题
@@ -146,10 +153,13 @@ NVIDIA_API_KEY=your_key_here
 | BGM 音量滑块缺失 | 低 | `#bgm-volume` 元素不存在，设置存了但无 UI 控制 |
 | 非 AI 模式剧情固定 | 低 | 普通模式（非 AI）的剧情分支写死了"星酱"相关内容，不随角色变化 |
 
-### 设计限制
+### 使用注意
 
 | 项目 | 说明 |
 |---|---|
+| **自定义 API 兼容性** | 自定义 API 需要兼容 OpenAI 格式（`/v1/chat/completions`），部分非标准服务可能无法正常工作。图像生成的自定义 API 支持更有限，建议优先使用内置的智谱/魔搭 |
+| **Cloudflare 部署延迟** | Cloudflare Pages 自动部署通常需要 1-3 分钟，首次部署或冷启动可能更慢（5-10 分钟）。部署完成后需要手动刷新页面才能看到更新 |
+| **API 代理延迟** | 通过 Cloudflare Worker/Functions 代理的请求会增加一层网络延迟，国内访问海外模型时可能较慢。如果响应超时，系统会自动重试最多 3 次 |
 | localStorage 5MB 限制 | 对话历史长期积累可能超出限制，建议定期导出备份 |
 | 图片仅存 IndexedDB | 清除浏览器数据会丢失所有 AI 生成的场景图 |
 | 无云存档 | 数据全部在浏览器本地，换设备需要手动导入 |
