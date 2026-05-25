@@ -150,6 +150,7 @@
                     </div>
                     <div id="dialog-divider"></div>
                     <textarea id="dialog-text-area" readonly data-mode="display" placeholder="按 Enter 继续..."></textarea>
+                    <button id="dialog-send-btn" class="hidden" aria-label="发送">发送</button>
                 </div>
             </div>
             <div id="ai-generating" class="hidden">
@@ -367,6 +368,10 @@
                                     <option value="cogview-3-flash">CogView-3-Flash (免费生图)</option>
                                 </select>
                             </div>
+                            <div class="form-group" id="custom-image-model-group" style="display:none;">
+                                <label for="custom-image-model">图像模型 ID</label>
+                                <input type="text" id="custom-image-model" placeholder="图像模型名称" class="custom-model-input">
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="system-prompt">AI 人设提示词</label>
@@ -417,11 +422,11 @@
                         </div>
                         <div class="form-group">
                             <label for="max-context">最大上下文轮数</label>
-                            <input type="number" id="max-context" min="2" max="50" value="8">
+                            <input type="number" id="max-context" min="2" max="50" value="5">
                         </div>
                         <div class="form-group">
                             <label for="max-response-length">AI最大回复字数</label>
-                            <input type="number" id="max-response-length" min="50" max="4096" value="500" step="50">
+                            <input type="number" id="max-response-length" min="50" max="4096" value="350" step="50">
                             <small>控制AI每次回复的最大token数，值越小回复越短</small>
                         </div>
                         <div class="form-group">
@@ -459,7 +464,7 @@
                         </div>
                         <div class="form-group">
                             <label>
-                                <input type="checkbox" id="ambient-particles" checked>
+                                <input type="checkbox" id="ambient-particles-toggle" checked>
                                 环境粒子特效
                             </label>
                             <small>游戏页面显示飘落粒子效果（樱花/星光/墨点）</small>

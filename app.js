@@ -96,7 +96,7 @@
     };
 
     const DEFAULT_SYSTEM_PROMPT = `# 角色设定
-你是一个视觉小说游戏的叙事AI，负责扮演以下四位角色之一（根据name字段决定）。默认扮演"星酱"。
+你是一个视觉小说游戏的叙事AI，负责扮演以下四位角色之一（根据当前指定的角色决定）。你必须严格使用当前指定角色的名字作为name字段值，绝不能使用其他角色的名字。
 
 ## 角色一：星酱（char_1）
 - 身份：玩家的同桌兼女朋友
@@ -247,7 +247,7 @@
             textSpeed: 40,
             textEffect: 'typewriter-fade',
             saveConversation: true,
-            maxContext: 8,
+            maxContext: 5,
             enableThinking: false,
             autoDefaultBg: true,
             defaultBgInterval: 60,
@@ -256,7 +256,7 @@
             chatShowBg: true,
             bgSwitchInterval: 120,
             imageCooldown: 60,
-            maxResponseLength: 500,
+            maxResponseLength: 350,
             corsProxy: true,
             corsProxyUrl: '',
             useProxyKeys: true,
@@ -924,8 +924,8 @@
         $('#cors-proxy-url').addEventListener('change', e => { state.settings.corsProxyUrl = e.target.value.trim(); saveSettings(); });
         $('#use-proxy-keys').addEventListener('change', e => { state.settings.useProxyKeys = e.target.checked; saveSettings(); updateApiIndicator(); });
         $('#save-conversation').addEventListener('change', e => { state.settings.saveConversation = e.target.checked; saveSettings(); });
-        $('#max-context').addEventListener('change', e => { state.settings.maxContext = parseInt(e.target.value) || 8; saveSettings(); });
-        $('#max-response-length').addEventListener('change', e => { state.settings.maxResponseLength = Math.max(50, parseInt(e.target.value) || 500); saveSettings(); });
+        $('#max-context').addEventListener('change', e => { state.settings.maxContext = parseInt(e.target.value) || 5; saveSettings(); });
+        $('#max-response-length').addEventListener('change', e => { state.settings.maxResponseLength = Math.max(50, parseInt(e.target.value) || 350); saveSettings(); });
         
         $('#enable-thinking').addEventListener('change', e => { state.settings.enableThinking = e.target.checked; saveSettings(); });
         $('#auto-default-bg').addEventListener('change', e => { state.settings.autoDefaultBg = e.target.checked; saveSettings(); if (e.target.checked) startDefaultBgRotation(); else stopDefaultBgRotation(); });
@@ -937,7 +937,7 @@
             if (chatBg) chatBg.style.display = e.target.checked ? '' : 'none';
         });
         $('#image-cooldown').addEventListener('change', e => { state.settings.imageCooldown = parseInt(e.target.value) || 60; saveSettings(); if (pendingSceneDescription) schedulePendingImage(); });
-        $('#ambient-particles').addEventListener('change', e => {
+        $('#ambient-particles-toggle').addEventListener('change', e => {
             state.settings.ambientParticles = e.target.checked;
             saveSettings();
             if (e.target.checked) startAmbientParticles();
@@ -978,8 +978,6 @@
         $('#image-model').addEventListener('change', e => { state.settings.imageModel = e.target.value; saveSettings(); });
         $('#system-prompt').addEventListener('change', e => { state.settings.systemPrompt = e.target.value || DEFAULT_SYSTEM_PROMPT; saveSettings(); });
 
-        $('#left-sidebar-toggle').addEventListener('click', () => {});
-        $('#right-sidebar-toggle').addEventListener('click', () => {});
 
         // Click heart effect on title menu buttons
         $$('.title-menu .menu-btn').forEach(btn => {
@@ -993,11 +991,13 @@
         if (testApiBtn) testApiBtn.addEventListener('click', testApiConnection);
 
         $('#dialog-box').addEventListener('click', handleDialogClick);
+        const dialogSendBtn = $('#dialog-send-btn');
+        if (dialogSendBtn) dialogSendBtn.addEventListener('click', (e) => { e.stopPropagation(); sendDialogInput(); });
         $('#custom-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') { e.preventDefault(); sendCustomInput(); }
         });
         $('#chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); handleChatSend(); } });
-        
+
         const dialogTextArea = $('#dialog-text-area');
         if (dialogTextArea) {
             dialogTextArea.addEventListener('keydown', (e) => {
@@ -1204,11 +1204,11 @@
         if (isCustomImage) state.settings.customImageModel = state.settings.imageModel;
         state.settings.customBaseUrl = $('#custom-base-url')?.value?.trim() || '';
         state.settings.systemPrompt = $('#system-prompt').value || DEFAULT_SYSTEM_PROMPT;
-        state.settings.maxResponseLength = parseInt($('#max-response-length').value) || 500;
+        state.settings.maxResponseLength = parseInt($('#max-response-length').value) || 350;
         state.settings.textSpeed = parseInt($('#text-speed').value) || 40;
         state.settings.textEffect = $('#text-effect').value;
         state.settings.saveConversation = $('#save-conversation').checked;
-        state.settings.maxContext = parseInt($('#max-context').value) || 8;
+        state.settings.maxContext = parseInt($('#max-context').value) || 5;
         state.settings.corsProxy = $('#cors-proxy-toggle').checked;
         state.settings.useProxyKeys = $('#use-proxy-keys').checked;
         state.settings.enableThinking = $('#enable-thinking').checked;
@@ -1216,7 +1216,7 @@
         state.settings.defaultBgInterval = parseInt($('#default-bg-interval').value) || 60;
         state.settings.chatShowBg = $('#chat-show-bg').checked;
         state.settings.imageCooldown = parseInt($('#image-cooldown').value) || 60;
-        state.settings.ambientParticles = $('#ambient-particles').checked;
+        state.settings.ambientParticles = $('#ambient-particles-toggle').checked;
         state.settings.autoGenScene = $('#auto-gen-scene')?.checked ?? true;
         const bgmVolumeEl = $('#bgm-volume');
         if (bgmVolumeEl) state.settings.bgmVolume = parseInt(bgmVolumeEl.value) || 30;
@@ -1233,7 +1233,7 @@
             textSpeed: 40,
             textEffect: 'typewriter-fade',
             saveConversation: true,
-            maxContext: 8,
+            maxContext: 5,
             enableThinking: false,
             autoDefaultBg: true,
             defaultBgInterval: 60,
@@ -1242,7 +1242,7 @@
             chatShowBg: true,
             bgSwitchInterval: 120,
             imageCooldown: 60,
-            maxResponseLength: 500,
+            maxResponseLength: 350,
             corsProxy: true,
             corsProxyUrl: '',
             useProxyKeys: true,
@@ -1318,7 +1318,7 @@
             if (chatBg) chatBg.style.display = s.chatShowBg ? '' : 'none';
         }
         if (s.imageCooldown !== undefined) $('#image-cooldown').value = s.imageCooldown;
-        if (s.ambientParticles !== undefined) $('#ambient-particles').checked = s.ambientParticles;
+        if (s.ambientParticles !== undefined) $('#ambient-particles-toggle').checked = s.ambientParticles;
         if (s.autoGenScene !== undefined) $('#auto-gen-scene').checked = s.autoGenScene;
         // 恢复主题选择
         if (s.theme) {
@@ -1416,14 +1416,19 @@
         const config = API_CONFIGS[provider];
         if (!config) return;
 
-        // Custom provider: hide dropdown, use custom image model from API tab
+        // Custom provider: hide dropdown, show custom image model input
+        const customGroup = $('#custom-image-model-group');
         if (provider === 'custom') {
             select.style.display = 'none';
+            if (customGroup) customGroup.style.display = '';
+            const customInput = $('#custom-image-model');
+            if (customInput) customInput.value = state.settings.customImageModel || '';
             state.settings.imageModel = state.settings.customImageModel || '';
             saveSettings();
             return;
         } else {
             select.style.display = '';
+            if (customGroup) customGroup.style.display = 'none';
         }
 
         if (!config.models.image) return;
@@ -1643,6 +1648,8 @@
             const chars = SPRITE_CONFIG.characters;
             const randomChar = chars[Math.floor(Math.random() * chars.length)];
             showSprite(randomChar.id, randomChar.defaultExpr);
+            state.game.character = randomChar.id;
+            state.game.characterName = randomChar.name;
             await startAiStory();
         } else {
             state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, currentSceneUrl: null, currentScene: '' };
@@ -1865,6 +1872,13 @@
         const MAX_RETRIES = 3;
         const BASE_DELAY = 2000;
         const messages = [{ role: 'system', content: state.settings.systemPrompt }];
+        if (state.game.characterName) {
+            const currentChar = SPRITE_CONFIG.characters.find(c => c.id === state.game.character);
+            const charHint = currentChar
+                ? `[当前角色：请扮演"${currentChar.name}"。性格：${currentChar.profile.personality}。回复中name字段必须填"${currentChar.name}"。]`
+                : `[当前角色：请扮演"${state.game.characterName}"。回复中name字段必须填"${state.game.characterName}"。]`;
+            messages.push({ role: 'system', content: charHint });
+        }
         const timeContext = getTimeContext();
         messages.push({ role: 'system', content: `[当前现实时间：${timeContext}。请根据时间调整对话氛围和内容，如深夜时角色应更困倦，清晨时更精神]` });
         const maxCtx = state.settings.maxContext * 2;
@@ -1890,11 +1904,12 @@
             if (!styleAnchors.includes(m)) messages.push(m);
         });
         messages.push({ role: 'user', content: userMessage });
-        if (retryCount === 0) {
+        const lastCtx = state.game.aiContext[state.game.aiContext.length - 1];
+        if (retryCount === 0 && !(lastCtx?.role === 'user' && lastCtx?.content === userMessage)) {
             state.game.aiContext.push({ role: 'user', content: userMessage });
         }
 
-        const body = { model: state.settings.textModel, messages, stream: false, max_tokens: state.settings.maxResponseLength || 500 };
+        const body = { model: state.settings.textModel, messages, stream: false, max_tokens: state.settings.maxResponseLength || 350 };
         if (provider === 'nvidia') { body.temperature = 1; body.top_p = 0.9; }
         const currentModel = [...(config.models.text || []), ...(config.models.vision || [])].find(m => m.id === state.settings.textModel);
         if (currentModel?.thinking && state.settings.enableThinking) { body.stream = true; }
@@ -2770,7 +2785,7 @@
             updateEmotionIndicator(emotion);
             if (ttsState.enabled) speakText(dialog, emotion);
             if (spriteState.visible === false && name !== '旁白' && name !== '系统') {
-                showSprite('char_1', SPRITE_CONFIG.emotionMap[emotion] || '高兴');
+                showSprite(state.game.character || 'char_1', SPRITE_CONFIG.emotionMap[emotion] || '高兴');
             }
             if (state.uiMode === 'chat') {
                 addChatMessage(name, dialog, 'ai');
@@ -2779,7 +2794,7 @@
             if (scene && state.settings.autoGenScene !== false) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
         } else if (parsed && (parsed['开场白'] || parsed['对话'] || parsed['场景'])) {
             // Fallback: 模型返回了中文key的JSON
-            const name = parsed['角色'] || parsed['name'] || '星酱';
+            const name = parsed['角色'] || parsed['name'] || state.game.characterName || '星酱';
             const dialog = parsed['开场白'] || parsed['对话'] || parsed['dialog'] || '';
             const emotion = normalizeEmotion(parsed['情绪'] || parsed['emotion']);
             const scene = parsed['场景'] || parsed['scene'] || '';
@@ -2795,8 +2810,9 @@
             content = content.replace(/我是(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
             
             const segments = splitDialogIntoSegments(content);
-            showSegmentedDialog('星酱', segments, 'neutral');
-            addDialogHistory('星酱', content);
+            const fallbackName = state.game.characterName || '星酱';
+            showSegmentedDialog(fallbackName, segments, 'neutral');
+            addDialogHistory(fallbackName, content);
             updateEmotionIndicator('neutral');
         }
     }
@@ -2858,6 +2874,7 @@
             dialogTextArea.value = '';
             dialogTextArea.placeholder = '';
         }
+        $('#dialog-send-btn')?.classList.add('hidden');
         
         showCurrentSegment();
     }
@@ -2980,6 +2997,8 @@
             dialogTextArea.placeholder = '输入消息，按 Enter 发送...';
             dialogTextArea.focus();
         }
+        const sendBtn = $('#dialog-send-btn');
+        if (sendBtn) sendBtn.classList.remove('hidden');
         dialogSegmentState.isWaitingForContinue = false;
         dialogSegmentState.historyOffset = 0;
     }
@@ -3093,6 +3112,7 @@
         dialogTextArea.dataset.mode = 'display';
         dialogTextArea.value = '';
         dialogTextArea.placeholder = '等待回应中...';
+        $('#dialog-send-btn')?.classList.add('hidden');
         
         handleAiChoice(text);
     }
@@ -3216,8 +3236,8 @@
             
             showToast('AI 调用失败: ' + errorMsg, 'error');
             const segments = splitDialogIntoSegments(friendlyMsg);
-            showSegmentedDialog('星酱', segments, 'neutral');
-            
+            showSegmentedDialog(state.game.characterName || '星酱', segments, 'neutral');
+
             setTimeout(() => {
                 enableDialogInput();
                 const dialogTextAreaEl = $('#dialog-text-area');
@@ -3422,6 +3442,7 @@
             dialogTextArea.readOnly = true;
             dialogTextArea.dataset.mode = 'display';
         }
+        $('#dialog-send-btn')?.classList.add('hidden');
 
         if (typewriterTimer) { clearInterval(typewriterTimer); typewriterTimer = null; }
 
@@ -3521,7 +3542,7 @@
             handleAiChoice(text);
         } else {
             addDialogHistory('玩家', text);
-            showDialog('星酱', '你说了：「' + text + '」\n\n普通模式下无法回应自定义输入，请切换到AI模式体验自由对话！');
+            showDialog(state.game.characterName || '星酱', '你说了：「' + text + '」\n\n普通模式下无法回应自定义输入，请切换到AI模式体验自由对话！');
             setTimeout(() => {
                 showChoices([
                     { text: '继续', action: () => normalNext('shout') },
@@ -3542,7 +3563,7 @@
                 if (container && !chatThinkingMsg) {
                     chatThinkingMsg = document.createElement('div');
                     chatThinkingMsg.className = 'chat-msg ai chat-thinking';
-                    chatThinkingMsg.innerHTML = '<div class="msg-name">星酱</div><div class="thinking-inline"><div class="thinking-dots"><span class="thinking-dot"></span><span class="thinking-dot"></span><span class="thinking-dot"></span></div><span class="thinking-text">正在思考</span></div>';
+                    chatThinkingMsg.innerHTML = `<div class="msg-name">${esc(state.game.characterName || '星酱')}</div><div class="thinking-inline"><div class="thinking-dots"><span class="thinking-dot"></span><span class="thinking-dot"></span><span class="thinking-dot"></span></div><span class="thinking-text">正在思考</span></div>`;
                     container.appendChild(chatThinkingMsg);
                     container.scrollTop = container.scrollHeight;
                 }

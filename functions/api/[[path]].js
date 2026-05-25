@@ -203,7 +203,7 @@ export async function onRequest(context) {
     const url = new URL(request.url);
 
     if (request.method === 'OPTIONS') {
-        return onRequestOptions();
+        return onRequestOptions(context);
     }
 
     const pathPart = url.pathname.replace(/^\/api\/?/, '');
