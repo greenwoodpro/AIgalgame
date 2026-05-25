@@ -2760,7 +2760,21 @@
                 const jsonStr = cleaned.substring(firstBrace, lastBrace + 1);
                 parsed = JSON.parse(jsonStr);
             }
-        } catch {}
+        } catch {
+            // JSON 解析失败，尝试用正则提取关键字段作为兜底
+            try {
+                const nameMatch = rawContent.match(/"name"\s*:\s*"([^"]+)"/);
+                const dialogMatch = rawContent.match(/"dialog"\s*:\s*"((?:[^"\\]|\\.)*)"/s);
+                const emotionMatch = rawContent.match(/"emotion"\s*:\s*"([^"]+)"/);
+                if (dialogMatch) {
+                    parsed = {
+                        name: nameMatch ? nameMatch[1] : '',
+                        dialog: dialogMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"'),
+                        emotion: emotionMatch ? emotionMatch[1] : ''
+                    };
+                }
+            } catch {}
+        }
 
         // Show meta info (thinking time + output tokens)
         const dialogMeta = $('#dialog-meta');
@@ -2786,7 +2800,6 @@
             }
             
             const segments = splitDialogIntoSegments(dialog);
-            showSegmentedDialog(name, segments, emotion);
             addDialogHistory(name, dialog);
             updateEmotionIndicator(emotion);
             if (ttsState.enabled) speakText(dialog, emotion);
@@ -2795,6 +2808,8 @@
             }
             if (state.uiMode === 'chat') {
                 addChatMessage(name, dialog, 'ai');
+            } else {
+                showSegmentedDialog(name, segments, emotion);
             }
             if (scene) state.game.currentScene = scene;
             if (scene && state.settings.autoGenScene !== false) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
@@ -2807,10 +2822,13 @@
             const dialog = parsed['开场白'] || parsed['对话'] || parsed['dialog'] || '';
             const emotion = normalizeEmotion(parsed['情绪'] || parsed['emotion']);
             const scene = parsed['场景'] || parsed['scene'] || '';
-            showSegmentedDialog(name, splitDialogIntoSegments(dialog), emotion);
             addDialogHistory(name, dialog);
             updateEmotionIndicator(emotion);
-            if (state.uiMode === 'chat') addChatMessage(name, dialog, 'ai');
+            if (state.uiMode === 'chat') {
+                addChatMessage(name, dialog, 'ai');
+            } else {
+                showSegmentedDialog(name, splitDialogIntoSegments(dialog), emotion);
+            }
             if (scene) state.game.currentScene = scene;
             if (scene && state.settings.autoGenScene !== false) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
         } else {
@@ -2820,9 +2838,13 @@
             
             const segments = splitDialogIntoSegments(content);
             const fallbackName = state.game.characterName || '星酱';
-            showSegmentedDialog(fallbackName, segments, 'neutral');
             addDialogHistory(fallbackName, content);
             updateEmotionIndicator('neutral');
+            if (state.uiMode === 'chat') {
+                addChatMessage(fallbackName, content, 'ai');
+            } else {
+                showSegmentedDialog(fallbackName, segments, 'neutral');
+            }
         }
     }
 
