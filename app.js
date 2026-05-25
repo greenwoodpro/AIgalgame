@@ -219,7 +219,7 @@
             textSpeed: 40,
             textEffect: 'typewriter-fade',
             saveConversation: true,
-            maxContext: 20,
+            maxContext: 8,
             enableThinking: false,
             autoDefaultBg: true,
             defaultBgInterval: 60,
@@ -449,7 +449,6 @@
         bindEvents();
         restoreSettingsUI();
         document.addEventListener('click', (e) => {
-            if (state.currentScreen !== 'game' && state.currentScreen !== 'chat') return;
             if (e.target.closest('.modal, .modal-backdrop, .settings-panel')) return;
             const heart = document.createElement('div');
             heart.className = 'click-heart';
@@ -500,7 +499,7 @@
         if (state.game.dialogHistory.length > maxDialogs) {
             state.game.dialogHistory = state.game.dialogHistory.slice(-maxDialogs);
         }
-        const maxContext = (state.settings.maxContext || 20) * 2;
+        const maxContext = (state.settings.maxContext || 8) * 2;
         if (state.game.aiContext.length > maxContext) {
             state.game.aiContext = state.game.aiContext.slice(-maxContext);
         }
@@ -585,7 +584,17 @@
         setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 3000);
     }
 
-    function showModal(id) { const m = $(`#${id}`); if (m) m.classList.remove('hidden'); }
+    function showModal(id) {
+        const m = $(`#${id}`);
+        if (m) {
+            m.classList.remove('hidden');
+            // 每次打开设置弹窗时刷新模型列表，确保下拉不为空
+            if (id === 'settings-modal') {
+                updateModelOptions();
+                updateImageModelOptions();
+            }
+        }
+    }
     function hideModal(id) { const m = $(`#${id}`); if (m) m.classList.add('hidden'); }
 
     let animFrameId = null;
@@ -617,7 +626,10 @@
         animate();
         // Title screen background rotation with fade (always active on title)
         const titleBgs = SPRITE_CONFIG.defaultBackgrounds;
-        let currentTitleBgIdx = 0;
+        let currentTitleBgIdx = Math.floor(Math.random() * titleBgs.length);
+        // 初始随机背景
+        const titleBg = $('#title-bg');
+        if (titleBg) titleBg.style.backgroundImage = `url('${titleBgs[currentTitleBgIdx]}')`;
         if (titleBgInterval) clearInterval(titleBgInterval);
         titleBgInterval = setInterval(() => {
             currentTitleBgIdx = (currentTitleBgIdx + 1) % titleBgs.length;
@@ -870,7 +882,7 @@
         $('#cors-proxy-url').addEventListener('change', e => { state.settings.corsProxyUrl = e.target.value.trim(); saveSettings(); });
         $('#use-proxy-keys').addEventListener('change', e => { state.settings.useProxyKeys = e.target.checked; saveSettings(); updateApiIndicator(); });
         $('#save-conversation').addEventListener('change', e => { state.settings.saveConversation = e.target.checked; saveSettings(); });
-        $('#max-context').addEventListener('change', e => { state.settings.maxContext = parseInt(e.target.value) || 20; saveSettings(); });
+        $('#max-context').addEventListener('change', e => { state.settings.maxContext = parseInt(e.target.value) || 8; saveSettings(); });
         $('#max-response-length').addEventListener('change', e => { state.settings.maxResponseLength = Math.max(50, parseInt(e.target.value) || 500); saveSettings(); });
         
         $('#enable-thinking').addEventListener('change', e => { state.settings.enableThinking = e.target.checked; saveSettings(); });
@@ -948,14 +960,30 @@
         if (dialogTextArea) {
             dialogTextArea.addEventListener('keydown', (e) => {
                 const isInputMode = dialogTextArea.dataset.mode === 'input';
+                const isBrowsingHistory = dialogSegmentState.historyOffset > 0;
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
+                    // 正在浏览历史时，Enter 回到当前对话
+                    if (isBrowsingHistory) {
+                        dialogSegmentState.historyOffset = 0;
+                        const { segments, currentIndex, name, emotion } = dialogSegmentState;
+                        const dn = $('#dialog-name');
+                        if (dn) dn.textContent = name;
+                        dialogTextArea.value = segments[currentIndex] || '';
+                        if (emotion) {
+                            const emotionEl = $('#emotion-indicator');
+                            if (emotionEl) { emotionEl.className = `emotion-${normalizeEmotion(emotion)}`; emotionEl.textContent = emotion; }
+                        }
+                        dialogTextArea.placeholder = dialogSegmentState.isWaitingForContinue
+                            ? (currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...')
+                            : '';
+                        return;
+                    }
                     if (dialogSegmentState.isWaitingForContinue || dialogSegmentState.isTyping) {
                         continueDialog();
                     } else if (isInputMode && dialogTextArea.value.trim()) {
                         sendDialogInput();
                     } else if (!isInputMode) {
-                        // In display mode, Enter triggers dialog click (continue or enable input)
                         handleDialogClick();
                     }
                 } else if (e.key === 'ArrowUp' && !isInputMode) {
@@ -1057,7 +1085,7 @@
             case 'open-gallery': openGallery(); break;
             case 'open-history': openHistory(); break;
             case 'nav-up': showPreviousDialog(); highlightNavBtn('nav-up'); break;
-            case 'nav-down': handleDialogClick(); highlightNavBtn('nav-down'); break;
+            case 'nav-down': showNextDialog(); highlightNavBtn('nav-down'); break;
             case 'nav-enter':
                 if (state.uiMode === 'chat') { handleChatSend(); }
                 else { handleDialogClick(); }
@@ -1078,8 +1106,26 @@
         }
         if (state.currentScreen !== 'game') return;
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable) return;
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleDialogClick(); highlightNavBtn('nav-enter'); }
-        if (e.key === 'ArrowDown') { e.preventDefault(); handleDialogClick(); highlightNavBtn('nav-down'); }
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (dialogSegmentState.historyOffset > 0) {
+                dialogSegmentState.historyOffset = 0;
+                const { segments, currentIndex, name, emotion } = dialogSegmentState;
+                const dn = $('#dialog-name'); if (dn) dn.textContent = name;
+                const dta = $('#dialog-text-area');
+                if (dta) {
+                    dta.value = segments[currentIndex] || '';
+                    dta.placeholder = dialogSegmentState.isWaitingForContinue
+                        ? (currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...')
+                        : '';
+                }
+                if (emotion) { const ei = $('#emotion-indicator'); if (ei) { ei.className = `emotion-${normalizeEmotion(emotion)}`; ei.textContent = emotion; } }
+            } else {
+                handleDialogClick();
+            }
+            highlightNavBtn('nav-enter');
+        }
+        if (e.key === 'ArrowDown') { e.preventDefault(); if (dialogSegmentState.historyOffset > 0) { showNextDialog(); highlightNavBtn('nav-down'); } else { handleDialogClick(); highlightNavBtn('nav-down'); } }
         if (e.key === 'ArrowUp') { e.preventDefault(); showPreviousDialog(); highlightNavBtn('nav-up'); }
         if (e.key === 'Escape') {
             const modals = ['settings-modal', 'gallery-modal', 'outline-modal', 'outline-preview-modal', 'save-modal', 'history-modal', 'api-status-modal', 'continue-dialog-modal'];
@@ -1120,7 +1166,7 @@
         state.settings.textSpeed = parseInt($('#text-speed').value) || 40;
         state.settings.textEffect = $('#text-effect').value;
         state.settings.saveConversation = $('#save-conversation').checked;
-        state.settings.maxContext = parseInt($('#max-context').value) || 20;
+        state.settings.maxContext = parseInt($('#max-context').value) || 8;
         state.settings.corsProxy = $('#cors-proxy-toggle').checked;
         state.settings.useProxyKeys = $('#use-proxy-keys').checked;
         state.settings.enableThinking = $('#enable-thinking').checked;
@@ -1145,7 +1191,7 @@
             textSpeed: 40,
             textEffect: 'typewriter-fade',
             saveConversation: true,
-            maxContext: 20,
+            maxContext: 8,
             enableThinking: false,
             autoDefaultBg: true,
             defaultBgInterval: 60,
