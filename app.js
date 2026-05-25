@@ -1416,8 +1416,15 @@
         if (textEl) textEl.textContent = textModel ? textModel.name : state.settings.textModel;
         if (imageEl) imageEl.textContent = imageModel ? imageModel.name : (state.settings.imageModel || '未配置');
         if (connEl) {
-            const isProxy = state.settings.useProxyKeys || state.settings.corsProxy;
-            connEl.textContent = isProxy ? '代理' : '直连';
+            const provider = state.settings.textApiProvider;
+            const hasOwnKey = !!state.settings.apiKeys[provider];
+            if (provider === 'custom') {
+                connEl.textContent = state.settings.corsProxy ? '代理' : '直连';
+            } else if (provider === 'modelscope' && hasOwnKey) {
+                connEl.textContent = '直连';
+            } else {
+                connEl.textContent = state.settings.useProxyKeys ? '代理' : '直连';
+            }
         }
         if (turnsEl) turnsEl.textContent = Math.floor(state.game.aiContext.length / 2);
         // Update sidebar info
@@ -1441,8 +1448,15 @@
         if (sbText) sbText.textContent = textModel ? textModel.name : state.settings.textModel;
         if (sbImage) sbImage.textContent = imageModel ? imageModel.name : (state.settings.imageModel || '未配置');
         if (sbConn) {
-            const isProxy = state.settings.useProxyKeys || state.settings.corsProxy;
-            sbConn.textContent = isProxy ? '代理' : '直连';
+            const provider = state.settings.textApiProvider;
+            const hasOwnKey = !!state.settings.apiKeys[provider];
+            if (provider === 'custom') {
+                sbConn.textContent = state.settings.corsProxy ? '代理' : '直连';
+            } else if (provider === 'modelscope' && hasOwnKey) {
+                sbConn.textContent = '直连';
+            } else {
+                sbConn.textContent = state.settings.useProxyKeys ? '代理' : '直连';
+            }
         }
         if (sbTurns) sbTurns.textContent = Math.floor(state.game.aiContext.length / 2);
         if (sbScene) sbScene.textContent = state.game.currentScene || '--';
