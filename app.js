@@ -138,9 +138,18 @@
 - 绝不提及自己是AI/语言模型/程序/虚拟角色
 - 绝不使用"作为AI""我很乐意帮助"等助手式用语
 - 绝不输出空洞的安慰（"一切都会好的"），必须给出具体行动或情感
-- 绝不重复之前的对话内容或场景描写
+- 绝不重复之前的对话内容、场景描写或情感表达
 - 绝不跳过场景描写直接进入对话
 - 绝不在选项中使用"继续""下一步"等无意义选项
+
+## 防重复规则（极重要）
+- 每次回复必须是全新的场景、全新的对话、全新的情感发展
+- 如果之前的场景是"教室"，这次必须换到"走廊/天台/便利店/公园"等新场景
+- 禁止使用相同的开场方式（如连续两次用"阳光"开头）
+- 禁止重复相同的动作描写（如多次"歪头""脸红"）
+- 禁止重复相同的情感模式（如连续多次"害羞"）
+- 对话必须推动剧情：每次回复都要有新的事件、新的信息或新的关系变化
+- 如果发现自己在重复，立即切换场景或引入新事件
 
 # 叙事规则
 
@@ -1886,26 +1895,16 @@
         messages.push({ role: 'system', content: `[当前现实时间：${timeContext}。请根据时间调整对话氛围和内容，如深夜时角色应更困倦，清晨时更精神]` });
         const maxCtx = state.settings.maxContext * 2;
         const recentContext = state.game.aiContext.slice(-maxCtx);
-        let styleAnchors = [];
         if (recentContext.length > 0) {
             const coreMemories = extractCoreMemories(state.game.aiContext);
-            let contextNote = `[前情提要：你与玩家已互动${Math.floor(recentContext.length / 2)}轮，请保持剧情连贯`;
+            let contextNote = `[前情提要：你与玩家已互动${Math.floor(recentContext.length / 2)}轮。`;
             if (coreMemories.length > 0) {
-                contextNote += `。关键记忆：${coreMemories.join('；')}`;
+                contextNote += `关键事件：${coreMemories.join('；')}`;
             }
-            contextNote += ']';
+            contextNote += '。注意：不要重复之前说过的内容和场景，必须推动剧情发展]';
             messages.push({ role: 'system', content: contextNote });
         }
-        if (recentContext.length >= 4) {
-            styleAnchors = recentContext.filter(m => m.role === 'assistant').slice(-2);
-            if (styleAnchors.length > 0) {
-                messages.push({ role: 'system', content: '[风格参考：请保持与以下回复相同的语气和风格写作]' });
-                styleAnchors.forEach(a => messages.push(a));
-            }
-        }
-        recentContext.forEach(m => {
-            if (!styleAnchors.includes(m)) messages.push(m);
-        });
+        recentContext.forEach(m => messages.push(m));
         messages.push({ role: 'user', content: userMessage });
         const lastCtx = state.game.aiContext[state.game.aiContext.length - 1];
         if (retryCount === 0 && !(lastCtx?.role === 'user' && lastCtx?.content === userMessage)) {
