@@ -1860,10 +1860,6 @@
                 url = targetUrl;
                 headers['Authorization'] = `Bearer ${apiKey}`;
             }
-        } else if (preferDirect) {
-            // 魔搭社区直连（最快）
-            url = `${config.baseUrl}/chat/completions`;
-            headers['Authorization'] = `Bearer ${apiKey}`;
         } else if (canDirectConnect && !useProxy) {
             url = `${config.baseUrl}/chat/completions`;
             headers['Authorization'] = `Bearer ${apiKey}`;
