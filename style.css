@@ -217,81 +217,81 @@
 
 /* ==================== Ink Wash Theme — 浅墨 ==================== */
 [data-theme="ink-wash"] {
-    --bg: #f7f5f0;
-    --bg-secondary: #edeae2;
+    --bg: #f2f4f3;
+    --bg-secondary: #e4e8e7;
     --bg-card: rgba(255, 255, 255, 0.5);
-    --text: #4a4a4a;
-    --text-secondary: rgba(74, 74, 74, 0.7);
-    --text-muted: rgba(74, 74, 74, 0.4);
-    --primary: #9a9a9a;
-    --accent: #7a7a7a;
-    --gradient: linear-gradient(135deg, #b0b0b0, #8a8a8a);
-    --border: rgba(120, 120, 120, 0.15);
+    --text: #3d4a4b;
+    --text-secondary: rgba(61, 74, 75, 0.7);
+    --text-muted: rgba(61, 74, 75, 0.4);
+    --primary: #93adaf;
+    --accent: #667475;
+    --gradient: linear-gradient(135deg, #93adaf, #667475);
+    --border: rgba(102, 116, 117, 0.18);
     --shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
 
-    --dialog-bg: rgba(247, 245, 240, 0.55);
-    --dialog-bg-light: rgba(247, 245, 240, 0.35);
-    --dialog-border: rgba(120, 120, 120, 0.1);
+    --dialog-bg: rgba(242, 244, 243, 0.55);
+    --dialog-bg-light: rgba(242, 244, 243, 0.35);
+    --dialog-border: rgba(102, 116, 117, 0.12);
     --dialog-blur: blur(12px) saturate(110%);
-    --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(247, 245, 240, 0.15) 40%, rgba(247, 245, 240, 0.4) 100%);
-    --dialog-text-color: #4a4a4a;
-    --nameplate-bg: linear-gradient(135deg, rgba(160, 160, 160, 0.5), rgba(120, 120, 120, 0.5));
+    --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(242, 244, 243, 0.15) 40%, rgba(242, 244, 243, 0.4) 100%);
+    --dialog-text-color: #3d4a4b;
+    --nameplate-bg: linear-gradient(135deg, rgba(147, 173, 175, 0.5), rgba(102, 116, 117, 0.5));
 
-    --accent-color: #9a9a9a;
-    --name-color: #7a7a7a;
+    --accent-color: #93adaf;
+    --name-color: #667475;
     --emotion-color: #a08070;
-    --send-color: #9a9a9a;
-    --send-hover-color: rgba(154, 154, 154, 0.7);
+    --send-color: #93adaf;
+    --send-hover-color: rgba(147, 173, 175, 0.7);
 
-    --sprite-shadow: drop-shadow(0 0 18px rgba(154, 154, 154, 0.2));
+    --sprite-shadow: drop-shadow(0 0 18px rgba(147, 173, 175, 0.25));
 
     --text-shadow: none;
 
-    --title-panel-bg: rgba(247, 245, 240, 0.7);
-    --title-panel-border: 1px solid rgba(120, 120, 120, 0.1);
+    --title-panel-bg: rgba(242, 244, 243, 0.7);
+    --title-panel-border: 1px solid rgba(102, 116, 117, 0.12);
     --title-panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
     --title-panel-hover-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
     --title-text-color: #fff;
     --title-subtitle-color: rgba(255, 255, 255, 0.85);
     --title-tag-color: rgba(255, 255, 255, 0.75);
-    --title-btn-primary-bg: #7a7a7a;
-    --title-btn-primary-hover-bg: #6a6a6a;
-    --title-btn-primary-shadow: 0 4px 12px rgba(120, 120, 120, 0.2);
-    --title-btn-bg: rgba(154, 154, 154, 0.15);
-    --title-btn-color: #7a7a7a;
-    --title-btn-hover-bg: rgba(154, 154, 154, 0.25);
+    --title-btn-primary-bg: #667475;
+    --title-btn-primary-hover-bg: #566465;
+    --title-btn-primary-shadow: 0 4px 12px rgba(102, 116, 117, 0.2);
+    --title-btn-bg: rgba(147, 173, 175, 0.15);
+    --title-btn-color: #667475;
+    --title-btn-hover-bg: rgba(147, 173, 175, 0.25);
 
-    --menu-btn-bg: rgba(154, 154, 154, 0.15);
-    --menu-btn-color: #7a7a7a;
-    --menu-header-bg: #7a7a7a;
+    --menu-btn-bg: rgba(147, 173, 175, 0.15);
+    --menu-btn-color: #667475;
+    --menu-header-bg: #667475;
 
-    --big-button-bg: #7a7a7a;
-    --slider-track: linear-gradient(to left, #b0b0b0, #8a8a8a);
-    --slider-thumb-border: 2px solid #9a9a9a;
+    --big-button-bg: #667475;
+    --slider-track: linear-gradient(to left, #93adaf, #b8c8ca);
+    --slider-thumb-border: 2px solid #93adaf;
     --slider-thumb-bg: #fff;
 
-    --settings-panel-bg: #faf8f5;
+    --settings-panel-bg: #f6f8f7;
     --settings-panel-shadow: 0 5px 30px rgba(0, 0, 0, 0.08);
-    --settings-tab-color: #8a8a8a;
-    --settings-tab-active-color: #7a7a7a;
-    --settings-tab-indicator: #7a7a7a;
+    --settings-tab-color: #7a8e8f;
+    --settings-tab-active-color: #667475;
+    --settings-tab-indicator: #667475;
     --settings-input-bg: rgba(255, 255, 255, 0.8);
-    --settings-input-border: rgba(120, 120, 120, 0.12);
-    --settings-input-focus-border: #9a9a9a;
-    --settings-input-focus-shadow: 0 0 5px rgba(154, 154, 154, 0.2);
-    --settings-input-color: #4a4a4a;
-    --settings-label-color: #7a7a7a;
-    --settings-divider: #edeae2;
-    --settings-item-bg: rgba(120, 120, 120, 0.04);
-    --settings-item-border: rgba(120, 120, 120, 0.08);
+    --settings-input-border: rgba(102, 116, 117, 0.12);
+    --settings-input-focus-border: #93adaf;
+    --settings-input-focus-shadow: 0 0 5px rgba(147, 173, 175, 0.25);
+    --settings-input-color: #3d4a4b;
+    --settings-label-color: #667475;
+    --settings-divider: #e4e8e7;
+    --settings-item-bg: rgba(102, 116, 117, 0.05);
+    --settings-item-border: rgba(102, 116, 117, 0.08);
 
-    --input-bg: rgba(120, 120, 120, 0.06);
-    --input-border: rgba(120, 120, 120, 0.15);
+    --input-bg: rgba(102, 116, 117, 0.06);
+    --input-border: rgba(102, 116, 117, 0.15);
     --title-panel-blur: blur(10px);
 
     --glass-bg: rgba(255, 255, 255, 0.15);
     --glass-blur: blur(16px) saturate(140%);
-    --glass-border: 1px solid rgba(120, 120, 120, 0.1);
+    --glass-border: 1px solid rgba(102, 116, 117, 0.1);
     --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
 
     --scene-transition-bg: var(--bg);
@@ -485,11 +485,11 @@ html, body {
 [data-theme="ink-wash"] .title-text {
     background: linear-gradient(
         135deg,
-        #c0c0c0,
-        #8a8a8a,
-        #b0b0b0,
-        #7a7a7a,
-        #c0c0c0
+        #b8c8ca,
+        #667475,
+        #93adaf,
+        #566465,
+        #b8c8ca
     );
     background-size: 300% 300%;
     -webkit-background-clip: text;
@@ -1015,7 +1015,7 @@ html, body {
         ellipse at center,
         transparent 0%,
         transparent 60%,
-        rgba(80, 80, 80, 0.12) 100%
+        rgba(102, 116, 117, 0.1) 100%
     );
 }
 
@@ -1295,7 +1295,7 @@ html, body {
     background: linear-gradient(
         180deg,
         transparent 60%,
-        rgba(154, 154, 154, 0.04) 100%
+        rgba(147, 173, 175, 0.04) 100%
     );
 }
 
@@ -2127,8 +2127,8 @@ html, body {
 }
 
 .ink-wash-preview {
-    background: linear-gradient(135deg, #f7f5f0, #e8e6e0);
-    box-shadow: inset 0 0 20px rgba(154, 154, 154, 0.15);
+    background: linear-gradient(135deg, #f2f4f3, #93adaf);
+    box-shadow: inset 0 0 20px rgba(102, 116, 117, 0.15);
 }
 
 /* ==================== Save Slots ==================== */
