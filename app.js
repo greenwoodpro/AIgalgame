@@ -1836,10 +1836,10 @@
         const useProxy = state.settings.useProxyKeys;
         const apiKey = state.settings.apiKeys[provider];
         const isCustom = provider === 'custom';
-        // 魔搭社区支持浏览器直连（无CORS限制），自定义API根据代理设置决定
+        // 魔搭社区始终优先直连（无CORS限制），自定义API根据代理设置决定
         const canDirectConnect = (provider === 'modelscope' && apiKey) || isCustom;
-        // 魔搭社区优先直连（更快），除非用户强制使用代理密钥
-        const preferDirect = provider === 'modelscope' && apiKey && !useProxy;
+        // 魔搭社区：只要用户填了自己的Key就直连，忽略useProxy设置
+        const preferDirect = provider === 'modelscope' && apiKey;
         if (isCustom && !state.settings.customBaseUrl) throw new Error('请先配置自定义 API 的 Base URL');
         if (isCustom && !apiKey) throw new Error('请先配置自定义 API 的 API Key');
         if (!useProxy && !canDirectConnect && !apiKey) throw new Error(`请先配置 ${config.name} 的 API Key，或开启"使用默认密钥"`);
