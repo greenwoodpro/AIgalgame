@@ -400,13 +400,6 @@
                     </div>
                     <div class="tab-content" id="tab-game">
                         <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="day-night-toggle">
-                                夜间模式（降低亮度，保护眼睛）
-                            </label>
-                            <small>开启后降低整体亮度，与主题颜色独立控制</small>
-                        </div>
-                        <div class="form-group">
                             <label for="text-speed">文字显示速度</label>
                             <input type="range" id="text-speed" min="10" max="100" value="40">
                             <span id="text-speed-label">40ms</span>
@@ -452,6 +445,13 @@
                                 启用深度思考模式（更慢但更智能）
                             </label>
                             <small>开启后使用thinking模型进行深度推理，响应时间更长</small>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="auto-gen-scene" checked>
+                                AI根据场景自动生成背景图
+                            </label>
+                            <small>对话中出现场景描述时，AI自动生成相应背景</small>
                         </div>
                         <div class="form-group">
                             <label>

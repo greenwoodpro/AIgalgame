@@ -214,7 +214,6 @@
         mode: null,
         currentScreen: 'title',
         theme: 'dark-star',
-        dayNightMode: 'day',
         uiMode: 'game',
         settings: {
             textSpeed: 40,
@@ -224,6 +223,7 @@
             enableThinking: false,
             autoDefaultBg: true,
             defaultBgInterval: 60,
+            autoGenScene: true,
             autoSwitchBg: false,
             chatShowBg: true,
             bgSwitchInterval: 120,
@@ -241,7 +241,6 @@
             customBaseUrl: '',
             customTextModel: '',
             customImageModel: '',
-            dayNightMode: 'day',
             theme: 'light',
             bgmVolume: 30,
             bgmEnabled: false,
@@ -447,7 +446,6 @@
         const validThemes = ['dark-star', 'ink-wash', 'light'];
         if (!validThemes.includes(state.theme)) state.theme = 'light';
         applyTheme(state.theme);
-        applyDayNightMode(state.dayNightMode || state.settings.dayNightMode || 'day');
         bindEvents();
         restoreSettingsUI();
         document.addEventListener('click', (e) => {
@@ -477,8 +475,10 @@
             if (saved) {
                 state.settings = { ...state.settings, ...saved };
                 if (saved.apiKeys) state.settings.apiKeys = { ...state.settings.apiKeys, ...saved.apiKeys };
-                if (saved.dayNightMode) state.dayNightMode = saved.dayNightMode;
                 if (saved.theme) state.theme = saved.theme;
+                // 修正无效的 provider
+                if (!API_CONFIGS[state.settings.textApiProvider]) state.settings.textApiProvider = 'modelscope';
+                if (!API_CONFIGS[state.settings.imageApiProvider]) state.settings.imageApiProvider = 'zhipu';
             }
         } catch (e) { console.warn('加载设置失败'); }
         try {
@@ -525,17 +525,6 @@
         }
         // Update ambient particles type
         if (ambientParticles) ambientParticles.setType(themeName);
-        saveSettings();
-    }
-
-    function applyDayNightMode(mode) {
-        state.dayNightMode = mode;
-        state.settings.dayNightMode = mode;
-        if (mode === 'auto' || !mode) {
-            document.documentElement.removeAttribute('data-day-night');
-        } else {
-            document.documentElement.setAttribute('data-day-night', mode);
-        }
         saveSettings();
     }
 
@@ -900,10 +889,7 @@
             if (e.target.checked) startAmbientParticles();
             else stopAmbientParticles();
         });
-        $('#day-night-toggle').addEventListener('change', e => {
-            const mode = e.target.checked ? 'night' : 'day';
-            applyDayNightMode(mode);
-        });
+        $('#auto-gen-scene').addEventListener('change', e => { state.settings.autoGenScene = e.target.checked; saveSettings(); });
         const bgmVolumeEl = $('#bgm-volume');
         if (bgmVolumeEl) {
             bgmVolumeEl.addEventListener('input', e => {
@@ -956,7 +942,7 @@
         $('#custom-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') { e.preventDefault(); sendCustomInput(); }
         });
-        $('#chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') handleChatSend(); });
+        $('#chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); handleChatSend(); } });
         
         const dialogTextArea = $('#dialog-text-area');
         if (dialogTextArea) {
@@ -1143,14 +1129,12 @@
         state.settings.chatShowBg = $('#chat-show-bg').checked;
         state.settings.imageCooldown = parseInt($('#image-cooldown').value) || 60;
         state.settings.ambientParticles = $('#ambient-particles').checked;
-        state.settings.dayNightMode = $('#day-night-toggle').checked ? 'night' : 'day';
-        state.dayNightMode = state.settings.dayNightMode;
+        state.settings.autoGenScene = $('#auto-gen-scene')?.checked ?? true;
         const bgmVolumeEl = $('#bgm-volume');
         if (bgmVolumeEl) state.settings.bgmVolume = parseInt(bgmVolumeEl.value) || 30;
         state.settings.bgmEnabled = bgmState.enabled;
         state.settings.ttsEnabled = ttsState.enabled;
         state.settings.ttsVoice = ttsState.voice;
-        applyDayNightMode(state.settings.dayNightMode);
         saveSettings();
     }
 
@@ -1165,6 +1149,7 @@
             enableThinking: false,
             autoDefaultBg: true,
             defaultBgInterval: 60,
+            autoGenScene: true,
             autoSwitchBg: false,
             chatShowBg: true,
             bgSwitchInterval: 120,
@@ -1182,7 +1167,6 @@
             textModel: 'moonshotai/Kimi-K2.5',
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
-            dayNightMode: 'day',
             bgmVolume: 30,
             bgmEnabled: false,
             ttsEnabled: false,
@@ -1191,7 +1175,6 @@
         saveSettings();
         restoreSettingsUI();
         applyTheme('dark-star');
-        applyDayNightMode('day');
         showToast('已恢复默认设置', 'success');
     }
 
@@ -1206,12 +1189,14 @@
         if (s.customImageModel) $('#custom-image-model').value = s.customImageModel;
         $('#text-api-provider').value = s.textApiProvider;
         updateModelOptions();
-        $('#text-model').value = s.textModel;
-        if (!$('#text-model').value) {
+        // 模型选择已由 updateModelOptions 处理，这里做二次确认
+        if (s.textModel && $('#text-model').options.length > 0) {
             const opts = $('#text-model').options;
+            let found = false;
             for (let i = 0; i < opts.length; i++) {
-                if (opts[i].value === s.textModel) { $('#text-model').selectedIndex = i; break; }
+                if (opts[i].value === s.textModel) { $('#text-model').selectedIndex = i; found = true; break; }
             }
+            if (!found) $('#text-model').selectedIndex = 0;
         }
         updateModelTags();
         if (s.imageApiProvider) {
@@ -1247,10 +1232,7 @@
         }
         if (s.imageCooldown !== undefined) $('#image-cooldown').value = s.imageCooldown;
         if (s.ambientParticles !== undefined) $('#ambient-particles').checked = s.ambientParticles;
-        if (s.dayNightMode) {
-            const dnToggle = $('#day-night-toggle');
-            if (dnToggle) dnToggle.checked = s.dayNightMode === 'night';
-        }
+        if (s.autoGenScene !== undefined) $('#auto-gen-scene').checked = s.autoGenScene;
         // 恢复主题选择
         if (s.theme) {
             applyTheme(s.theme);
@@ -1278,10 +1260,18 @@
     }
 
     function updateModelOptions() {
-        const provider = $('#text-api-provider').value;
+        const providerSelect = $('#text-api-provider');
+        let provider = providerSelect ? providerSelect.value : '';
+        // Fallback: if provider not in API_CONFIGS, default to modelscope
+        if (!provider || !API_CONFIGS[provider]) {
+            provider = 'modelscope';
+            if (providerSelect) providerSelect.value = provider;
+            state.settings.textApiProvider = provider;
+            saveSettings();
+        }
         const select = $('#text-model');
         const config = API_CONFIGS[provider];
-        if (!config) return;
+        if (!config || !select) return;
 
         // Custom provider: hide dropdown and image API group
         if (provider === 'custom') {
@@ -1306,13 +1296,14 @@
             opt.textContent = m.name;
             select.appendChild(opt);
         });
+        // Try to restore previous model; if not in current provider's list, use first model
         if (previousValue && config.models.text.some(m => m.id === previousValue)) {
             select.value = previousValue;
-        }
-        if (!select.value && select.options.length > 0) {
+        } else {
             select.selectedIndex = 0;
         }
         state.settings.textModel = select.value;
+        saveSettings();
         updateModelTags();
     }
 
@@ -2655,9 +2646,15 @@
         restoreFallbackProvider();
         let parsed = null;
         try {
-            const cleaned = rawContent.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-            const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-            if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
+            // 先去除 markdown 代码块包裹
+            let cleaned = rawContent.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+            // 贪婪匹配最外层JSON：找到第一个 { 和最后一个 }
+            const firstBrace = cleaned.indexOf('{');
+            const lastBrace = cleaned.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace > firstBrace) {
+                const jsonStr = cleaned.substring(firstBrace, lastBrace + 1);
+                parsed = JSON.parse(jsonStr);
+            }
         } catch {}
 
         // Show meta info (thinking time + output tokens)
@@ -2692,7 +2689,7 @@
                 addChatMessage(name, dialog, 'ai');
             }
             if (scene) state.game.currentScene = scene;
-            if (scene) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
+            if (scene && state.settings.autoGenScene !== false) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
         } else if (parsed && (parsed['开场白'] || parsed['对话'] || parsed['场景'])) {
             // Fallback: 模型返回了中文key的JSON
             const name = parsed['角色'] || parsed['name'] || '星酱';
@@ -2704,7 +2701,7 @@
             updateEmotionIndicator(emotion);
             if (state.uiMode === 'chat') addChatMessage(name, dialog, 'ai');
             if (scene) state.game.currentScene = scene;
-            if (scene) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
+            if (scene && state.settings.autoGenScene !== false) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
         } else {
             let content = rawContent;
             content = content.replace(/作为(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
@@ -3682,7 +3679,6 @@
                 uiMode: state.uiMode || 'game',
                 game: JSON.parse(JSON.stringify(state.game)),
                 theme: state.theme,
-                dayNightMode: state.dayNightMode,
             };
             Storage.set(STORAGE_KEYS.saves, saves);
             showToast(`已保存到存档 ${slotNum}`, 'success');
@@ -3700,7 +3696,6 @@
             const validThemes = ['dark-star', 'ink-wash', 'light'];
             applyTheme(validThemes.includes(save.theme) ? save.theme : 'light');
         }
-        if (save.dayNightMode) applyDayNightMode(save.dayNightMode);
         if (save.uiMode) switchUiMode(save.uiMode);
         if (state.game.activeOutline) {
             const outlineBtn = $('#outline-select-btn');
