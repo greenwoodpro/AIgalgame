@@ -1417,11 +1417,8 @@
         if (imageEl) imageEl.textContent = imageModel ? imageModel.name : (state.settings.imageModel || '未配置');
         if (connEl) {
             const provider = state.settings.textApiProvider;
-            const hasOwnKey = !!state.settings.apiKeys[provider];
             if (provider === 'custom') {
                 connEl.textContent = state.settings.corsProxy ? '代理' : '直连';
-            } else if (provider === 'modelscope' && hasOwnKey) {
-                connEl.textContent = '直连';
             } else {
                 connEl.textContent = state.settings.useProxyKeys ? '代理' : '直连';
             }
@@ -1449,11 +1446,8 @@
         if (sbImage) sbImage.textContent = imageModel ? imageModel.name : (state.settings.imageModel || '未配置');
         if (sbConn) {
             const provider = state.settings.textApiProvider;
-            const hasOwnKey = !!state.settings.apiKeys[provider];
             if (provider === 'custom') {
                 sbConn.textContent = state.settings.corsProxy ? '代理' : '直连';
-            } else if (provider === 'modelscope' && hasOwnKey) {
-                sbConn.textContent = '直连';
             } else {
                 sbConn.textContent = state.settings.useProxyKeys ? '代理' : '直连';
             }
@@ -1792,13 +1786,11 @@
         const useProxy = state.settings.useProxyKeys;
         const apiKey = state.settings.apiKeys[provider];
         const isCustom = provider === 'custom';
-        // 魔搭社区始终优先直连（无CORS限制），自定义API根据代理设置决定
-        const canDirectConnect = (provider === 'modelscope' && apiKey) || isCustom;
-        // 魔搭社区：只要用户填了自己的Key就直连，忽略useProxy设置
-        const preferDirect = provider === 'modelscope' && apiKey;
+        // 自定义API始终需要自己的Key；其他provider有Key可直连
+        const canDirectConnect = isCustom || !!apiKey;
         if (isCustom && !state.settings.customBaseUrl) throw new Error('请先配置自定义 API 的 Base URL');
         if (isCustom && !apiKey) throw new Error('请先配置自定义 API 的 API Key');
-        if (!useProxy && !canDirectConnect && !apiKey) throw new Error(`请先配置 ${config.name} 的 API Key，或开启"使用默认密钥"`);
+        if (!useProxy && !canDirectConnect) throw new Error(`请先配置 ${config.name} 的 API Key，或开启"使用默认密钥"`);
 
         let url;
         let headers = { 'Content-Type': 'application/json' };
@@ -1816,8 +1808,8 @@
                 url = targetUrl;
                 headers['Authorization'] = `Bearer ${apiKey}`;
             }
-        } else if ((provider === 'modelscope' && apiKey) || (canDirectConnect && !useProxy)) {
-            // 魔搭社区：填了自己的Key就直连（无CORS限制，速度快3倍）
+        } else if (canDirectConnect && !useProxy) {
+            // 有Key且未开代理 → 直连
             url = `${config.baseUrl}/chat/completions`;
             headers['Authorization'] = `Bearer ${apiKey}`;
         } else {
@@ -1964,13 +1956,13 @@
         const useProxy = state.settings.useProxyKeys;
         const apiKey = state.settings.apiKeys[provider];
         const isCustom = provider === 'custom';
-        const canDirectConnect = (provider === 'modelscope' && apiKey) || isCustom;
+        const canDirectConnect = isCustom || !!apiKey;
         if (isCustom && !state.settings.customBaseUrl) throw new Error('请先配置自定义 API 的 Base URL');
         if (isCustom && !apiKey) throw new Error('请先配置自定义 API 的 API Key');
-        if (!useProxy && !canDirectConnect && !apiKey) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
+        if (!useProxy && !canDirectConnect) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
 
         const proxyBase = state.settings.corsProxyUrl || window.location.origin;
-        const useProxyUrl = !((provider === 'modelscope' && apiKey) || (canDirectConnect && !useProxy));
+        const useProxyUrl = !(canDirectConnect && !useProxy);
 
         let url;
         let headers = { 'Content-Type': 'application/json' };
