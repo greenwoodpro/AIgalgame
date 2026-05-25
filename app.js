@@ -454,8 +454,6 @@
         if (!text) return;
         input.value = '';
         addChatMessage('玩家', text, 'user');
-        // 也添加到对话段历史，方便上下键浏览
-        dialogSegmentState.dialogHistory.push({ name: '玩家', text, emotion: '', type: 'player' });
         handleAiChoice(text);
     }
 
@@ -3131,13 +3129,6 @@
         
         const text = dialogTextArea.value.trim();
         if (!text) return;
-
-        dialogSegmentState.dialogHistory.push({
-            name: '你',
-            text: text,
-            emotion: '',
-            type: 'user'
-        });
         
         dialogTextArea.readOnly = true;
         dialogTextArea.dataset.mode = 'display';
@@ -3204,7 +3195,7 @@
         apiCallInProgress = true;
         hideChoices();
         addDialogHistory('玩家', choiceText);
-        // 也添加到对话段历史，方便上下键浏览
+        // 统一添加到对话段历史，方便上下键浏览
         dialogSegmentState.dialogHistory.push({ name: '玩家', text: choiceText, emotion: '', type: 'player' });
         showAiGenerating(true);
         
@@ -3830,6 +3821,23 @@
             delBtn.textContent = '删除';
             delBtn.addEventListener('click', e => { e.stopPropagation(); deleteSlot(slotNum); });
             actionsDiv.appendChild(delBtn);
+            const renameBtn = document.createElement('button');
+            renameBtn.className = 'slot-rename';
+            renameBtn.textContent = '重命名';
+            renameBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                const newName = prompt('输入新的存档名称：', save.title || '存档');
+                if (newName !== null && newName.trim()) {
+                    const saves = Storage.get(STORAGE_KEYS.saves) || {};
+                    if (saves[slotNum]) {
+                        saves[slotNum].title = newName.trim();
+                        Storage.set(STORAGE_KEYS.saves, saves);
+                        titleDiv.textContent = newName.trim();
+                        showToast('存档已重命名', 'success');
+                    }
+                }
+            });
+            actionsDiv.appendChild(renameBtn);
             slot.appendChild(actionsDiv);
             if (mode === 'load') { slot.addEventListener('click', () => loadFromSlot(slotNum)); }
             container.appendChild(slot);
