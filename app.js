@@ -1836,7 +1836,10 @@
         const useProxy = state.settings.useProxyKeys;
         const apiKey = state.settings.apiKeys[provider];
         const isCustom = provider === 'custom';
+        // 魔搭社区支持浏览器直连（无CORS限制），自定义API根据代理设置决定
         const canDirectConnect = (provider === 'modelscope' && apiKey) || isCustom;
+        // 魔搭社区优先直连（更快），除非用户强制使用代理密钥
+        const preferDirect = provider === 'modelscope' && apiKey && !useProxy;
         if (isCustom && !state.settings.customBaseUrl) throw new Error('请先配置自定义 API 的 Base URL');
         if (isCustom && !apiKey) throw new Error('请先配置自定义 API 的 API Key');
         if (!useProxy && !canDirectConnect && !apiKey) throw new Error(`请先配置 ${config.name} 的 API Key，或开启"使用默认密钥"`);
@@ -1846,9 +1849,7 @@
         let useCustomProxy = false;
         if (isCustom) {
             const baseUrl = state.settings.customBaseUrl.replace(/\/+$/, '');
-            // 如果base URL已经包含 /chat/completions，直接使用；否则拼接
             const targetUrl = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`;
-            // 如果启用了CORS代理，通过服务端代理转发自定义API请求
             if (state.settings.corsProxy) {
                 const proxyBase = state.settings.corsProxyUrl || window.location.origin;
                 url = `${proxyBase}/api/custom/chat/completions`;
@@ -1859,6 +1860,10 @@
                 url = targetUrl;
                 headers['Authorization'] = `Bearer ${apiKey}`;
             }
+        } else if (preferDirect) {
+            // 魔搭社区直连（最快）
+            url = `${config.baseUrl}/chat/completions`;
+            headers['Authorization'] = `Bearer ${apiKey}`;
         } else if (canDirectConnect && !useProxy) {
             url = `${config.baseUrl}/chat/completions`;
             headers['Authorization'] = `Bearer ${apiKey}`;
