@@ -204,8 +204,8 @@
             useProxyKeys: true,
             textApiProvider: 'modelscope',
             textModel: 'moonshotai/Kimi-K2.5',
-            imageApiProvider: 'modelscope',
-            imageModel: 'Z-Image/Z-Image-Turbo',
+            imageApiProvider: 'zhipu',
+            imageModel: 'cogview-3-flash',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
             apiKeys: { zhipu: '', modelscope: '', nvidia: '', custom: '' },
             customBaseUrl: '',
@@ -447,7 +447,7 @@
                 if (saved.theme) state.theme = saved.theme;
                 // 修正无效的 provider
                 if (!API_CONFIGS[state.settings.textApiProvider]) state.settings.textApiProvider = 'modelscope';
-                if (!API_CONFIGS[state.settings.imageApiProvider]) state.settings.imageApiProvider = 'modelscope';
+                if (!API_CONFIGS[state.settings.imageApiProvider]) state.settings.imageApiProvider = 'zhipu';
             }
         } catch (e) { console.warn('加载设置失败'); }
         try {
@@ -1193,8 +1193,8 @@
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
             textApiProvider: 'modelscope',
             textModel: 'moonshotai/Kimi-K2.5',
-            imageApiProvider: 'modelscope',
-            imageModel: 'Z-Image/Z-Image-Turbo',
+            imageApiProvider: 'zhipu',
+            imageModel: 'cogview-3-flash',
             bgmVolume: 30,
             bgmEnabled: false,
             ttsEnabled: false,
@@ -1419,6 +1419,8 @@
             const provider = state.settings.textApiProvider;
             if (provider === 'custom') {
                 connEl.textContent = state.settings.corsProxy ? '代理' : '直连';
+            } else if (provider === 'modelscope' && state.settings.apiKeys.modelscope) {
+                connEl.textContent = '直连';
             } else {
                 connEl.textContent = state.settings.useProxyKeys ? '代理' : '直连';
             }
@@ -1448,6 +1450,8 @@
             const provider = state.settings.textApiProvider;
             if (provider === 'custom') {
                 sbConn.textContent = state.settings.corsProxy ? '代理' : '直连';
+            } else if (provider === 'modelscope' && state.settings.apiKeys.modelscope) {
+                sbConn.textContent = '直连';
             } else {
                 sbConn.textContent = state.settings.useProxyKeys ? '代理' : '直连';
             }
@@ -1808,8 +1812,12 @@
                 url = targetUrl;
                 headers['Authorization'] = `Bearer ${apiKey}`;
             }
+        } else if (provider === 'modelscope' && apiKey) {
+            // 魔搭社区：填了自己的Key就直连（无CORS限制，速度快3倍）
+            url = `${config.baseUrl}/chat/completions`;
+            headers['Authorization'] = `Bearer ${apiKey}`;
         } else if (canDirectConnect && !useProxy) {
-            // 有Key且未开代理 → 直连
+            // 其他provider：有Key且未开代理 → 直连
             url = `${config.baseUrl}/chat/completions`;
             headers['Authorization'] = `Bearer ${apiKey}`;
         } else {
@@ -1959,18 +1967,19 @@
         const canDirectConnect = isCustom || !!apiKey;
         if (isCustom && !state.settings.customBaseUrl) throw new Error('请先配置自定义 API 的 Base URL');
         if (isCustom && !apiKey) throw new Error('请先配置自定义 API 的 API Key');
-        if (!useProxy && !canDirectConnect) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
+        // 智谱生图始终走代理，只需useProxyKeys即可；其他provider需要key或useProxyKeys
+        if (provider !== 'zhipu' && !useProxy && !canDirectConnect) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
+        if (provider === 'zhipu' && !useProxyKeys && !apiKey) throw new Error('智谱生图需要开启"使用默认密钥"或填写智谱API Key');
 
         const proxyBase = state.settings.corsProxyUrl || window.location.origin;
-        const useProxyUrl = !((provider === 'modelscope' && apiKey) || (canDirectConnect && !useProxy));
+        // 智谱生图始终走代理（使用服务端ZHIPU_API_KEY），魔搭/其他按原逻辑
+        const useProxyUrl = provider === 'zhipu' ? true : !(canDirectConnect && !useProxy);
 
         let url;
         let headers = { 'Content-Type': 'application/json' };
         if (isCustom) {
             const baseUrl = state.settings.customBaseUrl.replace(/\/+$/, '');
-            // 如果base URL已经包含 /images/generations，直接使用；否则拼接
             const targetUrl = baseUrl.endsWith('/images/generations') ? baseUrl : `${baseUrl}/images/generations`;
-            // 如果启用了CORS代理，通过服务端代理转发自定义API请求
             if (state.settings.corsProxy) {
                 const proxyBase = state.settings.corsProxyUrl || window.location.origin;
                 url = `${proxyBase}/api/custom/images/generations`;
@@ -3278,7 +3287,7 @@
             }
         } catch (e) {
             lastImageGenTime = 0;
-            console.warn('场景图生成失败');
+            console.warn('场景图生成失败:', e);
             showToast('场景图生成失败: ' + e.message, 'error');
         }
     }
