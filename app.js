@@ -1687,8 +1687,13 @@
                 const container = $('#chat-messages');
                 if (container) container.scrollTop = container.scrollHeight;
             } else if (streamDialogTextArea) {
-                streamDialogTextArea.value = fullText;
+                const streamSegments = splitStreamText(fullText);
+                streamDialogTextArea.value = streamSegments[0] || fullText;
                 streamDialogTextArea.scrollTop = streamDialogTextArea.scrollHeight;
+                const dialogMeta = $('#dialog-meta');
+                if (dialogMeta && streamSegments.length > 1) {
+                    dialogMeta.textContent = `1/${streamSegments.length}`;
+                }
             }
         } : null;
 
@@ -2992,6 +2997,20 @@
             dialogTextArea.value = segments[0] || '';
         }
 
+        // 更新情绪指示器和立绘
+        const emotionIndicator = $('#emotion-indicator');
+        if (emotionIndicator && emotion) {
+            emotionIndicator.textContent = emotion;
+            emotionIndicator.className = `emotion-${normalizeEmotion(emotion)}`;
+        }
+        if (name && name !== '旁白' && name !== '系统') {
+            const char = SPRITE_CONFIG.characters.find(c => c.name === name);
+            if (char) {
+                const expr = SPRITE_CONFIG.emotionMap[emotion] || char.defaultExpr;
+                showSprite(char.id, expr);
+            }
+        }
+
         // 更新页码指示
         updateSegmentPageIndicator();
 
@@ -3018,6 +3037,31 @@
         } else {
             if (dialogTextArea) dialogTextArea.placeholder = '按 Enter 输入回复...';
         }
+    }
+
+    // 流式输出期间用的轻量分段（与splitDialogIntoSegments逻辑一致）
+    function splitStreamText(text) {
+        let t = text.replace(/\\n/g, '\n').replace(/\r\n/g, '\n');
+        const paragraphs = t.split(/\n{2,}/);
+        const segments = [];
+        for (const para of paragraphs) {
+            const trimmed = para.trim();
+            if (trimmed) {
+                const cleaned = trimmed.replace(/\n/g, ' ');
+                segments.push(cleaned);
+            }
+        }
+        if (segments.length === 0) segments.push(text.trim() || '');
+        if (segments.length > 3) {
+            const merged = [];
+            for (let i = 0; i < 3; i++) {
+                const start = Math.floor(i * segments.length / 3);
+                const end = Math.floor((i + 1) * segments.length / 3);
+                merged.push(segments.slice(start, end).join('\n\n'));
+            }
+            return merged;
+        }
+        return segments;
     }
 
     function splitDialogIntoSegments(dialog) {
@@ -3099,7 +3143,21 @@
         if (dialogSubtitle) dialogSubtitle.textContent = '';
 
         const emotionIndicator = $('#emotion-indicator');
-        if (emotionIndicator) emotionIndicator.textContent = emotion || '';
+        if (emotionIndicator && emotion) {
+            emotionIndicator.textContent = emotion;
+            emotionIndicator.className = `emotion-${normalizeEmotion(emotion)}`;
+        } else if (emotionIndicator) {
+            emotionIndicator.textContent = '';
+        }
+
+        // 翻页时更新立绘
+        if (name && name !== '旁白' && name !== '系统') {
+            const char = SPRITE_CONFIG.characters.find(c => c.name === name);
+            if (char) {
+                const expr = SPRITE_CONFIG.emotionMap[emotion] || char.defaultExpr;
+                showSprite(char.id, expr);
+            }
+        }
 
         // 流式模式：直接显示文本，不用打字机效果
         if (state.settings.streamOutput) {
@@ -3253,6 +3311,10 @@
         }
 
         if (dialogTextArea) dialogTextArea.placeholder = '↑↓查看历史 / 按 Enter 返回当前';
+
+        // 浏览历史时隐藏页码指示器
+        const dialogMeta = $('#dialog-meta');
+        if (dialogMeta) dialogMeta.textContent = '';
     }
 
     function showNextDialog() {
@@ -3281,9 +3343,7 @@
                 }
             }
 
-            if (dialogTextArea && dialogSegmentState.isWaitingForContinue) {
-                dialogTextArea.placeholder = currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...';
-            }
+            updateSegmentPageIndicator();
             return;
         }
 
@@ -3438,8 +3498,15 @@
                 const container = $('#chat-messages');
                 if (container) container.scrollTop = container.scrollHeight;
             } else if (streamDialogTextArea) {
-                streamDialogTextArea.value = fullText;
+                // 游戏模式：实时分段，只显示第一段
+                const streamSegments = splitStreamText(fullText);
+                streamDialogTextArea.value = streamSegments[0] || fullText;
                 streamDialogTextArea.scrollTop = streamDialogTextArea.scrollHeight;
+                // 实时更新页码
+                const dialogMeta = $('#dialog-meta');
+                if (dialogMeta && streamSegments.length > 1) {
+                    dialogMeta.textContent = `1/${streamSegments.length}`;
+                }
             }
         } : null;
 
