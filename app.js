@@ -2100,8 +2100,7 @@
         const canDirectConnect = isCustom || !!apiKey;
         if (isCustom && !state.settings.customBaseUrl) throw new Error('请先配置自定义 API 的 Base URL');
         if (isCustom && !apiKey) throw new Error('请先配置自定义 API 的 API Key');
-        // 智谱生图始终走代理；Agnes按代理开关；其他需要key或useProxyKeys
-        if (provider === 'zhipu' && !useProxy && !apiKey) throw new Error('智谱生图需要开启"使用默认密钥"或填写智谱API Key');
+        // 智谱生图始终走代理，不需要用户Key；Agnes按代理开关；其他需要key或useProxyKeys
         if (provider === 'agnes' && !state.settings.corsProxy && !apiKey) throw new Error('请先配置 Agnes AI 的 API Key，或开启代理模式');
         if (!['zhipu', 'agnes', 'custom'].includes(provider) && !useProxy && !canDirectConnect) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
 
@@ -3522,9 +3521,11 @@
     async function generateSceneImage(sceneDescription) {
         const provider = state.settings.imageApiProvider;
         const apiKey = state.settings.apiKeys[provider];
-        const hasKey = provider === 'agnes'
-            ? (state.settings.corsProxy || !!apiKey)
-            : (state.settings.useProxyKeys || !!apiKey);
+        const hasKey = provider === 'zhipu'
+            ? true  // 智谱生图始终走代理，不需要用户Key
+            : provider === 'agnes'
+                ? (state.settings.corsProxy || !!apiKey)
+                : (state.settings.useProxyKeys || !!apiKey);
         if (!hasKey) {
             console.log('[生图] 跳过：未配置图像API Key');
             return;
