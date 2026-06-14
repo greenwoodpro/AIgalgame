@@ -879,7 +879,19 @@
             if (e.target.checked) startAmbientParticles();
             else stopAmbientParticles();
         });
-        $('#auto-gen-scene').addEventListener('change', e => { state.settings.autoGenScene = e.target.checked; saveSettings(); });
+        $('#auto-gen-scene').addEventListener('change', e => {
+            state.settings.autoGenScene = e.target.checked;
+            saveSettings();
+            if (!e.target.checked) {
+                // 关闭AI生图：停止计时器，切换到默认背景
+                stopImageGenTimer();
+                pendingSceneDescription = null;
+                setSceneBackground(null);
+            } else if (state.game.currentScene) {
+                // 开启AI生图：如果有场景描述，立即开始计时
+                resetImageGenTimer(state.game.currentScene);
+            }
+        });
         const bgmVolumeEl = $('#bgm-volume');
         if (bgmVolumeEl) {
             bgmVolumeEl.addEventListener('input', e => {
