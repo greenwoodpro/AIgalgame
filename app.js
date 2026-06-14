@@ -169,6 +169,20 @@
                 ],
             },
         },
+        agnes: {
+            name: 'Agnes AI',
+            baseUrl: 'https://apihub.agnes-ai.com/v1',
+            models: {
+                text: [
+                    { id: 'agnes-2.0-flash', name: 'Agnes-2.0-Flash', free: true },
+                    { id: 'agnes-1.5-flash', name: 'Agnes-1.5-Flash', free: true },
+                ],
+                image: [
+                    { id: 'agnes-image-2.1-flash', name: 'Agnes-Image-2.1-Flash', free: true, imageGen: true },
+                    { id: 'agnes-image-2.0-flash', name: 'Agnes-Image-2.0-Flash', free: true, imageGen: true },
+                ],
+            },
+        },
         custom: {
             name: '自定义',
             baseUrl: '',
@@ -207,7 +221,7 @@
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
-            apiKeys: { zhipu: '', modelscope: '', nvidia: '', custom: '' },
+            apiKeys: { zhipu: '', modelscope: '', nvidia: '', agnes: '', custom: '' },
             customBaseUrl: '',
             customTextModel: '',
             customImageModel: '',
@@ -850,7 +864,7 @@
         $('#text-speed').addEventListener('input', e => { state.settings.textSpeed = parseInt(e.target.value); $('#text-speed-label').textContent = e.target.value + 'ms'; saveSettings(); });
         $('#text-effect').addEventListener('change', e => { state.settings.textEffect = e.target.value; saveSettings(); });
 
-        ['zhipu-api-key', 'modelscope-api-key', 'nvidia-api-key', 'custom-api-key'].forEach(id => {
+        ['zhipu-api-key', 'modelscope-api-key', 'nvidia-api-key', 'agnes-api-key', 'custom-api-key'].forEach(id => {
             const el = $(`#${id}`);
             if (el) el.addEventListener('change', () => { const p = id.replace('-api-key', ''); state.settings.apiKeys[p] = el.value.trim(); saveSettings(); updateApiIndicator(); });
         });
@@ -1211,6 +1225,7 @@
         if (s.apiKeys.zhipu) $('#zhipu-api-key').value = s.apiKeys.zhipu;
         if (s.apiKeys.modelscope) $('#modelscope-api-key').value = s.apiKeys.modelscope;
         if (s.apiKeys.nvidia) $('#nvidia-api-key').value = s.apiKeys.nvidia;
+        if (s.apiKeys.agnes) $('#agnes-api-key').value = s.apiKeys.agnes;
         if (s.apiKeys.custom) $('#custom-api-key').value = s.apiKeys.custom;
         if (s.customBaseUrl) $('#custom-base-url').value = s.customBaseUrl;
         if (s.customTextModel) $('#custom-text-model').value = s.customTextModel;
@@ -1419,7 +1434,7 @@
             const provider = state.settings.textApiProvider;
             if (provider === 'custom') {
                 connEl.textContent = state.settings.corsProxy ? '代理' : '直连';
-            } else if (provider === 'modelscope' && state.settings.apiKeys.modelscope) {
+            } else if ((provider === 'modelscope' || provider === 'agnes') && state.settings.apiKeys[provider]) {
                 connEl.textContent = '直连';
             } else {
                 connEl.textContent = state.settings.useProxyKeys ? '代理' : '直连';
@@ -1450,7 +1465,7 @@
             const provider = state.settings.textApiProvider;
             if (provider === 'custom') {
                 sbConn.textContent = state.settings.corsProxy ? '代理' : '直连';
-            } else if (provider === 'modelscope' && state.settings.apiKeys.modelscope) {
+            } else if ((provider === 'modelscope' || provider === 'agnes') && state.settings.apiKeys[provider]) {
                 sbConn.textContent = '直连';
             } else {
                 sbConn.textContent = state.settings.useProxyKeys ? '代理' : '直连';
@@ -1812,8 +1827,8 @@
                 url = targetUrl;
                 headers['Authorization'] = `Bearer ${apiKey}`;
             }
-        } else if (provider === 'modelscope' && apiKey) {
-            // 魔搭社区：填了自己的Key就直连（无CORS限制，速度快3倍）
+        } else if ((provider === 'modelscope' || provider === 'agnes') && apiKey) {
+            // 魔搭/Agnes：填了自己的Key就直连（无CORS限制，速度快）
             url = `${config.baseUrl}/chat/completions`;
             headers['Authorization'] = `Bearer ${apiKey}`;
         } else if (canDirectConnect && !useProxy) {
