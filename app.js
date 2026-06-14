@@ -1784,8 +1784,9 @@
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
-            // 流式输出时追踪已显示的dialog文本长度
-            let displayedDialogLen = 0;
+            // 流式输出时追踪已显示的文本长度（含action前缀）
+            let displayedLen = 0;
+            let lastAction = '';
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
@@ -1799,13 +1800,18 @@
                             const delta = chunk.choices?.[0]?.delta;
                             if (delta?.content) {
                                 content += delta.content;
-                                // 流式输出模式：实时提取并显示dialog内容
+                                // 流式输出模式：实时提取并显示dialog+action内容
                                 if (isStreamOutput) {
-                                    const dialogText = extractDialogFromPartialJson(content);
-                                    if (dialogText && dialogText.length > displayedDialogLen) {
-                                        const newText = dialogText.substring(displayedDialogLen);
-                                        displayedDialogLen = dialogText.length;
-                                        onStreamChunk(newText, dialogText);
+                                    const extracted = extractStreamDisplayText(content);
+                                    if (extracted) {
+                                        const fullDisplayText = extracted.action
+                                            ? `（${extracted.action}）\n${extracted.dialog}`
+                                            : extracted.dialog;
+                                        if (fullDisplayText.length > displayedLen || extracted.action !== lastAction) {
+                                            lastAction = extracted.action;
+                                            displayedLen = fullDisplayText.length;
+                                            onStreamChunk('', fullDisplayText);
+                                        }
                                     }
                                 }
                             }
@@ -1827,15 +1833,23 @@
         return content;
     }
 
-    // 从部分JSON中提取dialog字段的值（流式输出用）
-    function extractDialogFromPartialJson(jsonStr) {
-        const dialogStart = jsonStr.indexOf('"dialog"');
-        if (dialogStart === -1) return null;
-        // 找到 "dialog" 后面的冒号和引号，兼容空格
-        const afterKey = jsonStr.substring(dialogStart + 8); // skip "dialog"
+    // 从部分JSON中提取dialog和action字段（流式输出用）
+    function extractStreamDisplayText(jsonStr) {
+        const dialogResult = extractJsonField(jsonStr, 'dialog');
+        const actionResult = extractJsonField(jsonStr, 'action');
+        if (!dialogResult) return null;
+        return { dialog: dialogResult, action: actionResult || '' };
+    }
+
+    // 从部分JSON中提取指定字段的字符串值
+    function extractJsonField(jsonStr, fieldName) {
+        const key = `"${fieldName}"`;
+        const fieldStart = jsonStr.indexOf(key);
+        if (fieldStart === -1) return null;
+        const afterKey = jsonStr.substring(fieldStart + key.length);
         const match = afterKey.match(/^\s*:\s*"/);
         if (!match) return null;
-        const startIdx = dialogStart + 8 + match[0].length;
+        const startIdx = fieldStart + key.length + match[0].length;
         return extractStringFromIndex(jsonStr, startIdx);
     }
 
@@ -2975,10 +2989,12 @@
         if (dialogTextArea) {
             dialogTextArea.readOnly = true;
             dialogTextArea.dataset.mode = 'display';
-            // 显示第一段内容（流式已显示过，直接设置）
+            // 显示第一段内容
             dialogTextArea.value = segments[0] || '';
-            dialogTextArea.placeholder = segments.length > 1 ? '按 Enter 继续...' : '按 Enter 输入回复...';
         }
+
+        // 更新页码指示
+        updateSegmentPageIndicator();
 
         // 记录到对话历史
         dialogSegmentState.dialogHistory.push({
@@ -2989,6 +3005,19 @@
         });
         if (dialogSegmentState.dialogHistory.length > 200) {
             dialogSegmentState.dialogHistory = dialogSegmentState.dialogHistory.slice(-200);
+        }
+    }
+
+    // 更新分段页码指示器
+    function updateSegmentPageIndicator() {
+        const { segments, currentIndex } = dialogSegmentState;
+        const dialogMeta = $('#dialog-meta');
+        const dialogTextArea = $('#dialog-text-area');
+        if (segments.length > 1) {
+            if (dialogMeta) dialogMeta.textContent = `${currentIndex + 1}/${segments.length}`;
+            if (dialogTextArea) dialogTextArea.placeholder = currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...';
+        } else {
+            if (dialogTextArea) dialogTextArea.placeholder = '按 Enter 输入回复...';
         }
     }
 
@@ -3077,10 +3106,10 @@
         if (state.settings.streamOutput) {
             if (dialogTextArea) {
                 dialogTextArea.value = text;
-                dialogTextArea.placeholder = currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...';
             }
             dialogSegmentState.isTyping = false;
             dialogSegmentState.isWaitingForContinue = true;
+            updateSegmentPageIndicator();
             dialogSegmentState.dialogHistory.push({
                 name: name,
                 text: text,
@@ -3105,9 +3134,7 @@
                     dialogSegmentState.dialogHistory = dialogSegmentState.dialogHistory.slice(-200);
                 }
 
-                if (dialogTextArea) {
-                    dialogTextArea.placeholder = currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...';
-                }
+                updateSegmentPageIndicator();
             });
         }
     }
@@ -3156,23 +3183,21 @@
                 emotion: dialogSegmentState.emotion,
                 type: 'ai'
             });
-            
+
             dialogSegmentState.isWaitingForContinue = true;
-            if (dialogTextArea) {
-                dialogTextArea.placeholder = currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...';
-            }
+            updateSegmentPageIndicator();
             return;
         }
-        
+
         if (!dialogSegmentState.isWaitingForContinue) return;
-        
+
         const { segments, currentIndex } = dialogSegmentState;
-        
+
         if (currentIndex >= segments.length - 1) {
             enableDialogInput();
             return;
         }
-        
+
         dialogSegmentState.isWaitingForContinue = false;
         dialogSegmentState.currentIndex++;
         showCurrentSegment();
