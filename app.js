@@ -210,7 +210,7 @@
             autoSwitchBg: false,
             chatShowBg: true,
             bgSwitchInterval: 120,
-            imageCooldown: 60,
+            imageGenInterval: 60,
             maxResponseLength: 350,
             corsProxy: true,
             corsProxyUrl: '',
@@ -872,7 +872,7 @@
             const chatBg = $('#chat-screen-bg');
             if (chatBg) chatBg.style.display = e.target.checked ? '' : 'none';
         });
-        $('#image-cooldown').addEventListener('change', e => { state.settings.imageCooldown = parseInt(e.target.value) || 60; saveSettings(); if (pendingSceneDescription) schedulePendingImage(); });
+        $('#image-cooldown').addEventListener('change', e => { state.settings.imageGenInterval = parseInt(e.target.value) || 60; saveSettings(); });
         $('#ambient-particles-toggle').addEventListener('change', e => {
             state.settings.ambientParticles = e.target.checked;
             saveSettings();
@@ -944,17 +944,16 @@
                     // 正在浏览历史时，Enter 回到当前对话
                     if (isBrowsingHistory) {
                         dialogSegmentState.historyOffset = 0;
-                        const { segments, currentIndex, name, emotion } = dialogSegmentState;
+                        const { name, emotion } = dialogSegmentState;
                         const dn = $('#dialog-name');
                         if (dn) dn.textContent = name;
-                        dialogTextArea.value = segments[currentIndex] || '';
+                        const lastEntry = dialogSegmentState.dialogHistory[dialogSegmentState.dialogHistory.length - 1];
+                        dialogTextArea.value = lastEntry ? lastEntry.text : '';
                         if (emotion) {
                             const emotionEl = $('#emotion-indicator');
                             if (emotionEl) { emotionEl.className = `emotion-${normalizeEmotion(emotion)}`; emotionEl.textContent = emotion; }
                         }
-                        dialogTextArea.placeholder = dialogSegmentState.isWaitingForContinue
-                            ? (currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...')
-                            : '';
+                        dialogTextArea.placeholder = dialogSegmentState.isWaitingForContinue ? '按 Enter 输入回复...' : '';
                         return;
                     }
                     if (dialogSegmentState.isWaitingForContinue || dialogSegmentState.isTyping) {
@@ -1088,14 +1087,13 @@
             e.preventDefault();
             if (dialogSegmentState.historyOffset > 0) {
                 dialogSegmentState.historyOffset = 0;
-                const { segments, currentIndex, name, emotion } = dialogSegmentState;
+                const { name, emotion } = dialogSegmentState;
                 const dn = $('#dialog-name'); if (dn) dn.textContent = name;
                 const dta = $('#dialog-text-area');
                 if (dta) {
-                    dta.value = segments[currentIndex] || '';
-                    dta.placeholder = dialogSegmentState.isWaitingForContinue
-                        ? (currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...')
-                        : '';
+                    const lastEntry = dialogSegmentState.dialogHistory[dialogSegmentState.dialogHistory.length - 1];
+                    dta.value = lastEntry ? lastEntry.text : '';
+                    dta.placeholder = dialogSegmentState.isWaitingForContinue ? '按 Enter 输入回复...' : '';
                 }
                 if (emotion) { const ei = $('#emotion-indicator'); if (ei) { ei.className = `emotion-${normalizeEmotion(emotion)}`; ei.textContent = emotion; } }
             } else {
@@ -1152,7 +1150,7 @@
         state.settings.autoDefaultBg = $('#auto-default-bg').checked;
         state.settings.defaultBgInterval = parseInt($('#default-bg-interval').value) || 60;
         state.settings.chatShowBg = $('#chat-show-bg').checked;
-        state.settings.imageCooldown = parseInt($('#image-cooldown').value) || 60;
+        state.settings.imageGenInterval = parseInt($('#image-cooldown').value) || 60;
         state.settings.ambientParticles = $('#ambient-particles-toggle').checked;
         state.settings.autoGenScene = $('#auto-gen-scene')?.checked ?? true;
         const bgmVolumeEl = $('#bgm-volume');
@@ -1179,7 +1177,7 @@
             autoSwitchBg: false,
             chatShowBg: true,
             bgSwitchInterval: 120,
-            imageCooldown: 60,
+            imageGenInterval: 60,
             maxResponseLength: 350,
             corsProxy: true,
             corsProxyUrl: '',
@@ -1257,7 +1255,7 @@
             const chatBg = $('#chat-screen-bg');
             if (chatBg) chatBg.style.display = s.chatShowBg ? '' : 'none';
         }
-        if (s.imageCooldown !== undefined) $('#image-cooldown').value = s.imageCooldown;
+        if (s.imageGenInterval !== undefined) $('#image-cooldown').value = s.imageGenInterval;
         if (s.ambientParticles !== undefined) $('#ambient-particles-toggle').checked = s.ambientParticles;
         if (s.autoGenScene !== undefined) $('#auto-gen-scene').checked = s.autoGenScene;
         // 恢复主题选择
@@ -1687,13 +1685,8 @@
                 const container = $('#chat-messages');
                 if (container) container.scrollTop = container.scrollHeight;
             } else if (streamDialogTextArea) {
-                const streamSegments = splitStreamText(fullText);
-                streamDialogTextArea.value = streamSegments[0] || fullText;
+                streamDialogTextArea.value = fullText;
                 streamDialogTextArea.scrollTop = streamDialogTextArea.scrollHeight;
-                const dialogMeta = $('#dialog-meta');
-                if (dialogMeta && streamSegments.length > 1) {
-                    dialogMeta.textContent = `1/${streamSegments.length}`;
-                }
             }
         } : null;
 
@@ -2892,7 +2885,6 @@
                 dialog = `（${action}）\n${dialog}`;
             }
 
-            const segments = splitDialogIntoSegments(dialog);
             addDialogHistory(name, dialog);
             updateEmotionIndicator(emotion);
             if (ttsState.enabled) speakText(dialog, emotion);
@@ -2900,26 +2892,23 @@
                 showSprite(state.game.character || 'char_1', SPRITE_CONFIG.emotionMap[emotion] || '高兴');
             }
             if (isStreamMode) {
-                // 流式模式：文本已经显示过了，直接设置分段状态用于翻页
                 if (state.uiMode === 'chat') {
-                    // 聊天模式：流式消息已经在handleAiChoice中创建，更新最终文本
                     const chatMessages = $('#chat-messages');
                     const aiMsgs = chatMessages?.querySelectorAll('.chat-msg.ai');
                     const lastAiMsg = aiMsgs?.[aiMsgs.length - 1]?.querySelector('.msg-text');
                     if (lastAiMsg) lastAiMsg.textContent = dialog;
                 } else {
-                    // 游戏模式：设置分段翻页状态
-                    showSegmentedDialogStream(name, segments, emotion);
+                    showSegmentedDialogStream(name, dialog, emotion);
                 }
             } else {
                 if (state.uiMode === 'chat') {
                     addChatMessage(name, dialog, 'ai');
                 } else {
-                    showSegmentedDialog(name, segments, emotion);
+                    showDialogText(name, dialog, emotion);
                 }
             }
             if (scene) state.game.currentScene = scene;
-            if (scene && state.settings.autoGenScene !== false) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
+            if (scene) { state.game.currentScene = scene; resetImageGenTimer(scene); }
         } else if (parsed && (parsed['开场白'] || parsed['对话'] || parsed['场景'])) {
             // Fallback: 模型返回了中文key的JSON
             const rawName2 = parsed['角色'] || parsed['name'] || '???';
@@ -2938,23 +2927,22 @@
                     const lastAiMsg = aiMsgs?.[aiMsgs.length - 1]?.querySelector('.msg-text');
                     if (lastAiMsg) lastAiMsg.textContent = dialog;
                 } else {
-                    showSegmentedDialogStream(name, splitDialogIntoSegments(dialog), emotion);
+                    showSegmentedDialogStream(name, dialog, emotion);
                 }
             } else {
                 if (state.uiMode === 'chat') {
                     addChatMessage(name, dialog, 'ai');
                 } else {
-                    showSegmentedDialog(name, splitDialogIntoSegments(dialog), emotion);
+                    showDialogText(name, dialog, emotion);
                 }
             }
             if (scene) state.game.currentScene = scene;
-            if (scene && state.settings.autoGenScene !== false) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
+            if (scene) { state.game.currentScene = scene; resetImageGenTimer(scene); }
         } else {
             let content = rawContent;
             content = content.replace(/作为(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
             content = content.replace(/我是(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
 
-            const segments = splitDialogIntoSegments(content);
             const fallbackName = state.game.characterName || '星酱';
             addDialogHistory(fallbackName, content);
             updateEmotionIndicator('neutral');
@@ -2965,22 +2953,20 @@
                     const lastAiMsg = aiMsgs?.[aiMsgs.length - 1]?.querySelector('.msg-text');
                     if (lastAiMsg) lastAiMsg.textContent = content;
                 } else {
-                    showSegmentedDialogStream(fallbackName, segments, 'neutral');
+                    showSegmentedDialogStream(fallbackName, content, 'neutral');
                 }
             } else {
                 if (state.uiMode === 'chat') {
                     addChatMessage(fallbackName, content, 'ai');
                 } else {
-                    showSegmentedDialog(fallbackName, segments, 'neutral');
+                    showDialogText(fallbackName, content, 'neutral');
                 }
             }
         }
     }
 
-    // 流式模式下的分段显示：文本已通过流式显示，现在设置翻页状态
-    function showSegmentedDialogStream(name, segments, emotion) {
-        dialogSegmentState.segments = segments;
-        dialogSegmentState.currentIndex = 0;
+    // 流式模式下：文本已通过流式显示，直接设置等待输入状态
+    function showSegmentedDialogStream(name, fullText, emotion) {
         dialogSegmentState.name = name;
         dialogSegmentState.emotion = emotion;
         dialogSegmentState.isWaitingForContinue = true;
@@ -2993,8 +2979,7 @@
         if (dialogTextArea) {
             dialogTextArea.readOnly = true;
             dialogTextArea.dataset.mode = 'display';
-            // 显示第一段内容
-            dialogTextArea.value = segments[0] || '';
+            dialogTextArea.value = fullText;
         }
 
         // 更新情绪指示器和立绘
@@ -3011,13 +2996,10 @@
             }
         }
 
-        // 更新页码指示
-        updateSegmentPageIndicator();
-
         // 记录到对话历史
         dialogSegmentState.dialogHistory.push({
             name: name,
-            text: segments[0] || '',
+            text: fullText,
             emotion: emotion,
             type: 'ai'
         });
@@ -3026,72 +3008,7 @@
         }
     }
 
-    // 更新分段页码指示器
-    function updateSegmentPageIndicator() {
-        const { segments, currentIndex } = dialogSegmentState;
-        const dialogMeta = $('#dialog-meta');
-        const dialogTextArea = $('#dialog-text-area');
-        if (segments.length > 1) {
-            if (dialogMeta) dialogMeta.textContent = `${currentIndex + 1}/${segments.length}`;
-            if (dialogTextArea) dialogTextArea.placeholder = currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...';
-        } else {
-            if (dialogTextArea) dialogTextArea.placeholder = '按 Enter 输入回复...';
-        }
-    }
-
-    // 流式输出期间用的轻量分段（与splitDialogIntoSegments逻辑一致）
-    function splitStreamText(text) {
-        let t = text.replace(/\\n/g, '\n').replace(/\r\n/g, '\n');
-        const paragraphs = t.split(/\n{2,}/);
-        const segments = [];
-        for (const para of paragraphs) {
-            const trimmed = para.trim();
-            if (trimmed) {
-                const cleaned = trimmed.replace(/\n/g, ' ');
-                segments.push(cleaned);
-            }
-        }
-        if (segments.length === 0) segments.push(text.trim() || '');
-        if (segments.length > 3) {
-            const merged = [];
-            for (let i = 0; i < 3; i++) {
-                const start = Math.floor(i * segments.length / 3);
-                const end = Math.floor((i + 1) * segments.length / 3);
-                merged.push(segments.slice(start, end).join('\n\n'));
-            }
-            return merged;
-        }
-        return segments;
-    }
-
-    function splitDialogIntoSegments(dialog) {
-        let text = dialog.replace(/\\n/g, '\n');
-        text = text.replace(/\r\n/g, '\n');
-        const paragraphs = text.split(/\n{2,}/);
-        const segments = [];
-        for (const para of paragraphs) {
-            const trimmed = para.trim();
-            if (trimmed) {
-                const cleaned = trimmed.replace(/\n/g, ' ');
-                segments.push(cleaned);
-            }
-        }
-        if (segments.length === 0) segments.push(text.trim() || dialog);
-        if (segments.length > 3) {
-            const merged = [];
-            for (let i = 0; i < 3; i++) {
-                const start = Math.floor(i * segments.length / 3);
-                const end = Math.floor((i + 1) * segments.length / 3);
-                merged.push(segments.slice(start, end).join('\n\n'));
-            }
-            return merged;
-        }
-        return segments;
-    }
-
     let dialogSegmentState = {
-        segments: [],
-        currentIndex: 0,
         name: '',
         emotion: '',
         isWaitingForContinue: false,
@@ -3101,19 +3018,18 @@
         historyOffset: 0,
     };
 
-    function showSegmentedDialog(name, segments, emotion) {
-        dialogSegmentState.segments = segments;
-        dialogSegmentState.currentIndex = 0;
+    // 显示AI对话（单页，不分段）
+    function showDialogText(name, fullText, emotion) {
         dialogSegmentState.name = name;
         dialogSegmentState.emotion = emotion;
         dialogSegmentState.isWaitingForContinue = false;
-        
+
         const dialogBox = $('#dialog-box');
         if (dialogBox) dialogBox.classList.remove('hidden');
-        
+
         const dialogName = $('#dialog-name');
         if (dialogName) dialogName.textContent = name;
-        
+
         const dialogTextArea = $('#dialog-text-area');
         if (dialogTextArea) {
             dialogTextArea.readOnly = true;
@@ -3122,25 +3038,6 @@
             dialogTextArea.placeholder = '';
         }
         $('#dialog-send-btn')?.classList.add('hidden');
-        
-        showCurrentSegment();
-    }
-
-    function showCurrentSegment() {
-        const { segments, currentIndex, name, emotion } = dialogSegmentState;
-        if (currentIndex >= segments.length) {
-            enableDialogInput();
-            return;
-        }
-
-        const text = segments[currentIndex];
-        const dialogTextArea = $('#dialog-text-area');
-
-        const dialogName = $('#dialog-name');
-        if (dialogName) dialogName.textContent = name;
-
-        const dialogSubtitle = $('#dialog-subtitle');
-        if (dialogSubtitle) dialogSubtitle.textContent = '';
 
         const emotionIndicator = $('#emotion-indicator');
         if (emotionIndicator && emotion) {
@@ -3150,7 +3047,6 @@
             emotionIndicator.textContent = '';
         }
 
-        // 翻页时更新立绘
         if (name && name !== '旁白' && name !== '系统') {
             const char = SPRITE_CONFIG.characters.find(c => c.name === name);
             if (char) {
@@ -3159,17 +3055,16 @@
             }
         }
 
-        // 流式模式：直接显示文本，不用打字机效果
+        // 流式模式：文本已经显示过了，直接设置
         if (state.settings.streamOutput) {
             if (dialogTextArea) {
-                dialogTextArea.value = text;
+                dialogTextArea.value = fullText;
             }
             dialogSegmentState.isTyping = false;
             dialogSegmentState.isWaitingForContinue = true;
-            updateSegmentPageIndicator();
             dialogSegmentState.dialogHistory.push({
                 name: name,
-                text: text,
+                text: fullText,
                 emotion: emotion,
                 type: 'ai'
             });
@@ -3177,21 +3072,19 @@
                 dialogSegmentState.dialogHistory = dialogSegmentState.dialogHistory.slice(-200);
             }
         } else {
-            typeText(text, dialogTextArea, () => {
+            typeText(fullText, dialogTextArea, () => {
                 dialogSegmentState.isTyping = false;
                 dialogSegmentState.isWaitingForContinue = true;
 
                 dialogSegmentState.dialogHistory.push({
                     name: name,
-                    text: text,
+                    text: fullText,
                     emotion: emotion,
                     type: 'ai'
                 });
                 if (dialogSegmentState.dialogHistory.length > 200) {
                     dialogSegmentState.dialogHistory = dialogSegmentState.dialogHistory.slice(-200);
                 }
-
-                updateSegmentPageIndicator();
             });
         }
     }
@@ -3201,6 +3094,7 @@
         
         dialogSegmentState.isTyping = true;
         element.value = '';
+        element.dataset.fullText = text;
         element.classList.add('typing');
         let i = 0;
         
@@ -3228,36 +3122,19 @@
         dialogSegmentState.historyOffset = 0;
 
         if (dialogSegmentState.isTyping) {
+            // 跳过打字机效果，直接显示完整文本
             clearTimeout(dialogSegmentState.typingTimer);
-            const { segments, currentIndex } = dialogSegmentState;
             const dialogTextArea = $('#dialog-text-area');
-            if (dialogTextArea) dialogTextArea.value = segments[currentIndex];
+            if (dialogTextArea) dialogTextArea.value = dialogTextArea.dataset.fullText || dialogTextArea.value;
             dialogSegmentState.isTyping = false;
-
-            dialogSegmentState.dialogHistory.push({
-                name: dialogSegmentState.name,
-                text: segments[currentIndex],
-                emotion: dialogSegmentState.emotion,
-                type: 'ai'
-            });
-
             dialogSegmentState.isWaitingForContinue = true;
-            updateSegmentPageIndicator();
             return;
         }
 
         if (!dialogSegmentState.isWaitingForContinue) return;
 
-        const { segments, currentIndex } = dialogSegmentState;
-
-        if (currentIndex >= segments.length - 1) {
-            enableDialogInput();
-            return;
-        }
-
-        dialogSegmentState.isWaitingForContinue = false;
-        dialogSegmentState.currentIndex++;
-        showCurrentSegment();
+        // 直接进入输入模式
+        enableDialogInput();
     }
 
     function enableDialogInput() {
@@ -3323,11 +3200,13 @@
         dialogSegmentState.historyOffset--;
 
         if (dialogSegmentState.historyOffset === 0) {
-            const { segments, currentIndex, name, emotion } = dialogSegmentState;
+            const { name, emotion } = dialogSegmentState;
             const dialogName = $('#dialog-name');
             const dialogTextArea = $('#dialog-text-area');
             if (dialogName) dialogName.textContent = name;
-            if (dialogTextArea) dialogTextArea.value = segments[currentIndex];
+            // 恢复当前对话文本
+            const lastEntry = dialogSegmentState.dialogHistory[dialogSegmentState.dialogHistory.length - 1];
+            if (dialogTextArea && lastEntry) dialogTextArea.value = lastEntry.text;
 
             if (emotion) {
                 const emotionEl = $('#emotion-indicator');
@@ -3343,7 +3222,7 @@
                 }
             }
 
-            updateSegmentPageIndicator();
+            if (dialogTextArea) dialogTextArea.placeholder = '按 Enter 输入回复...';
             return;
         }
 
@@ -3498,15 +3377,8 @@
                 const container = $('#chat-messages');
                 if (container) container.scrollTop = container.scrollHeight;
             } else if (streamDialogTextArea) {
-                // 游戏模式：实时分段，只显示第一段
-                const streamSegments = splitStreamText(fullText);
-                streamDialogTextArea.value = streamSegments[0] || fullText;
+                streamDialogTextArea.value = fullText;
                 streamDialogTextArea.scrollTop = streamDialogTextArea.scrollHeight;
-                // 实时更新页码
-                const dialogMeta = $('#dialog-meta');
-                if (dialogMeta && streamSegments.length > 1) {
-                    dialogMeta.textContent = `1/${streamSegments.length}`;
-                }
             }
         } : null;
 
@@ -3571,8 +3443,7 @@
             }
 
             showToast('AI 调用失败: ' + errorMsg, 'error');
-            const segments = splitDialogIntoSegments(friendlyMsg);
-            showSegmentedDialog(state.game.characterName || '星酱', segments, 'neutral');
+            showDialogText(state.game.characterName || '星酱', friendlyMsg, 'neutral');
 
             setTimeout(() => {
                 enableDialogInput();
@@ -3598,13 +3469,6 @@
             return;
         }
         console.log(`[生图] 开始生成: provider=${provider}, model=${state.settings.imageModel}, scene=${sceneDescription}`);
-        const now = Date.now();
-        if (now - lastImageGenTime < getImageCooldown()) {
-            pendingSceneDescription = sceneDescription;
-            showToast(`场景图将在${Math.ceil((getImageCooldown() - (now - lastImageGenTime)) / 1000)}秒后生成`, 'info');
-            schedulePendingImage();
-            return;
-        }
         try {
             lastImageGenTime = Date.now();
             showToast('正在生成场景图...', 'info');
@@ -3627,6 +3491,7 @@
                     base64Data = imageUrl;
                 }
                 if (imageUrl) {
+                    // 淡入替换背景
                     setSceneBackground(imageUrl);
                     if (base64Data && base64Data.length < 2 * 1024 * 1024) {
                         state.game.currentSceneUrl = base64Data;
@@ -3705,30 +3570,35 @@
     let lastImageGenTime = 0;
     let pendingSceneDescription = null;
     let lastChoices = null;
+    let imageGenTimer = null;  // 生图间隔计时器
+    let lastConversationTime = 0;  // 上次对话时间
 
-    function getImageCooldown() {
-        return (state.settings.imageCooldown || 60) * 1000;
+    function getImageGenInterval() {
+        return (state.settings.imageGenInterval || 60) * 1000;
     }
 
-    let pendingImageTimer = null;
+    // 重置生图计时器：每次新对话后调用
+    function resetImageGenTimer(sceneDescription) {
+        if (!state.settings.autoGenScene || state.mode !== 'ai') return;
+        if (imageGenTimer) { clearTimeout(imageGenTimer); imageGenTimer = null; }
+        if (!sceneDescription) return;
+        lastConversationTime = Date.now();
+        pendingSceneDescription = sceneDescription;
+        // 从上次生图时间算起，经过间隔后触发
+        const elapsed = Date.now() - lastImageGenTime;
+        const interval = getImageGenInterval();
+        const remaining = Math.max(0, interval - elapsed);
+        imageGenTimer = setTimeout(() => {
+            if (pendingSceneDescription && Date.now() - lastConversationTime < interval + 5000) {
+                generateSceneImage(pendingSceneDescription).catch(e => console.warn('generateSceneImage error:', e));
+            }
+            imageGenTimer = null;
+        }, remaining);
+    }
 
-    function schedulePendingImage() {
-        if (!pendingSceneDescription) return;
-        if (pendingImageTimer) { clearTimeout(pendingImageTimer); pendingImageTimer = null; }
-        const now = Date.now();
-        const remaining = getImageCooldown() - (now - lastImageGenTime);
-        if (remaining <= 0) {
-            generateSceneImage(pendingSceneDescription).catch(e => console.warn('generateSceneImage error:', e));
-            pendingSceneDescription = null;
-        } else {
-            pendingImageTimer = setTimeout(() => {
-                if (pendingSceneDescription) {
-                    generateSceneImage(pendingSceneDescription).catch(e => console.warn('generateSceneImage error:', e));
-                    pendingSceneDescription = null;
-                }
-                pendingImageTimer = null;
-            }, remaining);
-        }
+    // 停止生图计时
+    function stopImageGenTimer() {
+        if (imageGenTimer) { clearTimeout(imageGenTimer); imageGenTimer = null; }
     }
 
     let imageGenInProgress = false;
