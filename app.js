@@ -204,8 +204,8 @@
             useProxyKeys: true,
             textApiProvider: 'modelscope',
             textModel: 'moonshotai/Kimi-K2.5',
-            imageApiProvider: 'zhipu',
-            imageModel: 'cogview-3-flash',
+            imageApiProvider: 'modelscope',
+            imageModel: 'Z-Image/Z-Image-Turbo',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
             apiKeys: { zhipu: '', modelscope: '', nvidia: '', custom: '' },
             customBaseUrl: '',
@@ -447,7 +447,7 @@
                 if (saved.theme) state.theme = saved.theme;
                 // 修正无效的 provider
                 if (!API_CONFIGS[state.settings.textApiProvider]) state.settings.textApiProvider = 'modelscope';
-                if (!API_CONFIGS[state.settings.imageApiProvider]) state.settings.imageApiProvider = 'zhipu';
+                if (!API_CONFIGS[state.settings.imageApiProvider]) state.settings.imageApiProvider = 'modelscope';
             }
         } catch (e) { console.warn('加载设置失败'); }
         try {
@@ -1193,8 +1193,8 @@
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
             textApiProvider: 'modelscope',
             textModel: 'moonshotai/Kimi-K2.5',
-            imageApiProvider: 'zhipu',
-            imageModel: 'cogview-3-flash',
+            imageApiProvider: 'modelscope',
+            imageModel: 'Z-Image/Z-Image-Turbo',
             bgmVolume: 30,
             bgmEnabled: false,
             ttsEnabled: false,
@@ -1962,7 +1962,7 @@
         if (!useProxy && !canDirectConnect) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
 
         const proxyBase = state.settings.corsProxyUrl || window.location.origin;
-        const useProxyUrl = !(canDirectConnect && !useProxy);
+        const useProxyUrl = !((provider === 'modelscope' && apiKey) || (canDirectConnect && !useProxy));
 
         let url;
         let headers = { 'Content-Type': 'application/json' };
@@ -2014,6 +2014,7 @@
             body.size = msImageSize;
             body.parameters = { n: 1 };
             headers['X-ModelScope-Async-Mode'] = 'true';
+            console.log(`[生图] 魔搭请求: url=${url}, model=${body.model}, useProxyUrl=${useProxyUrl}`);
             const submitResponse = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
             if (!submitResponse.ok) {
                 const errText = await submitResponse.text();
@@ -3212,8 +3213,14 @@
     }
 
     async function generateSceneImage(sceneDescription) {
-        const hasKey = state.settings.useProxyKeys || !!state.settings.apiKeys[state.settings.imageApiProvider];
-        if (!hasKey) return;
+        const provider = state.settings.imageApiProvider;
+        const apiKey = state.settings.apiKeys[provider];
+        const hasKey = state.settings.useProxyKeys || !!apiKey;
+        if (!hasKey) {
+            console.log('[生图] 跳过：未配置图像API Key');
+            return;
+        }
+        console.log(`[生图] 开始生成: provider=${provider}, model=${state.settings.imageModel}, scene=${sceneDescription}`);
         const now = Date.now();
         if (now - lastImageGenTime < getImageCooldown()) {
             pendingSceneDescription = sceneDescription;
@@ -3798,8 +3805,11 @@
     function saveToSlot(slotNum) {
         try {
             const saves = Storage.get(STORAGE_KEYS.saves) || {};
+            const defaultTitle = state.game.characterName ? `与${state.game.characterName}的对话` : '新建存档';
+            const customTitle = prompt('输入存档名称：', defaultTitle);
+            if (customTitle === null) return; // 用户取消
             saves[slotNum] = {
-                title: state.game.characterName ? `与${state.game.characterName}的对话` : '冒险记录',
+                title: customTitle.trim() || defaultTitle,
                 timestamp: Date.now(),
                 mode: state.mode,
                 uiMode: state.uiMode || 'game',
