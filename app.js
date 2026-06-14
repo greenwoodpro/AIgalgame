@@ -118,9 +118,7 @@
 5. scene字段用英文，用于AI生图
 
 ## 输出格式（纯JSON，无markdown）
-{"name":"角色名","dialog":"对话内容","emotion":"happy/sad/angry/surprised/shy/neutral/scared/excited/worried/tsundere","action":"动作描述","scene":"English scene description","choices":[{"text":"选项1"},{"text":"选项2"},{"text":"选项3"}]}
-
-选项：1推剧情 2探细节 3情感互动，4-8字`;
+{"name":"角色名","dialog":"对话内容","emotion":"happy/sad/angry/surprised/shy/neutral/scared/excited/worried/tsundere","action":"动作描述","scene":"English scene description"}`;
 
     const API_CONFIGS = {
         zhipu: {
@@ -202,6 +200,7 @@
         settings: {
             textSpeed: 40,
             textEffect: 'typewriter-fade',
+            streamOutput: false,
             saveConversation: true,
             maxContext: 5,
             enableThinking: false,
@@ -378,30 +377,12 @@
         nameEl.className = 'msg-name';
         nameEl.textContent = name;
         const textEl = document.createElement('div');
+        textEl.className = 'msg-text';
         textEl.textContent = text;
         msg.appendChild(nameEl);
         msg.appendChild(textEl);
         container.appendChild(msg);
         container.scrollTop = container.scrollHeight;
-    }
-
-    function addChatChoices(choices) {
-        const container = $('#chat-messages');
-        const lastAiMsg = container.querySelector('.chat-msg.ai:last-child');
-        if (!lastAiMsg) return;
-        const choicesDiv = document.createElement('div');
-        choicesDiv.className = 'msg-choices';
-        choices.forEach(c => {
-            const btn = document.createElement('button');
-            btn.className = 'msg-choice-btn';
-            btn.textContent = c.text;
-            btn.addEventListener('click', () => {
-                choicesDiv.remove();
-                handleAiChoice(c.text);
-            });
-            choicesDiv.appendChild(btn);
-        });
-        lastAiMsg.appendChild(choicesDiv);
     }
 
     function handleChatSend() {
@@ -863,6 +844,7 @@
 
         $('#text-speed').addEventListener('input', e => { state.settings.textSpeed = parseInt(e.target.value); $('#text-speed-label').textContent = e.target.value + 'ms'; saveSettings(); });
         $('#text-effect').addEventListener('change', e => { state.settings.textEffect = e.target.value; saveSettings(); });
+        $('#stream-output').addEventListener('change', e => { state.settings.streamOutput = e.target.checked; saveSettings(); });
 
         ['zhipu-api-key', 'modelscope-api-key', 'nvidia-api-key', 'agnes-api-key', 'custom-api-key'].forEach(id => {
             const el = $(`#${id}`);
@@ -1161,6 +1143,7 @@
         state.settings.maxResponseLength = parseInt($('#max-response-length').value) || 350;
         state.settings.textSpeed = parseInt($('#text-speed').value) || 40;
         state.settings.textEffect = $('#text-effect').value;
+        state.settings.streamOutput = $('#stream-output').checked;
         state.settings.saveConversation = $('#save-conversation').checked;
         state.settings.maxContext = parseInt($('#max-context').value) || 5;
         state.settings.corsProxy = $('#cors-proxy-toggle').checked;
@@ -1186,6 +1169,7 @@
         state.settings = {
             textSpeed: 40,
             textEffect: 'typewriter-fade',
+            streamOutput: false,
             saveConversation: true,
             maxContext: 5,
             enableThinking: false,
@@ -1258,6 +1242,7 @@
         $('#text-speed').value = s.textSpeed;
         $('#text-speed-label').textContent = s.textSpeed + 'ms';
         if (s.textEffect) $('#text-effect').value = s.textEffect;
+        $('#stream-output').checked = !!s.streamOutput;
         $('#save-conversation').checked = s.saveConversation;
         $('#max-context').value = s.maxContext;
         if (s.maxResponseLength) $('#max-response-length').value = s.maxResponseLength;
@@ -1657,17 +1642,70 @@
     async function startAiStory() {
         if (apiCallInProgress) return;
         apiCallInProgress = true;
-        showAiGenerating(true);
+        const isStreamMode = state.settings.streamOutput;
+        let streamDialogTextArea = null;
+        let streamChatMsgTextEl = null;
+
+        if (isStreamMode) {
+            if (state.uiMode === 'chat') {
+                const container = $('#chat-messages');
+                const msg = document.createElement('div');
+                msg.className = 'chat-msg ai';
+                const nameEl = document.createElement('div');
+                nameEl.className = 'msg-name';
+                nameEl.textContent = state.game.characterName || '星酱';
+                const textEl = document.createElement('div');
+                textEl.className = 'msg-text streaming';
+                textEl.textContent = '';
+                msg.appendChild(nameEl);
+                msg.appendChild(textEl);
+                container.appendChild(msg);
+                container.scrollTop = container.scrollHeight;
+                streamChatMsgTextEl = textEl;
+            } else {
+                const dialogBox = $('#dialog-box');
+                if (dialogBox) dialogBox.classList.remove('hidden');
+                const dialogName = $('#dialog-name');
+                if (dialogName) dialogName.textContent = state.game.characterName || '星酱';
+                streamDialogTextArea = $('#dialog-text-area');
+                if (streamDialogTextArea) {
+                    streamDialogTextArea.readOnly = true;
+                    streamDialogTextArea.dataset.mode = 'display';
+                    streamDialogTextArea.value = '';
+                    streamDialogTextArea.placeholder = '';
+                    streamDialogTextArea.classList.add('streaming');
+                }
+                $('#dialog-send-btn')?.classList.add('hidden');
+            }
+        } else {
+            showAiGenerating(true);
+        }
+
+        const onStreamChunk = isStreamMode ? (newText, fullText) => {
+            if (state.uiMode === 'chat' && streamChatMsgTextEl) {
+                streamChatMsgTextEl.textContent = fullText;
+                const container = $('#chat-messages');
+                if (container) container.scrollTop = container.scrollHeight;
+            } else if (streamDialogTextArea) {
+                streamDialogTextArea.value = fullText;
+                streamDialogTextArea.scrollTop = streamDialogTextArea.scrollHeight;
+            }
+        } : null;
+
         const startTime = Date.now();
         try {
             const prompt = '游戏开始！请以一个有趣的开场白开始故事，设定一个引人入胜的场景。记住必须用JSON格式回复。';
-            const result = await callAiApi(prompt);
-            showAiGenerating(false);
+            const result = await callAiApi(prompt, 0, onStreamChunk);
+            if (!isStreamMode) showAiGenerating(false);
+            if (streamDialogTextArea) streamDialogTextArea.classList.remove('streaming');
+            if (streamChatMsgTextEl) streamChatMsgTextEl.classList.remove('streaming');
             const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-            if (result) processAiResponse(result, elapsed);
+            if (result) processAiResponse(result, elapsed, isStreamMode);
             if (state.settings.autoSwitchBg) startBgAutoSwitch();
         } catch (e) {
-            showAiGenerating(false);
+            if (!isStreamMode) showAiGenerating(false);
+            if (streamDialogTextArea) streamDialogTextArea.classList.remove('streaming');
+            if (streamChatMsgTextEl) streamChatMsgTextEl.classList.remove('streaming');
             if (e.message === 'REQUEST_ABORTED') return;
             showToast('AI 调用失败: ' + e.message, 'error');
             showDialog('系统', 'AI连接失败，请检查API设置或CORS代理配置。错误: ' + e.message);
@@ -1729,7 +1767,7 @@
         }
     }
 
-    async function processApiResponse(response, body, provider) {
+    async function processApiResponse(response, body, provider, onStreamChunk = null) {
         if (provider === 'modelscope') {
             const h = (n) => response.headers.get(n);
             const ur = h('modelscope-ratelimit-requests-remaining');
@@ -1741,10 +1779,13 @@
         }
 
         let content = '';
+        const isStreamOutput = state.settings.streamOutput && onStreamChunk;
         if (body.stream) {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
+            // 流式输出时追踪已显示的dialog文本长度
+            let displayedDialogLen = 0;
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
@@ -1756,7 +1797,18 @@
                         try {
                             const chunk = JSON.parse(line.slice(6));
                             const delta = chunk.choices?.[0]?.delta;
-                            if (delta?.content) content += delta.content;
+                            if (delta?.content) {
+                                content += delta.content;
+                                // 流式输出模式：实时提取并显示dialog内容
+                                if (isStreamOutput) {
+                                    const dialogText = extractDialogFromPartialJson(content);
+                                    if (dialogText && dialogText.length > displayedDialogLen) {
+                                        const newText = dialogText.substring(displayedDialogLen);
+                                        displayedDialogLen = dialogText.length;
+                                        onStreamChunk(newText, dialogText);
+                                    }
+                                }
+                            }
                         } catch {}
                     }
                 }
@@ -1773,6 +1825,47 @@
             }
         }
         return content;
+    }
+
+    // 从部分JSON中提取dialog字段的值（流式输出用）
+    function extractDialogFromPartialJson(jsonStr) {
+        const dialogStart = jsonStr.indexOf('"dialog"');
+        if (dialogStart === -1) return null;
+        // 找到 "dialog" 后面的冒号和引号，兼容空格
+        const afterKey = jsonStr.substring(dialogStart + 8); // skip "dialog"
+        const match = afterKey.match(/^\s*:\s*"/);
+        if (!match) return null;
+        const startIdx = dialogStart + 8 + match[0].length;
+        return extractStringFromIndex(jsonStr, startIdx);
+    }
+
+    function extractStringFromIndex(str, startIdx) {
+        let result = '';
+        let i = startIdx;
+        while (i < str.length) {
+            if (str[i] === '\\') {
+                // 转义字符
+                if (i + 1 < str.length) {
+                    const next = str[i + 1];
+                    if (next === 'n') result += '\n';
+                    else if (next === '"') result += '"';
+                    else if (next === '\\') result += '\\';
+                    else if (next === 't') result += '\t';
+                    else result += next;
+                    i += 2;
+                } else {
+                    break; // 不完整的转义，等下一个chunk
+                }
+            } else if (str[i] === '"') {
+                // 字符串结束
+                return result;
+            } else {
+                result += str[i];
+                i++;
+            }
+        }
+        // 字符串还没结束（JSON不完整），返回已提取的部分
+        return result;
     }
 
     function tryFallbackProvider(currentProvider) {
@@ -1797,7 +1890,7 @@
         }
     }
 
-    async function callAiApi(userMessage, retryCount = 0) {
+    async function callAiApi(userMessage, retryCount = 0, onStreamChunk = null) {
         const provider = state.settings.textApiProvider;
         const config = API_CONFIGS[provider];
         if (!config) throw new Error('未知的API提供商');
@@ -1884,10 +1977,10 @@
             state.game.aiContext.push({ role: 'user', content: userMessage });
         }
 
-        const body = { model: state.settings.textModel, messages, stream: false, max_tokens: state.settings.maxResponseLength || 350 };
-        if (provider === 'nvidia') { body.temperature = 1; body.top_p = 0.9; }
         const currentModel = [...(config.models.text || []), ...(config.models.vision || [])].find(m => m.id === state.settings.textModel);
-        if (currentModel?.thinking && state.settings.enableThinking) { body.stream = true; }
+        const useStream = state.settings.streamOutput || (currentModel?.thinking && state.settings.enableThinking);
+        const body = { model: state.settings.textModel, messages, stream: useStream, max_tokens: state.settings.maxResponseLength || 350 };
+        if (provider === 'nvidia') { body.temperature = 1; body.top_p = 0.9; }
 
         const dot = $('.api-dot');
         if (dot) dot.className = 'api-dot loading';
@@ -1914,7 +2007,7 @@
                     state.settings.textModel = API_CONFIGS[fallback].models.text[0]?.id || state.settings.textModel;
                     updateModelOptions();
                     restoreSettingsUI();
-                    return await callAiApi(userMessage, 0);
+                    return await callAiApi(userMessage, 0, onStreamChunk);
                 }
                 
                 if (retryCount < MAX_RETRIES) {
@@ -1922,7 +2015,7 @@
                     const delay = Math.max(retryAfter * 1000, BASE_DELAY * Math.pow(2, retryCount));
                     showToast(`API请求限流，${Math.ceil(delay/1000)}秒后重试(${retryCount + 1}/${MAX_RETRIES})...`, 'info');
                     await new Promise(r => setTimeout(r, delay));
-                    return await callAiApi(userMessage, retryCount + 1);
+                    return await callAiApi(userMessage, retryCount + 1, onStreamChunk);
                 }
                 
                 throw new Error('API请求频繁，请稍后再试');
@@ -1942,20 +2035,20 @@
                     const delay = BASE_DELAY * Math.pow(2, retryCount);
                     showToast(`服务器错误，${Math.ceil(delay/1000)}秒后重试...`, 'warning');
                     await new Promise(r => setTimeout(r, delay));
-                    return await callAiApi(userMessage, retryCount + 1);
+                    return await callAiApi(userMessage, retryCount + 1, onStreamChunk);
                 }
                 
                 throw new Error(errMsg);
             }
 
-            const result = await processApiResponse(response, body, provider);
+            const result = await processApiResponse(response, body, provider, onStreamChunk);
             
             if (!result || result.trim().length === 0) {
                 if (retryCount < MAX_RETRIES) {
                     const delay = BASE_DELAY * Math.pow(2, retryCount);
                     showToast(`响应为空，${Math.ceil(delay/1000)}秒后重试...`, 'warning');
                     await new Promise(r => setTimeout(r, delay));
-                    return await callAiApi(userMessage, retryCount + 1);
+                    return await callAiApi(userMessage, retryCount + 1, onStreamChunk);
                 }
                 throw new Error('API返回空响应，请重试');
             }
@@ -1972,7 +2065,7 @@
                     const delay = BASE_DELAY * Math.pow(2, retryCount);
                     showToast(`网络错误，${Math.ceil(delay/1000)}秒后重试...`, 'warning');
                     await new Promise(r => setTimeout(r, delay));
-                    return await callAiApi(userMessage, retryCount + 1);
+                    return await callAiApi(userMessage, retryCount + 1, onStreamChunk);
                 }
                 throw new Error('网络连接失败，请检查网络或代理设置');
             }
@@ -1994,7 +2087,7 @@
         if (isCustom && !state.settings.customBaseUrl) throw new Error('请先配置自定义 API 的 Base URL');
         if (isCustom && !apiKey) throw new Error('请先配置自定义 API 的 API Key');
         // 智谱生图始终走代理；Agnes按代理开关；其他需要key或useProxyKeys
-        if (provider === 'zhipu' && !useProxyKeys && !apiKey) throw new Error('智谱生图需要开启"使用默认密钥"或填写智谱API Key');
+        if (provider === 'zhipu' && !useProxy && !apiKey) throw new Error('智谱生图需要开启"使用默认密钥"或填写智谱API Key');
         if (provider === 'agnes' && !state.settings.corsProxy && !apiKey) throw new Error('请先配置 Agnes AI 的 API Key，或开启代理模式');
         if (!['zhipu', 'agnes', 'custom'].includes(provider) && !useProxy && !canDirectConnect) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
 
@@ -2696,7 +2789,7 @@
         prompt += `2. 不要偏离主线，不要引入概要中没有的新设定或角色\n`;
         prompt += `3. 对话要自然流畅，通过角色的行动和语言逐步推进到概要描述的关键事件\n`;
         prompt += `4. 每次回复都要推动剧情向本章概要的终点发展，不要原地踏步\n`;
-        prompt += `5. 当本章概要的所有关键事件都已发生后，在选项中加入"进入下一章"的选项\n`;
+        prompt += `5. 当本章概要的所有关键事件都已发生后，在scene字段中标注"chapter_end"以提示进入下一章\n`;
         prompt += `6. 保持galgame风格：注重角色互动、情感描写、场景氛围\n`;
         return prompt;
     }
@@ -2729,7 +2822,7 @@
         return period;
     }
 
-    function processAiResponse(rawContent, elapsedSec) {
+    function processAiResponse(rawContent, elapsedSec, isStreamMode = false) {
         restoreFallbackProvider();
         let parsed = null;
         try {
@@ -2780,7 +2873,7 @@
             if (action) {
                 dialog = `（${action}）\n${dialog}`;
             }
-            
+
             const segments = splitDialogIntoSegments(dialog);
             addDialogHistory(name, dialog);
             updateEmotionIndicator(emotion);
@@ -2788,10 +2881,24 @@
             if (spriteState.visible === false && name !== '旁白' && name !== '系统') {
                 showSprite(state.game.character || 'char_1', SPRITE_CONFIG.emotionMap[emotion] || '高兴');
             }
-            if (state.uiMode === 'chat') {
-                addChatMessage(name, dialog, 'ai');
+            if (isStreamMode) {
+                // 流式模式：文本已经显示过了，直接设置分段状态用于翻页
+                if (state.uiMode === 'chat') {
+                    // 聊天模式：流式消息已经在handleAiChoice中创建，更新最终文本
+                    const chatMessages = $('#chat-messages');
+                    const aiMsgs = chatMessages?.querySelectorAll('.chat-msg.ai');
+                    const lastAiMsg = aiMsgs?.[aiMsgs.length - 1]?.querySelector('.msg-text');
+                    if (lastAiMsg) lastAiMsg.textContent = dialog;
+                } else {
+                    // 游戏模式：设置分段翻页状态
+                    showSegmentedDialogStream(name, segments, emotion);
+                }
             } else {
-                showSegmentedDialog(name, segments, emotion);
+                if (state.uiMode === 'chat') {
+                    addChatMessage(name, dialog, 'ai');
+                } else {
+                    showSegmentedDialog(name, segments, emotion);
+                }
             }
             if (scene) state.game.currentScene = scene;
             if (scene && state.settings.autoGenScene !== false) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
@@ -2806,10 +2913,21 @@
             const scene = parsed['场景'] || parsed['scene'] || '';
             addDialogHistory(name, dialog);
             updateEmotionIndicator(emotion);
-            if (state.uiMode === 'chat') {
-                addChatMessage(name, dialog, 'ai');
+            if (isStreamMode) {
+                if (state.uiMode === 'chat') {
+                    const chatMessages = $('#chat-messages');
+                    const aiMsgs = chatMessages?.querySelectorAll('.chat-msg.ai');
+                    const lastAiMsg = aiMsgs?.[aiMsgs.length - 1]?.querySelector('.msg-text');
+                    if (lastAiMsg) lastAiMsg.textContent = dialog;
+                } else {
+                    showSegmentedDialogStream(name, splitDialogIntoSegments(dialog), emotion);
+                }
             } else {
-                showSegmentedDialog(name, splitDialogIntoSegments(dialog), emotion);
+                if (state.uiMode === 'chat') {
+                    addChatMessage(name, dialog, 'ai');
+                } else {
+                    showSegmentedDialog(name, splitDialogIntoSegments(dialog), emotion);
+                }
             }
             if (scene) state.game.currentScene = scene;
             if (scene && state.settings.autoGenScene !== false) generateSceneImage(scene).catch(e => console.warn('generateSceneImage error:', e));
@@ -2817,16 +2935,60 @@
             let content = rawContent;
             content = content.replace(/作为(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
             content = content.replace(/我是(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
-            
+
             const segments = splitDialogIntoSegments(content);
             const fallbackName = state.game.characterName || '星酱';
             addDialogHistory(fallbackName, content);
             updateEmotionIndicator('neutral');
-            if (state.uiMode === 'chat') {
-                addChatMessage(fallbackName, content, 'ai');
+            if (isStreamMode) {
+                if (state.uiMode === 'chat') {
+                    const chatMessages = $('#chat-messages');
+                    const aiMsgs = chatMessages?.querySelectorAll('.chat-msg.ai');
+                    const lastAiMsg = aiMsgs?.[aiMsgs.length - 1]?.querySelector('.msg-text');
+                    if (lastAiMsg) lastAiMsg.textContent = content;
+                } else {
+                    showSegmentedDialogStream(fallbackName, segments, 'neutral');
+                }
             } else {
-                showSegmentedDialog(fallbackName, segments, 'neutral');
+                if (state.uiMode === 'chat') {
+                    addChatMessage(fallbackName, content, 'ai');
+                } else {
+                    showSegmentedDialog(fallbackName, segments, 'neutral');
+                }
             }
+        }
+    }
+
+    // 流式模式下的分段显示：文本已通过流式显示，现在设置翻页状态
+    function showSegmentedDialogStream(name, segments, emotion) {
+        dialogSegmentState.segments = segments;
+        dialogSegmentState.currentIndex = 0;
+        dialogSegmentState.name = name;
+        dialogSegmentState.emotion = emotion;
+        dialogSegmentState.isWaitingForContinue = true;
+        dialogSegmentState.isTyping = false;
+
+        const dialogName = $('#dialog-name');
+        if (dialogName) dialogName.textContent = name;
+
+        const dialogTextArea = $('#dialog-text-area');
+        if (dialogTextArea) {
+            dialogTextArea.readOnly = true;
+            dialogTextArea.dataset.mode = 'display';
+            // 显示第一段内容（流式已显示过，直接设置）
+            dialogTextArea.value = segments[0] || '';
+            dialogTextArea.placeholder = segments.length > 1 ? '按 Enter 继续...' : '按 Enter 输入回复...';
+        }
+
+        // 记录到对话历史
+        dialogSegmentState.dialogHistory.push({
+            name: name,
+            text: segments[0] || '',
+            emotion: emotion,
+            type: 'ai'
+        });
+        if (dialogSegmentState.dialogHistory.length > 200) {
+            dialogSegmentState.dialogHistory = dialogSegmentState.dialogHistory.slice(-200);
         }
     }
 
@@ -2898,7 +3060,7 @@
             enableDialogInput();
             return;
         }
-        
+
         const text = segments[currentIndex];
         const dialogTextArea = $('#dialog-text-area');
 
@@ -2910,11 +3072,15 @@
 
         const emotionIndicator = $('#emotion-indicator');
         if (emotionIndicator) emotionIndicator.textContent = emotion || '';
-        
-        typeText(text, dialogTextArea, () => {
+
+        // 流式模式：直接显示文本，不用打字机效果
+        if (state.settings.streamOutput) {
+            if (dialogTextArea) {
+                dialogTextArea.value = text;
+                dialogTextArea.placeholder = currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...';
+            }
             dialogSegmentState.isTyping = false;
             dialogSegmentState.isWaitingForContinue = true;
-
             dialogSegmentState.dialogHistory.push({
                 name: name,
                 text: text,
@@ -2924,11 +3090,26 @@
             if (dialogSegmentState.dialogHistory.length > 200) {
                 dialogSegmentState.dialogHistory = dialogSegmentState.dialogHistory.slice(-200);
             }
+        } else {
+            typeText(text, dialogTextArea, () => {
+                dialogSegmentState.isTyping = false;
+                dialogSegmentState.isWaitingForContinue = true;
 
-            if (dialogTextArea) {
-                dialogTextArea.placeholder = currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...';
-            }
-        });
+                dialogSegmentState.dialogHistory.push({
+                    name: name,
+                    text: text,
+                    emotion: emotion,
+                    type: 'ai'
+                });
+                if (dialogSegmentState.dialogHistory.length > 200) {
+                    dialogSegmentState.dialogHistory = dialogSegmentState.dialogHistory.slice(-200);
+                }
+
+                if (dialogTextArea) {
+                    dialogTextArea.placeholder = currentIndex < segments.length - 1 ? '按 Enter 继续...' : '按 Enter 输入回复...';
+                }
+            });
+        }
     }
 
     function typeText(text, element, callback) {
@@ -3182,10 +3363,62 @@
         // 统一添加到对话段历史，方便上下键浏览
         dialogSegmentState.dialogHistory.push({ name: '玩家', text: choiceText, emotion: '', type: 'player' });
         showAiGenerating(true);
-        
+
         const startTime = Date.now();
         const maxWaitTime = 60000;
-        
+        const isStreamMode = state.settings.streamOutput;
+
+        // 流式输出：准备对话框和聊天消息元素
+        let streamChatMsgTextEl = null;
+        let streamDialogTextArea = null;
+
+        if (isStreamMode) {
+            showAiGenerating(false);
+            if (state.uiMode === 'chat') {
+                // 聊天模式：创建AI消息占位
+                const container = $('#chat-messages');
+                const msg = document.createElement('div');
+                msg.className = 'chat-msg ai';
+                const nameEl = document.createElement('div');
+                nameEl.className = 'msg-name';
+                nameEl.textContent = state.game.characterName || '星酱';
+                const textEl = document.createElement('div');
+                textEl.className = 'msg-text streaming';
+                textEl.textContent = '';
+                msg.appendChild(nameEl);
+                msg.appendChild(textEl);
+                container.appendChild(msg);
+                container.scrollTop = container.scrollHeight;
+                streamChatMsgTextEl = textEl;
+            } else {
+                // 游戏模式：准备对话框
+                const dialogBox = $('#dialog-box');
+                if (dialogBox) dialogBox.classList.remove('hidden');
+                const dialogName = $('#dialog-name');
+                if (dialogName) dialogName.textContent = state.game.characterName || '星酱';
+                streamDialogTextArea = $('#dialog-text-area');
+                if (streamDialogTextArea) {
+                    streamDialogTextArea.readOnly = true;
+                    streamDialogTextArea.dataset.mode = 'display';
+                    streamDialogTextArea.value = '';
+                    streamDialogTextArea.placeholder = '';
+                    streamDialogTextArea.classList.add('streaming');
+                }
+                $('#dialog-send-btn')?.classList.add('hidden');
+            }
+        }
+
+        const onStreamChunk = isStreamMode ? (newText, fullText) => {
+            if (state.uiMode === 'chat' && streamChatMsgTextEl) {
+                streamChatMsgTextEl.textContent = fullText;
+                const container = $('#chat-messages');
+                if (container) container.scrollTop = container.scrollHeight;
+            } else if (streamDialogTextArea) {
+                streamDialogTextArea.value = fullText;
+                streamDialogTextArea.scrollTop = streamDialogTextArea.scrollHeight;
+            }
+        } : null;
+
         try {
             let contextHint = choiceText;
             if (state.game.activeOutline && state.game.outlineChapterIndex !== undefined) {
@@ -3199,9 +3432,9 @@
             } else if (state.game.aiContext.length < 2) {
                 contextHint = `【故事开始】${choiceText}`;
             }
-            
+
             const result = await Promise.race([
-                callAiApi(contextHint),
+                callAiApi(contextHint, 0, onStreamChunk),
                 new Promise((_, reject) =>
                     setTimeout(() => {
                         if (currentAbortController) currentAbortController.abort();
@@ -3209,16 +3442,22 @@
                     }, maxWaitTime)
                 )
             ]);
-            
+
             showAiGenerating(false);
+            // 流式模式：移除streaming样式
+            if (streamDialogTextArea) streamDialogTextArea.classList.remove('streaming');
+            if (streamChatMsgTextEl) streamChatMsgTextEl.classList.remove('streaming');
+
             if (result) {
                 const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-                processAiResponse(result, elapsed);
+                processAiResponse(result, elapsed, isStreamMode);
             } else {
                 throw new Error('AI返回了空响应');
             }
         } catch (e) {
             showAiGenerating(false);
+            if (streamDialogTextArea) streamDialogTextArea.classList.remove('streaming');
+            if (streamChatMsgTextEl) streamChatMsgTextEl.classList.remove('streaming');
             const elapsed = Date.now() - startTime;
             console.error('AI调用失败:', e, '耗时:', elapsed + 'ms');
 
@@ -3239,7 +3478,7 @@
             } else {
                 friendlyMsg = '呜……好像出了点问题。' + errorMsg + '\n\n别担心，我们再试一次吧！';
             }
-            
+
             showToast('AI 调用失败: ' + errorMsg, 'error');
             const segments = splitDialogIntoSegments(friendlyMsg);
             showSegmentedDialog(state.game.characterName || '星酱', segments, 'neutral');
