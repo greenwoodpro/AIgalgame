@@ -13,10 +13,10 @@ function getApiKey(env, provider) {
     return map[provider] || null;
 }
 
-const ALLOWED_ORIGINS = ['https://galai.dpdns.org', 'https://aigalgame.pages.dev', 'http://localhost:3000', 'http://localhost:5500', 'http://localhost:8788', 'http://127.0.0.1:8788'];
+const ALLOWED_ORIGINS = ['https://galai.dpdns.org', 'https://aigalgame.pages.dev', 'http://localhost:3000', 'http://localhost:5500', 'http://localhost:8788', 'http://127.0.0.1:8788', 'null'];
 
 function getCorsHeaders(origin) {
-    const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? (origin === 'null' ? '*' : origin) : ALLOWED_ORIGINS[0];
     return {
         'Access-Control-Allow-Origin': allowedOrigin,
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
