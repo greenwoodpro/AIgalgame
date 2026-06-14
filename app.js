@@ -354,9 +354,41 @@
             $('#game-screen').classList.remove('active');
             $('#chat-screen').classList.add('active');
             rebuildChatMessages();
+            // 切到聊天模式时，确保对话框状态重置
+            dialogSegmentState.isWaitingForContinue = false;
+            dialogSegmentState.isTyping = false;
         } else {
             $('#chat-screen').classList.remove('active');
             $('#game-screen').classList.add('active');
+            // 切回游戏模式时，恢复最后一条对话到对话框
+            if (dialogSegmentState.dialogHistory.length > 0) {
+                const lastEntry = dialogSegmentState.dialogHistory[dialogSegmentState.dialogHistory.length - 1];
+                const dialogName = $('#dialog-name');
+                const dialogTextArea = $('#dialog-text-area');
+                if (dialogName) dialogName.textContent = lastEntry.name;
+                if (dialogTextArea) {
+                    dialogTextArea.value = lastEntry.text;
+                    dialogTextArea.readOnly = true;
+                    dialogTextArea.dataset.mode = 'display';
+                    dialogTextArea.placeholder = '按 Enter 输入回复...';
+                }
+                dialogSegmentState.name = lastEntry.name;
+                dialogSegmentState.emotion = lastEntry.emotion || '';
+                dialogSegmentState.isWaitingForContinue = true;
+                dialogSegmentState.isTyping = false;
+                dialogSegmentState.historyOffset = 0;
+                // 恢复情绪指示器和立绘
+                if (lastEntry.emotion && lastEntry.type === 'ai') {
+                    const emotionEl = $('#emotion-indicator');
+                    if (emotionEl) { emotionEl.className = `emotion-${normalizeEmotion(lastEntry.emotion)}`; emotionEl.textContent = lastEntry.emotion; }
+                    if (lastEntry.name && lastEntry.name !== '旁白' && lastEntry.name !== '系统') {
+                        const char = SPRITE_CONFIG.characters.find(c => c.name === lastEntry.name);
+                        if (char) showSprite(char.id, SPRITE_CONFIG.emotionMap[lastEntry.emotion] || char.defaultExpr);
+                    }
+                }
+                $('#dialog-box')?.classList.remove('hidden');
+                $('#dialog-send-btn')?.classList.add('hidden');
+            }
         }
     }
 

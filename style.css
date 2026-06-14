@@ -2897,6 +2897,7 @@ html, body {
     background-repeat: no-repeat;
     opacity: 0.3;
     pointer-events: none;
+    transition: background-image 1.3s ease-in-out;
 }
 
 #chat-screen-bg::after {
