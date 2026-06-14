@@ -1831,6 +1831,17 @@
             // 魔搭社区：填了自己的Key就直连（无CORS限制，速度快）
             url = `${config.baseUrl}/chat/completions`;
             headers['Authorization'] = `Bearer ${apiKey}`;
+        } else if (provider === 'agnes') {
+            // Agnes：按代理开关决定，关代理+有Key→直连，开代理→走代理
+            if (!state.settings.corsProxy && apiKey) {
+                url = `${config.baseUrl}/chat/completions`;
+                headers['Authorization'] = `Bearer ${apiKey}`;
+            } else if (!state.settings.corsProxy && !apiKey) {
+                throw new Error('请先配置 Agnes AI 的 API Key，或开启代理模式');
+            } else {
+                const proxyBase = state.settings.corsProxyUrl || window.location.origin;
+                url = `${proxyBase}/api/${provider}/chat/completions`;
+            }
         } else if (canDirectConnect && !useProxy) {
             // 其他provider：有Key且未开代理 → 直连
             url = `${config.baseUrl}/chat/completions`;
@@ -1982,15 +1993,18 @@
         const canDirectConnect = isCustom || !!apiKey;
         if (isCustom && !state.settings.customBaseUrl) throw new Error('请先配置自定义 API 的 Base URL');
         if (isCustom && !apiKey) throw new Error('请先配置自定义 API 的 API Key');
-        // 智谱生图始终走代理，只需useProxyKeys即可；其他provider需要key或useProxyKeys
-        if (provider !== 'zhipu' && !useProxy && !canDirectConnect) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
+        // 智谱生图始终走代理；Agnes按代理开关；其他需要key或useProxyKeys
         if (provider === 'zhipu' && !useProxyKeys && !apiKey) throw new Error('智谱生图需要开启"使用默认密钥"或填写智谱API Key');
+        if (provider === 'agnes' && !state.settings.corsProxy && !apiKey) throw new Error('请先配置 Agnes AI 的 API Key，或开启代理模式');
+        if (!['zhipu', 'agnes', 'custom'].includes(provider) && !useProxy && !canDirectConnect) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
 
         const proxyBase = state.settings.corsProxyUrl || window.location.origin;
-        // 智谱生图始终走代理；其他按设置决定（useProxyKeys=开→代理，关+有Key→直连）
+        // 智谱生图始终走代理；Agnes按代理开关；其他按useProxyKeys
         let useProxyUrl;
         if (provider === 'zhipu') {
             useProxyUrl = true;
+        } else if (provider === 'agnes') {
+            useProxyUrl = state.settings.corsProxy || !apiKey;
         } else {
             useProxyUrl = !(canDirectConnect && !useProxy);
         }
@@ -3244,7 +3258,9 @@
     async function generateSceneImage(sceneDescription) {
         const provider = state.settings.imageApiProvider;
         const apiKey = state.settings.apiKeys[provider];
-        const hasKey = state.settings.useProxyKeys || !!apiKey;
+        const hasKey = provider === 'agnes'
+            ? (state.settings.corsProxy || !!apiKey)
+            : (state.settings.useProxyKeys || !!apiKey);
         if (!hasKey) {
             console.log('[生图] 跳过：未配置图像API Key');
             return;
