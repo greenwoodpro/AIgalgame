@@ -1434,7 +1434,7 @@
             const provider = state.settings.textApiProvider;
             if (provider === 'custom') {
                 connEl.textContent = state.settings.corsProxy ? '代理' : '直连';
-            } else if ((provider === 'modelscope' || provider === 'agnes') && state.settings.apiKeys[provider]) {
+            } else if (provider === 'modelscope' && state.settings.apiKeys.modelscope) {
                 connEl.textContent = '直连';
             } else {
                 connEl.textContent = state.settings.useProxyKeys ? '代理' : '直连';
@@ -1465,7 +1465,7 @@
             const provider = state.settings.textApiProvider;
             if (provider === 'custom') {
                 sbConn.textContent = state.settings.corsProxy ? '代理' : '直连';
-            } else if ((provider === 'modelscope' || provider === 'agnes') && state.settings.apiKeys[provider]) {
+            } else if (provider === 'modelscope' && state.settings.apiKeys.modelscope) {
                 sbConn.textContent = '直连';
             } else {
                 sbConn.textContent = state.settings.useProxyKeys ? '代理' : '直连';
@@ -1827,8 +1827,8 @@
                 url = targetUrl;
                 headers['Authorization'] = `Bearer ${apiKey}`;
             }
-        } else if ((provider === 'modelscope' || provider === 'agnes') && apiKey) {
-            // 魔搭/Agnes：填了自己的Key就直连（无CORS限制，速度快）
+        } else if (provider === 'modelscope' && apiKey) {
+            // 魔搭社区：填了自己的Key就直连（无CORS限制，速度快）
             url = `${config.baseUrl}/chat/completions`;
             headers['Authorization'] = `Bearer ${apiKey}`;
         } else if (canDirectConnect && !useProxy) {
@@ -1987,8 +1987,13 @@
         if (provider === 'zhipu' && !useProxyKeys && !apiKey) throw new Error('智谱生图需要开启"使用默认密钥"或填写智谱API Key');
 
         const proxyBase = state.settings.corsProxyUrl || window.location.origin;
-        // 智谱生图始终走代理（使用服务端ZHIPU_API_KEY），魔搭/其他按原逻辑
-        const useProxyUrl = provider === 'zhipu' ? true : !(canDirectConnect && !useProxy);
+        // 智谱生图始终走代理；其他按设置决定（useProxyKeys=开→代理，关+有Key→直连）
+        let useProxyUrl;
+        if (provider === 'zhipu') {
+            useProxyUrl = true;
+        } else {
+            useProxyUrl = !(canDirectConnect && !useProxy);
+        }
 
         let url;
         let headers = { 'Content-Type': 'application/json' };
