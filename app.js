@@ -487,10 +487,7 @@
                 if (!API_CONFIGS[state.settings.imageApiProvider]) state.settings.imageApiProvider = 'zhipu';
             }
         } catch (e) { console.warn('加载设置失败'); }
-        try {
-            const game = Storage.get(STORAGE_KEYS.currentGame);
-            if (game) state.game = { ...state.game, ...game };
-        } catch (e) { console.warn('加载游戏存档失败'); }
+        // 不再自动加载当前游戏进度，只通过手动存档恢复
         try {
             const gallery = Storage.get(STORAGE_KEYS.gallery);
             if (gallery) state.gallery = gallery;
@@ -578,7 +575,15 @@
         }
     }
 
-    window.addEventListener('popstate', handleHashChange);
+    let _hashChangeTimer = null;
+    function handleHashChangeDebounced() {
+        if (_hashChangeTimer) return;
+        _hashChangeTimer = setTimeout(() => { _hashChangeTimer = null; }, 100);
+        handleHashChange();
+    }
+
+    window.addEventListener('popstate', handleHashChangeDebounced);
+    window.addEventListener('hashchange', handleHashChangeDebounced);
 
     function showToast(message, type = 'info') {
         const container = $('#toast-container');
@@ -1642,7 +1647,6 @@
         state.game.variables = {};
         state.game.currentSceneUrl = null;
         state.game.currentScene = '';
-        Storage.set(STORAGE_KEYS.currentGame, state.game);
         doStartGame(mode);
     }
 
@@ -1705,7 +1709,6 @@
         state.game.variables = {};
         state.game.currentSceneUrl = null;
         state.game.currentScene = '';
-        Storage.set(STORAGE_KEYS.currentGame, state.game);
         doStartGame(mode);
     }
 
@@ -3899,7 +3902,6 @@
 
     function addDialogHistory(name, text) {
         state.game.dialogHistory.push({ name, text, timestamp: Date.now() });
-        saveCurrentGame();
     }
 
     function extractCoreMemories(context) {
