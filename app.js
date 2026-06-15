@@ -360,6 +360,9 @@
         } else {
             $('#chat-screen').classList.remove('active');
             $('#game-screen').classList.add('active');
+            // 切回游戏模式时，让聊天输入框失去焦点，避免键盘事件被拦截
+            const chatInput = $('#chat-input');
+            if (chatInput && document.activeElement === chatInput) chatInput.blur();
             // 切回游戏模式时，恢复最后一条对话到对话框
             if (dialogSegmentState.dialogHistory.length > 0) {
                 const lastEntry = dialogSegmentState.dialogHistory[dialogSegmentState.dialogHistory.length - 1];
@@ -1116,17 +1119,26 @@
     }
 
     function handleKeyDown(e) {
-        // 聊天模式下Enter发送
+        // 聊天模式下，只处理 Enter 发送，其他键不拦截
         if (state.currentScreen === 'game' && state.uiMode === 'chat') {
             const chatInput = $('#chat-input');
             if (e.key === 'Enter' && document.activeElement === chatInput) {
                 e.preventDefault();
                 handleChatSend();
+            }
+            return;
+        }
+        if (state.currentScreen !== 'game') return;
+        // 忽略来自隐藏/不可见元素的焦点事件，避免模式切换后焦点残留导致键盘事件被丢弃
+        const activeEl = document.activeElement;
+        if (activeEl && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable)) {
+            // 如果焦点元素不可见（如隐藏的聊天输入框），强制 blur 并继续处理
+            if (activeEl.offsetParent === null) {
+                activeEl.blur();
+            } else {
                 return;
             }
         }
-        if (state.currentScreen !== 'game') return;
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable) return;
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             if (dialogSegmentState.historyOffset > 0) {
