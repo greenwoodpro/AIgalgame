@@ -443,7 +443,7 @@
                         </div>
                         <div class="form-group">
                             <label for="max-response-length">AI最大回复字数</label>
-                            <input type="number" id="max-response-length" min="50" max="4096" value="350" step="50">
+                            <input type="number" id="max-response-length" min="50" max="4096" value="512" step="50">
                             <small>控制AI每次回复的最大token数，值越小回复越短</small>
                         </div>
                         <div class="form-group">
@@ -487,15 +487,9 @@
                             <small>游戏页面显示飘落粒子效果（樱花/星光/墨点）</small>
                         </div>
                         <div class="form-group">
-                            <label for="image-cooldown">生图间隔</label>
-                            <select id="image-cooldown">
-                                <option value="30">30秒</option>
-                                <option value="45">45秒</option>
-                                <option value="60">60秒</option>
-                                <option value="90">90秒</option>
-                                <option value="120">120秒</option>
-                            </select>
-                            <small>对话后多久生成场景图，无新对话时暂停计时</small>
+                            <label for="image-cooldown">生图间隔（秒）</label>
+                            <input type="number" id="image-cooldown" min="10" max="600" value="60" step="10">
+                            <small>开启AI生图后，每隔多少秒自动生成一次场景图</small>
                         </div>
                         <div class="form-group">
                             <label id="storage-label">存储空间</label>

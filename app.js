@@ -110,15 +110,22 @@
 ## 豆包（char_4）
 学姐。黑长直，戴眼镜，面无表情。傲娇毒舌，嘴硬心软。口癖："哼。""才不是为你！"。渴望被理解。
 
-## 核心规则
-1. 绝不说自己是AI，不用助手用语
-2. 每次必须换新场景、新对话、新情感，禁止重复
-3. 对话100-300字，含场景描写+角色互动+微表情小动作
-4. 推动剧情发展，不要原地踏步
-5. scene字段用英文，用于AI生图
+## 写作风格
+1. 像写小说一样自然，不要有任何AI助手的感觉
+2. 对话要口语化、生活化，符合角色性格
+3. 多用细节描写：眼神、小动作、环境氛围
+4. 每次回复150-350字，内容丰富有画面感
+5. 推动剧情发展，不要原地踏步
 
 ## 输出格式（纯JSON，无markdown）
-{"name":"角色名","dialog":"对话内容","emotion":"happy/sad/angry/surprised/shy/neutral/scared/excited/worried/tsundere","action":"动作描述","scene":"English scene description"}`;
+{"name":"角色名","dialog":"对话内容（纯文字，不要加括号动作）","emotion":"happy/sad/angry/surprised/shy/neutral/scared/excited/worried/tsundere","action":"动作和表情描写（如：微微低头，脸颊泛红）","scene":"English scene description"}
+
+## 重要规则
+- action字段：写角色的动作、表情、小动作，不要写在dialog里
+- dialog字段：只写角色说的话，不要加括号或动作描写
+- emotion字段：根据对话内容选择合适的情绪
+- scene字段：用英文描述当前场景，用于AI生图
+- 绝不说自己是AI，不用"作为..."、"我可以..."等助手用语`;
 
     const API_CONFIGS = {
         zhipu: {
@@ -211,7 +218,7 @@
             chatShowBg: true,
             bgSwitchInterval: 120,
             imageGenInterval: 60,
-            maxResponseLength: 350,
+            maxResponseLength: 512,
             corsProxy: true,
             corsProxyUrl: '',
             useProxyKeys: true,
@@ -907,7 +914,14 @@
             const chatBg = $('#chat-screen-bg');
             if (chatBg) chatBg.style.display = e.target.checked ? '' : 'none';
         });
-        $('#image-cooldown').addEventListener('change', e => { state.settings.imageGenInterval = parseInt(e.target.value) || 60; saveSettings(); });
+        $('#image-cooldown').addEventListener('change', e => {
+            state.settings.imageGenInterval = Math.max(10, parseInt(e.target.value) || 60);
+            saveSettings();
+            // 如果正在运行，重启计时器以应用新间隔
+            if (state.settings.autoGenScene && state.mode === 'ai' && imageGenTimer) {
+                startImageGenLoop();
+            }
+        });
         $('#ambient-particles-toggle').addEventListener('change', e => {
             state.settings.ambientParticles = e.target.checked;
             saveSettings();
@@ -918,13 +932,12 @@
             state.settings.autoGenScene = e.target.checked;
             saveSettings();
             if (!e.target.checked) {
-                // 关闭AI生图：停止计时器，切换到默认背景
+                // 关闭AI生图：停止计时器
                 stopImageGenTimer();
                 pendingSceneDescription = null;
-                setSceneBackground(null);
-            } else if (state.game.currentScene) {
-                // 开启AI生图：如果有场景描述，立即开始计时
-                resetImageGenTimer(state.game.currentScene);
+            } else if (state.game.currentScene || state.mode === 'ai') {
+                // 开启AI生图：立即启动循环计时
+                startImageGenLoop();
             }
         });
         const bgmVolumeEl = $('#bgm-volume');
@@ -1234,7 +1247,7 @@
             chatShowBg: true,
             bgSwitchInterval: 120,
             imageGenInterval: 60,
-            maxResponseLength: 350,
+            maxResponseLength: 512,
             corsProxy: true,
             corsProxyUrl: '',
             useProxyKeys: true,
@@ -1657,6 +1670,10 @@
             state.game.character = randomChar.id;
             state.game.characterName = randomChar.name;
             await startAiStory();
+            // AI故事启动后，如果开启了自动生图，启动生图循环
+            if (state.settings.autoGenScene) {
+                startImageGenLoop();
+            }
         } else {
             state.game = { scene: null, character: null, characterName: '', dialogHistory: [], aiContext: [], variables: {}, isTyping: false, isAutoPlay: false, currentSceneUrl: null, currentScene: '' };
             startNormalStory();
@@ -1677,6 +1694,7 @@
         if (state.game.currentSceneUrl) setSceneBackground(state.game.currentSceneUrl);
         else setSceneBackground(DEFAULT_BG);
         if (state.mode === 'ai' && state.settings.autoSwitchBg) startBgAutoSwitch();
+        if (state.mode === 'ai' && state.settings.autoGenScene) startImageGenLoop();
         showToast('已恢复上次对话', 'success');
         if (bgmState.enabled) playBgm('daily');
     }
@@ -1879,7 +1897,20 @@
         }
 
         if (content) {
-            state.game.aiContext.push({ role: 'assistant', content });
+            // 解析 JSON，只存储 dialog 内容作为上下文，避免 AI 看到原始 JSON 导致混乱
+            let contextContent = content;
+            try {
+                const parsed = JSON.parse(content);
+                if (parsed.dialog) {
+                    // 构建有意义的上下文：角色名 + 对话内容 + 动作
+                    const name = parsed.name || '角色';
+                    const action = parsed.action ? `（${parsed.action}）` : '';
+                    contextContent = `${name}：${action}${parsed.dialog}`;
+                }
+            } catch {
+                // 不是 JSON 格式，直接使用原始内容
+            }
+            state.game.aiContext.push({ role: 'assistant', content: contextContent });
             if (state.game.aiContext.length > state.settings.maxContext * 2 + 2) {
                 state.game.aiContext = state.game.aiContext.slice(-state.settings.maxContext * 2);
             }
@@ -3627,29 +3658,48 @@
     let pendingSceneDescription = null;
     let lastChoices = null;
     let imageGenTimer = null;  // 生图间隔计时器
-    let lastConversationTime = 0;  // 上次对话时间
 
     function getImageGenInterval() {
         return (state.settings.imageGenInterval || 60) * 1000;
     }
 
-    // 重置生图计时器：每次新对话后调用
-    function resetImageGenTimer(sceneDescription) {
+    // 启动生图循环计时器：开启后按固定间隔持续生图
+    function startImageGenLoop() {
         if (!state.settings.autoGenScene || state.mode !== 'ai') return;
-        if (imageGenTimer) { clearTimeout(imageGenTimer); imageGenTimer = null; }
-        if (!sceneDescription) return;
-        lastConversationTime = Date.now();
-        pendingSceneDescription = sceneDescription;
-        // 从上次生图时间算起，经过间隔后触发
-        const elapsed = Date.now() - lastImageGenTime;
+        stopImageGenTimer();
         const interval = getImageGenInterval();
-        const remaining = Math.max(0, interval - elapsed);
-        imageGenTimer = setTimeout(() => {
-            if (pendingSceneDescription && Date.now() - lastConversationTime < interval + 5000) {
-                generateSceneImage(pendingSceneDescription).catch(e => console.warn('generateSceneImage error:', e));
+        imageGenTimer = setTimeout(async () => {
+            // 用当前场景描述生图，没有场景描述则用角色相关描述
+            const sceneDesc = pendingSceneDescription || state.game.currentScene;
+            if (sceneDesc) {
+                try {
+                    await generateSceneImage(sceneDesc);
+                } catch (e) {
+                    console.warn('自动生图失败:', e);
+                }
             }
             imageGenTimer = null;
-        }, remaining);
+            // 生图完成后继续下一轮计时
+            startImageGenLoop();
+        }, interval);
+    }
+
+    // 更新待生图的场景描述（不重置计时器）
+    function updatePendingScene(sceneDescription) {
+        if (sceneDescription) {
+            pendingSceneDescription = sceneDescription;
+            state.game.currentScene = sceneDescription;
+        }
+    }
+
+    // 重置生图计时器：新对话时更新场景描述，但不中断计时循环
+    function resetImageGenTimer(sceneDescription) {
+        if (!state.settings.autoGenScene || state.mode !== 'ai') return;
+        updatePendingScene(sceneDescription);
+        // 如果计时器还没启动，启动它
+        if (!imageGenTimer) {
+            startImageGenLoop();
+        }
     }
 
     // 停止生图计时
@@ -4006,6 +4056,7 @@
         apiCallInProgress = false;
         state.game.isTyping = false;
         stopBgAutoSwitch();
+        stopImageGenTimer();
         if (pendingImageTimer) { clearTimeout(pendingImageTimer); pendingImageTimer = null; }
         pendingSceneDescription = null;
         stopTts();
