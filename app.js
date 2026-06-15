@@ -365,20 +365,24 @@
             dialogSegmentState.isWaitingForContinue = false;
             dialogSegmentState.isTyping = false;
             // 更新浏览器 history，使回退按钮能正确工作
-            const targetPath = '#chat';
-            const currentPath = location.hash ? '#' + location.hash.slice(1) : location.pathname;
-            if (currentPath !== targetPath) {
-                history.pushState(null, '', targetPath);
-            }
+            try {
+                const targetPath = '#chat';
+                const currentPath = location.hash ? '#' + location.hash.slice(1) : location.pathname;
+                if (currentPath !== targetPath) {
+                    history.replaceState(null, '', targetPath);
+                }
+            } catch (e) { /* file:// 等受限环境下忽略 */ }
         } else {
             $('#chat-screen').classList.remove('active');
             $('#game-screen').classList.add('active');
             // 切回游戏模式时，更新浏览器 history
-            const targetPath = '#game';
-            const currentPath = location.hash ? '#' + location.hash.slice(1) : location.pathname;
-            if (currentPath !== targetPath) {
-                history.pushState(null, '', targetPath);
-            }
+            try {
+                const targetPath = '#game';
+                const currentPath = location.hash ? '#' + location.hash.slice(1) : location.pathname;
+                if (currentPath !== targetPath) {
+                    history.replaceState(null, '', targetPath);
+                }
+            } catch (e) { /* file:// 等受限环境下忽略 */ }
             // 切回游戏模式时，让聊天输入框失去焦点，避免键盘事件被拦截
             const chatInput = $('#chat-input');
             if (chatInput && document.activeElement === chatInput) chatInput.blur();
@@ -559,13 +563,15 @@
                 }
             }
             if (!skipHistoryUpdate) {
-                const hashMap = { title: '', game: 'game', settings: 'settings' };
-                const hash = hashMap[state.currentScreen] || state.currentScreen;
-                const targetPath = hash ? '#' + hash : location.pathname;
-                const currentPath = location.hash ? '#' + location.hash.slice(1) : location.pathname;
-                if (currentPath !== targetPath) {
-                    history.pushState(null, '', targetPath);
-                }
+                try {
+                    const hashMap = { title: '', game: 'game', settings: 'settings' };
+                    const hash = hashMap[state.currentScreen] || state.currentScreen;
+                    const targetPath = hash ? '#' + hash : location.pathname;
+                    const currentPath = location.hash ? '#' + location.hash.slice(1) : location.pathname;
+                    if (currentPath !== targetPath) {
+                        history.replaceState(null, '', targetPath);
+                    }
+                } catch (e) { /* file:// 等受限环境下忽略 */ }
             }
         }
     }
