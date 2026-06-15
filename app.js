@@ -122,7 +122,7 @@
 
 ## 重要规则
 - action字段：写角色的动作、表情、小动作，不要写在dialog里
-- dialog字段：只写角色说的话，不要加括号或动作描写
+- dialog字段：只写角色说的话，不要加括号或动作描写，绝对不要加角色名前缀（如"星酱："、"豆包："等）
 - emotion字段：根据对话内容选择合适的情绪
 - scene字段：用英文描述当前场景，用于AI生图
 - 绝不说自己是AI，不用"作为..."、"我可以..."等助手用语`;
@@ -573,6 +573,11 @@
     function handleHashChange() {
         const hash = location.hash.slice(1);
         if (hash === 'game' || hash === 'ai') {
+            // 从聊天模式回退到游戏模式时，重置 uiMode
+            if (state.uiMode === 'chat') {
+                $('#chat-screen')?.classList.remove('active');
+                state.uiMode = 'game';
+            }
             switchScreen('game-screen', true);
         } else if (hash === 'chat') {
             // 只在游戏屏幕时切换到聊天模式，否则先切到游戏屏幕
@@ -1923,10 +1928,9 @@
             try {
                 const parsed = JSON.parse(content);
                 if (parsed.dialog) {
-                    // 构建有意义的上下文：角色名 + 对话内容 + 动作
-                    const name = parsed.name || '角色';
+                    // 只存对话内容和动作，不加角色名前缀（避免AI模仿在dialog中加前缀）
                     const action = parsed.action ? `（${parsed.action}）` : '';
-                    contextContent = `${name}：${action}${parsed.dialog}`;
+                    contextContent = action ? `${action}\n${parsed.dialog}` : parsed.dialog;
                 }
             } catch {
                 // 不是 JSON 格式，直接使用原始内容
@@ -1939,12 +1943,24 @@
         return content;
     }
 
+    // 去除dialog中AI错误添加的角色名前缀（如"星酱："、"豆包："等）
+    function stripNamePrefix(text) {
+        if (!text) return text;
+        const knownNames = SPRITE_CONFIG.characters.map(c => c.name);
+        if (state.game.characterName && !knownNames.includes(state.game.characterName)) {
+            knownNames.push(state.game.characterName);
+        }
+        const escapedNames = knownNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+        const regex = new RegExp('^(?:' + escapedNames.join('|') + ')[：:]\\s*');
+        return text.replace(regex, '');
+    }
+
     // 从部分JSON中提取dialog和action字段（流式输出用）
     function extractStreamDisplayText(jsonStr) {
         const dialogResult = extractJsonField(jsonStr, 'dialog');
         const actionResult = extractJsonField(jsonStr, 'action');
         if (!dialogResult) return null;
-        return { dialog: dialogResult, action: actionResult || '' };
+        return { dialog: stripNamePrefix(dialogResult), action: actionResult || '' };
     }
 
     // 从部分JSON中提取指定字段的字符串值
@@ -2989,6 +3005,8 @@
             dialog = dialog.replace(/作为(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
             dialog = dialog.replace(/我是(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
             dialog = dialog.replace(/作为人工智能[，,。.]/g, '');
+            // 去除AI错误添加的角色名前缀
+            dialog = stripNamePrefix(dialog);
             if (action) {
                 dialog = `（${action}）\n${dialog}`;
             }
@@ -3023,7 +3041,8 @@
             const name = (state.game.characterName && rawName2 !== '旁白' && rawName2 !== '系统')
                 ? state.game.characterName
                 : rawName2;
-            const dialog = parsed['开场白'] || parsed['对话'] || parsed['dialog'] || '';
+            let dialog = parsed['开场白'] || parsed['对话'] || parsed['dialog'] || '';
+            dialog = stripNamePrefix(dialog);
             const emotion = normalizeEmotion(parsed['情绪'] || parsed['emotion']);
             const scene = parsed['场景'] || parsed['scene'] || '';
             addDialogHistory(name, dialog);
@@ -3050,6 +3069,7 @@
             let content = rawContent;
             content = content.replace(/作为(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
             content = content.replace(/我是(?:一个)?AI(?:助手|模型|语言模型)?[，,。.]/g, '');
+            content = stripNamePrefix(content);
 
             const fallbackName = state.game.characterName || '星酱';
             addDialogHistory(fallbackName, content);
