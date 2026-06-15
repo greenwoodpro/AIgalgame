@@ -534,7 +534,7 @@
         saveSettings();
     }
 
-    function switchScreen(screenId) {
+    function switchScreen(screenId, skipHistoryUpdate = false) {
         $$('.screen').forEach(s => s.classList.remove('active'));
         const target = $(`#${screenId}`);
         if (target) {
@@ -549,12 +549,14 @@
                     statusBadge.classList.add('hidden');
                 }
             }
-            const hashMap = { title: '', game: 'game', chat: 'chat', settings: 'settings' };
-            const hash = hashMap[state.currentScreen] || state.currentScreen;
-            if (location.hash !== '#' + hash && hash !== '') {
-                history.pushState(null, '', '#' + hash);
-            } else if (hash === '' && location.hash !== '' && location.hash !== '#') {
-                history.pushState(null, '', location.pathname);
+            if (!skipHistoryUpdate) {
+                const hashMap = { title: '', game: 'game', chat: 'chat', settings: 'settings' };
+                const hash = hashMap[state.currentScreen] || state.currentScreen;
+                const targetPath = hash ? '#' + hash : location.pathname;
+                const currentPath = location.hash ? '#' + location.hash.slice(1) : location.pathname;
+                if (currentPath !== targetPath) {
+                    history.pushState(null, '', targetPath);
+                }
             }
         }
     }
@@ -562,20 +564,16 @@
     function handleHashChange() {
         const hash = location.hash.slice(1);
         if (hash === 'game' || hash === 'ai') {
-            if (state.currentScreen === 'title') {
-                switchScreen('game-screen');
-            } else {
-                switchScreen('game-screen');
-            }
+            switchScreen('game-screen', true);
         } else if (hash === 'chat') {
             switchUiMode('chat');
         } else if (hash === 'settings') {
             showModal('settings-modal');
         } else if (!hash || hash === 'title') {
             if (state.currentScreen !== 'title') {
-                backToTitle();
+                backToTitle(true);
             } else {
-                switchScreen('title-screen');
+                switchScreen('title-screen', true);
             }
         }
     }
@@ -4047,7 +4045,7 @@
         showToast(state.game.isAutoPlay ? '自动播放已开启' : '自动播放已关闭', 'info');
     }
 
-    function backToTitle() {
+    function backToTitle(skipHistoryUpdate = false) {
         if (typewriterTimer) { clearInterval(typewriterTimer); typewriterTimer = null; }
         if (dialogSegmentState.typingTimer) { clearTimeout(dialogSegmentState.typingTimer); dialogSegmentState.typingTimer = null; }
         dialogSegmentState.isTyping = false;
@@ -4060,7 +4058,7 @@
         if (pendingImageTimer) { clearTimeout(pendingImageTimer); pendingImageTimer = null; }
         pendingSceneDescription = null;
         stopTts();
-        switchScreen('title-screen');
+        switchScreen('title-screen', skipHistoryUpdate);
         state.game.isAutoPlay = false;
         const outlineBtn = $('#outline-select-btn');
         if (outlineBtn) outlineBtn.classList.add('hidden');
