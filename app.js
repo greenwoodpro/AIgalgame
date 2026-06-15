@@ -364,9 +364,21 @@
             // 切到聊天模式时，确保对话框状态重置
             dialogSegmentState.isWaitingForContinue = false;
             dialogSegmentState.isTyping = false;
+            // 更新浏览器 history，使回退按钮能正确工作
+            const targetPath = '#chat';
+            const currentPath = location.hash ? '#' + location.hash.slice(1) : location.pathname;
+            if (currentPath !== targetPath) {
+                history.pushState(null, '', targetPath);
+            }
         } else {
             $('#chat-screen').classList.remove('active');
             $('#game-screen').classList.add('active');
+            // 切回游戏模式时，更新浏览器 history
+            const targetPath = '#game';
+            const currentPath = location.hash ? '#' + location.hash.slice(1) : location.pathname;
+            if (currentPath !== targetPath) {
+                history.pushState(null, '', targetPath);
+            }
             // 切回游戏模式时，让聊天输入框失去焦点，避免键盘事件被拦截
             const chatInput = $('#chat-input');
             if (chatInput && document.activeElement === chatInput) chatInput.blur();
@@ -547,7 +559,7 @@
                 }
             }
             if (!skipHistoryUpdate) {
-                const hashMap = { title: '', game: 'game', chat: 'chat', settings: 'settings' };
+                const hashMap = { title: '', game: 'game', settings: 'settings' };
                 const hash = hashMap[state.currentScreen] || state.currentScreen;
                 const targetPath = hash ? '#' + hash : location.pathname;
                 const currentPath = location.hash ? '#' + location.hash.slice(1) : location.pathname;
@@ -563,7 +575,13 @@
         if (hash === 'game' || hash === 'ai') {
             switchScreen('game-screen', true);
         } else if (hash === 'chat') {
-            switchUiMode('chat');
+            // 只在游戏屏幕时切换到聊天模式，否则先切到游戏屏幕
+            if (state.currentScreen === 'game') {
+                switchUiMode('chat');
+            } else {
+                switchScreen('game-screen', true);
+                switchUiMode('chat');
+            }
         } else if (hash === 'settings') {
             showModal('settings-modal');
         } else if (!hash || hash === 'title') {
