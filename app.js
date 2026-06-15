@@ -577,9 +577,11 @@
 
     let _hashChangeTimer = null;
     function handleHashChangeDebounced() {
-        if (_hashChangeTimer) return;
-        _hashChangeTimer = setTimeout(() => { _hashChangeTimer = null; }, 100);
-        handleHashChange();
+        if (_hashChangeTimer) clearTimeout(_hashChangeTimer);
+        _hashChangeTimer = setTimeout(() => {
+            _hashChangeTimer = null;
+            handleHashChange();
+        }, 50);
     }
 
     window.addEventListener('popstate', handleHashChangeDebounced);
