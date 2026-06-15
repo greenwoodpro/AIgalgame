@@ -4062,6 +4062,11 @@
         if (pendingImageTimer) { clearTimeout(pendingImageTimer); pendingImageTimer = null; }
         pendingSceneDescription = null;
         stopTts();
+        // 确保从 chat 模式返回时，chat-screen 的 active 被移除
+        if (state.uiMode === 'chat') {
+            $('#chat-screen')?.classList.remove('active');
+            state.uiMode = 'game';
+        }
         switchScreen('title-screen', skipHistoryUpdate);
         state.game.isAutoPlay = false;
         const outlineBtn = $('#outline-select-btn');
