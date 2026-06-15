@@ -578,6 +578,13 @@
 
     function handleHashChange() {
         const hash = location.hash.slice(1);
+        // 如果当前在标题页，用户按返回回到游戏/聊天，阻止切换并保持标题页
+        if (state.currentScreen === 'title' && (hash === 'game' || hash === 'chat' || hash === 'ai')) {
+            try {
+                history.replaceState(null, '', location.pathname);
+            } catch (e) {}
+            return;
+        }
         if (hash === 'game' || hash === 'ai') {
             // 从聊天模式回退到游戏模式时，重置 uiMode
             if (state.uiMode === 'chat') {
@@ -4111,7 +4118,14 @@
             $('#chat-screen')?.classList.remove('active');
             state.uiMode = 'game';
         }
-        switchScreen('title-screen', skipHistoryUpdate);
+        switchScreen('title-screen', true);
+        // 用 pushState 添加标题页历史，覆盖之前的游戏/聊天历史
+        // 这样用户按返回时不会再回到游戏界面
+        if (!skipHistoryUpdate) {
+            try {
+                history.pushState(null, '', location.pathname);
+            } catch (e) { /* file:// 等受限环境下忽略 */ }
+        }
         state.game.isAutoPlay = false;
         const outlineBtn = $('#outline-select-btn');
         if (outlineBtn) outlineBtn.classList.add('hidden');
