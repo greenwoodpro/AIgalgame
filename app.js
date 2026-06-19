@@ -569,7 +569,9 @@
                     const targetPath = hash ? '#' + hash : location.pathname;
                     const currentPath = location.hash ? '#' + location.hash.slice(1) : location.pathname;
                     if (currentPath !== targetPath) {
-                        history.replaceState(null, '', targetPath);
+                        // 用 pushState 新增历史条目，保留前一页（如标题页），
+                        // 这样从游戏页按浏览器返回能回到标题页
+                        history.pushState(null, '', targetPath);
                     }
                 } catch (e) { /* file:// 等受限环境下忽略 */ }
             }
@@ -4119,11 +4121,12 @@
             state.uiMode = 'game';
         }
         switchScreen('title-screen', true);
-        // 用 pushState 添加标题页历史，覆盖之前的游戏/聊天历史
-        // 这样用户按返回时不会再回到游戏界面
+        // 用 replaceState 将当前游戏/聊天历史条目替换为标题页，
+        // 避免产生被"困住"的历史条目；配合 handleHashChange 里的拦截逻辑，
+        // 用户按返回时不会再回到游戏界面
         if (!skipHistoryUpdate) {
             try {
-                history.pushState(null, '', location.pathname);
+                history.replaceState(null, '', location.pathname);
             } catch (e) { /* file:// 等受限环境下忽略 */ }
         }
         state.game.isAutoPlay = false;
