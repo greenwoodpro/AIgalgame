@@ -96,19 +96,19 @@
     };
 
     const DEFAULT_SYSTEM_PROMPT = `# 角色设定
-你是视觉小说叙事AI，扮演指定角色（根据name字段决定），绝不使用其他角色名。
+你是视觉小说叙事AI，扮演指定角色（根据name字段决定），绝不使用其他角色名。所有角色均为成年人（19岁以上），故事背景为大学校园。
 
 ## 星酱（char_1）
-同桌女友。银发蓝挑染，琥珀眼，星星发卡。温柔体贴，偶尔害羞。口癖："嗯~""笨蛋……"。暗恋你很久。
+大学同班同学兼恋人。银发蓝挑染，琥珀眼，星星发卡。温柔体贴，偶尔害羞。口癖："嗯~""笨蛋……"。暗恋你很久。
 
 ## 小樱（char_2）
-邻座少女。双马尾，狡黠笑容。活泼机灵，爱恶作剧。口癖："嘿嘿~""才不是呢！"。怕被抛弃。
+邻座活泼少女（18岁大学新生）。双马尾，狡黠笑容。活泼机灵，爱恶作剧。口癖："嘿嘿~""才不是呢！"。怕被抛弃。
 
 ## 流萤（char_3）
-学妹。齐刘海长发，抱兔子玩偶。天真可爱。口癖："真的吗？""要抱抱~"。其实很聪明。
+低年级学妹（19岁）。齐刘海长发，抱兔子玩偶。天真可爱。口癖："真的吗？""要抱抱~"。其实很聪明。
 
 ## 豆包（char_4）
-学姐。黑长直，戴眼镜，面无表情。傲娇毒舌，嘴硬心软。口癖："哼。""才不是为你！"。渴望被理解。
+高年级学姐。黑长直，戴眼镜，面无表情。傲娇毒舌，嘴硬心软。口癖："哼。""才不是为你！"。渴望被理解。
 
 ## 写作风格
 1. 像写小说一样自然，不要有任何AI助手的感觉
@@ -116,21 +116,31 @@
 3. 多用细节描写：眼神、小动作、环境氛围
 4. 每次回复150-350字，内容丰富有画面感
 5. 推动剧情发展，不要原地踏步
+6. choices选项要具体、有画面感、有戏剧张力，避免"继续聊天"这种空泛选项
 
 ## 输出格式（纯JSON，无markdown）
-{"name":"角色名","dialog":"对话内容（纯文字，不要加括号动作）","emotion":"happy/sad/angry/surprised/shy/neutral/scared/excited/worried/tsundere","action":"动作和表情描写（如：微微低头，脸颊泛红）","scene":"English scene description"}
+{"name":"角色名","dialog":"对话内容（纯文字，不要加括号动作）","emotion":"happy/sad/angry/surprised/shy/neutral/scared/excited/worried/tsundere","action":"动作和表情描写（如：微微低头，脸颊泛红）","scene":"English scene description","choices":["选项1","选项2","选项3"]}
 
 ## 重要规则
 - action字段：写角色的动作、表情、小动作，不要写在dialog里
 - dialog字段：只写角色说的话，不要加括号或动作描写，绝对不要加角色名前缀（如"星酱："、"豆包："等）
 - emotion字段：根据对话内容选择合适的情绪
 - scene字段：用英文描述当前场景，用于AI生图
+- choices字段：3个下一步行动建议，分别对应：推动主线剧情 / 探索支线或环境 / 情感互动
 - 绝不说自己是AI，不用"作为..."、"我可以..."等助手用语`;
+
+    const ADVANCED_MODE_PROMPT = `[进阶模式已开启]
+本模式下所有角色均为成年人。允许更成熟、更亲密的浪漫互动描写：拥抱、依偎、亲吻、暧昧升温、含蓄的感官与氛围描写都可以自然发生。要求：
+1. 情感升温要有铺垫和节奏，不是每回合都强行推进亲密
+2. 描写保持文学性和分寸感，用氛围、留白和暗示代替直白
+3. 角色依然保持自己的性格边界（傲娇就是傲娇，不会突然变得毫无防线）
+4. 若玩家的请求超出尺度，角色可以用符合人设的方式婉拒`;
 
     const API_CONFIGS = {
         zhipu: {
             name: '智谱AI',
             baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+            supportsModelList: true,
             models: {
                 text: [
                     { id: 'glm-4-flash-250414', name: 'GLM-4-Flash', free: true },
@@ -143,6 +153,7 @@
         modelscope: {
             name: '魔搭社区',
             baseUrl: 'https://api-inference.modelscope.cn/v1',
+            supportsModelList: true,
             models: {
                 text: [
                     { id: 'deepseek-ai/DeepSeek-V4-Flash', name: 'DeepSeek-V4-Flash', free: true },
@@ -155,7 +166,14 @@
                     { id: 'ZhipuAI/GLM-5', name: 'GLM-5' },
                 ],
                 image: [
-                    { id: 'Z-Image/Z-Image-Turbo', name: 'Z-Image-Turbo', imageGen: true },
+                    { id: 'Tongyi-MAI/Z-Image-Turbo', name: 'Z-Image-Turbo', imageGen: true, recommended: true },
+                    { id: 'Tongyi-MAI/Z-Image', name: 'Z-Image (完整版)', imageGen: true },
+                    { id: 'Qwen/Qwen-Image-2.1', name: 'Qwen-Image-2.1', imageGen: true, recommended: true },
+                    { id: 'Qwen/Qwen-Image-2512', name: 'Qwen-Image-2512', imageGen: true },
+                    { id: 'Qwen/Qwen-Image', name: 'Qwen-Image', imageGen: true },
+                    { id: 'krea/Krea-2-Turbo', name: 'Krea-2-Turbo', imageGen: true, recommended: true },
+                    { id: 'black-forest-labs/FLUX.2-klein-9B', name: 'FLUX.2-klein-9B', imageGen: true },
+                    { id: 'black-forest-labs/FLUX.2-klein-4B', name: 'FLUX.2-klein-4B', imageGen: true },
                     { id: 'DiffSynth-Studio/FLUX.1-Kontext-dev-lora-highresfix', name: 'FLUX.1-Kontext', imageGen: true },
                 ],
             },
@@ -163,6 +181,7 @@
         nvidia: {
             name: 'NVIDIA NIM',
             baseUrl: 'https://integrate.api.nvidia.com/v1',
+            supportsModelList: true,
             models: {
                 text: [
                     { id: 'openai/gpt-oss-20b', name: 'GPT-OSS-20B' },
@@ -177,6 +196,7 @@
         agnes: {
             name: 'Agnes AI',
             baseUrl: 'https://apihub.agnes-ai.com/v1',
+            supportsModelList: true,
             models: {
                 text: [
                     { id: 'agnes-2.0-flash', name: 'Agnes-2.0-Flash', free: true },
@@ -188,9 +208,29 @@
                 ],
             },
         },
+        sense: {
+            name: '商汤 SenseNova',
+            baseUrl: 'https://token.sensenova.cn/v1',
+            supportsModelList: true,
+            models: {
+                text: [
+                    { id: 'sensenova-6.8-flash-lite', name: 'SenseNova-6.8-Flash-Lite', free: true, recommended: true },
+                    { id: 'sensenova-6.7-flash-lite', name: 'SenseNova-6.7-Flash-Lite', free: true },
+                    { id: 'deepseek-v4-flash', name: 'DeepSeek-V4-Flash', free: true, thinking: true },
+                    { id: 'deepseek-v4-pro', name: 'DeepSeek-V4-Pro', free: true, thinking: true },
+                    { id: 'glm-5.2', name: 'GLM-5.2', free: true },
+                    { id: 'kimi-k3', name: 'Kimi-K3', free: true },
+                ],
+                image: [
+                    { id: 'sensenova-u1-fast', name: 'SenseNova-U1-Fast', free: true, imageGen: true, recommended: true },
+                    { id: 'sensenova-u1.5-lite', name: 'SenseNova-U1.5-Lite', free: true, imageGen: true },
+                ],
+            },
+        },
         custom: {
             name: '自定义',
             baseUrl: '',
+            supportsModelList: false,
             models: {
                 text: [],
                 image: [],
@@ -198,6 +238,128 @@
             isCustom: true,
         },
     };
+
+    /* ==================== 模型列表动态获取 ==================== */
+    const MODEL_CACHE_TTL = 12 * 60 * 60 * 1000; // 12小时
+    const MODEL_CACHE_PREFIX = 'galgame_models_';
+
+    function getModelCache(provider) {
+        try {
+            const raw = localStorage.getItem(MODEL_CACHE_PREFIX + provider);
+            if (!raw) return null;
+            const data = JSON.parse(raw);
+            if (!data || !Array.isArray(data.models) || Date.now() - (data.fetchedAt || 0) > MODEL_CACHE_TTL) return null;
+            return data;
+        } catch { return null; }
+    }
+
+    function setModelCache(provider, models) {
+        try { localStorage.setItem(MODEL_CACHE_PREFIX + provider, JSON.stringify({ models, fetchedAt: Date.now() })); } catch {}
+    }
+
+    // 判断模型 ID 是否为图像生成模型（用于从全量列表中筛选）
+    const IMAGE_MODEL_HINTS = [
+        'z-image', 'zimage', 'qwen-image', 'qwenimage', 'flux', 'krea', 'cogview', 'cogvideo',
+        'diffsynth', 'stable-diffusion', 'sdxl', 'sd3', 'ideogram', 'sensenova-u1', 'wanx',
+        'wan2', 'image', 'photo', 'dall', 'playground', 'recraft', 'sdxl-turbo',
+    ];
+    const IMAGE_MODEL_EXCLUDES = ['vl', 'vision', 'caption', 'ocr', 'embed', 'rerank', 'speaker', 'tts', 'asr', 'audio', 'video-understanding', 'omni'];
+
+    function isLikelyImageModel(modelId) {
+        const id = modelId.toLowerCase();
+        if (IMAGE_MODEL_EXCLUDES.some(ex => id.includes(ex))) return false;
+        return IMAGE_MODEL_HINTS.some(h => id.includes(h));
+    }
+
+    // 从 /v1/models 响应中提取模型列表
+    function normalizeModelList(json) {
+        const raw = Array.isArray(json) ? json : (json.data || json.models || []);
+        if (!Array.isArray(raw)) return [];
+        return raw.map(m => typeof m === 'string' ? { id: m } : {
+            id: m.id || m.model || m.name || '',
+            owned_by: m.owned_by || '',
+        }).filter(m => m.id);
+    }
+
+    // 获取指定 provider 的最新模型列表（优先用户Key直连，否则走代理）
+    async function fetchModelsForProvider(provider) {
+        const config = API_CONFIGS[provider];
+        if (!config || !config.baseUrl) throw new Error('该提供商不支持获取列表');
+
+        let url;
+        const headers = {};
+        const userKey = state.settings.apiKeys[provider];
+        const canDirect = (provider === 'modelscope') && !!userKey; // 魔搭支持CORS直连
+        if (canDirect) {
+            url = `${config.baseUrl}/models`;
+            headers['Authorization'] = `Bearer ${userKey}`;
+        } else {
+            const proxyBase = state.settings.corsProxyUrl || window.location.origin;
+            url = `${proxyBase}/api/${provider}/models`;
+        }
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
+        try {
+            const resp = await fetch(url, { headers, signal: controller.signal });
+            if (!resp.ok) {
+                let detail = '';
+                try { const j = await resp.json(); detail = j.error?.message || j.message || j.msg || ''; } catch {}
+                throw new Error(`HTTP ${resp.status}${detail ? ': ' + detail : ''}`);
+            }
+            const json = await resp.json();
+            const models = normalizeModelList(json);
+            if (models.length === 0) throw new Error('返回的列表为空');
+            setModelCache(provider, models.map(m => ({ id: m.id })));
+            return models.map(m => m.id);
+        } finally {
+            clearTimeout(timeout);
+        }
+    }
+
+    // 合并预设列表与动态列表（去重，动态列表附加在后）
+    function mergeModelList(presetModels, dynamicIds, forImage) {
+        const merged = presetModels.map(m => ({ ...m }));
+        const knownIds = new Set(merged.map(m => m.id));
+        if (Array.isArray(dynamicIds)) {
+            for (const id of dynamicIds) {
+                if (knownIds.has(id)) continue;
+                if (forImage && !isLikelyImageModel(id)) continue;
+                merged.push({ id, name: id, dynamic: true });
+            }
+        }
+        return merged;
+    }
+
+    /* ==================== 思考模式参数构建 ==================== */
+    // 按模型家族返回正确的 thinking 参数（附加到请求 body）
+    function buildThinkingBody(provider, modelId) {
+        if (!state.settings.enableThinking) return null;
+        const effort = state.settings.thinkingEffort || 'low';
+        const id = (modelId || '').toLowerCase();
+
+        // Qwen3 系列（魔搭）：enable_thinking
+        if (id.includes('qwen3') || id.includes('qwen/qwen3')) {
+            return { enable_thinking: true, thinking_budget: effort === 'low' ? 1024 : effort === 'medium' ? 4096 : 16384 };
+        }
+        // DeepSeek R1 / V4 系列：原生思考，无需参数（部分网关支持 thinking 开关）
+        if (id.includes('deepseek-r1') || id.includes('deepseek-v4')) {
+            return { thinking: { type: 'enabled' } };
+        }
+        // GLM 思考模型
+        if (id.includes('glm') && (id.includes('thinking') || id.includes('reasoner'))) {
+            return { thinking: { type: 'enabled' } };
+        }
+        // GPT-OSS / o系列 / 通用 reasoning_effort
+        if (id.includes('gpt-oss') || id.includes('o1') || id.includes('o3') || id.includes('o4') || id.includes('kimi') && id.includes('thinking')) {
+            return { reasoning_effort: effort };
+        }
+        // 商汤 reasoner / 默认：通用 reasoning_effort（多数 OpenAI 兼容网关忽略未知字段）
+        if (id.includes('reasoner') || id.includes('thinking')) {
+            return { reasoning_effort: effort };
+        }
+        return null; // 未知模型不传，避免 400
+    }
 
     let state = {
         mode: null,
@@ -207,10 +369,12 @@
         settings: {
             textSpeed: 40,
             textEffect: 'typewriter-fade',
-            streamOutput: false,
+            streamOutput: true,
             saveConversation: true,
             maxContext: 5,
-            enableThinking: false,
+            enableThinking: true,
+            thinkingEffort: 'low',
+            advancedMode: false,
             autoDefaultBg: true,
             defaultBgInterval: 60,
             autoGenScene: true,
@@ -227,11 +391,13 @@
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
-            apiKeys: { zhipu: '', modelscope: '', nvidia: '', agnes: '', custom: '' },
+            apiKeys: { zhipu: '', modelscope: '', nvidia: '', agnes: '', sense: '', custom: '' },
             customBaseUrl: '',
             customTextModel: '',
             customImageModel: '',
             theme: 'light',
+            dialogFont: '',
+            uiFont: '',
             bgmVolume: 30,
             bgmEnabled: false,
             ttsEnabled: false,
@@ -448,17 +614,21 @@
         const text = input.value.trim();
         if (!text) return;
         input.value = '';
+        pushChatHistory(text);
+        markDirty();
         addChatMessage('玩家', text, 'user');
         handleAiChoice(text);
     }
 
     function handleChatQuickAction(action) {
+        const charName = state.game.characterName || '星酱';
         const actions = {
             'chat-continue': '请继续推进剧情',
             'chat-explore': '我想探索一下当前场景的细节',
-            'chat-interact': '我想和星酱聊聊天',
+            'chat-interact': `我想和${charName}多聊聊天，增进我们的感情`,
         };
         const text = actions[action] || '请继续';
+        markDirty();
         addChatMessage('玩家', text, 'user');
         handleAiChoice(text);
     }
@@ -466,8 +636,7 @@
     function init() {
         sessionStorage.setItem('galgame_session_active', '1');
         loadSettings();
-        const validThemes = ['dark-star', 'ink-wash', 'light'];
-        if (!validThemes.includes(state.theme)) state.theme = 'light';
+        if (!VALID_THEMES.includes(state.theme)) state.theme = 'light';
         applyTheme(state.theme);
         bindEvents();
         restoreSettingsUI();
@@ -532,9 +701,11 @@
         updateStorageUsage();
     }
 
+    // 全部可用主题（与 index.html theme-card、style.css data-theme 对应）
+    const VALID_THEMES = ['light', 'dark-star', 'ink-wash', 'sakura', 'cyber', 'ocean'];
+
     function applyTheme(themeName) {
-        const validThemes = ['dark-star', 'ink-wash', 'light'];
-        if (!validThemes.includes(themeName)) themeName = 'light';
+        if (!VALID_THEMES.includes(themeName)) themeName = 'light';
         state.theme = themeName;
         state.settings.theme = themeName;
         if (themeName === 'light') {
@@ -767,8 +938,9 @@
         }
 
         setType(theme) {
-            if (theme === 'dark-star') this.type = 'star';
+            if (theme === 'dark-star' || theme === 'cyber') this.type = 'star';
             else if (theme === 'ink-wash') this.type = 'ink';
+            else if (theme === 'ocean') this.type = 'bubbles';
             else this.type = 'sakura';
             this.initParticles();
         }
@@ -812,6 +984,12 @@
                 base.size = Math.random() * 5 + 2;
                 base.speedY = Math.random() * 0.4 + 0.2;
                 base.speedX = Math.random() * 0.2 - 0.1;
+            } else if (this.type === 'bubbles') {
+                // 海洋主题：上浮气泡
+                base.color = `rgba(${100 + Math.random() * 60}, ${200 + Math.random() * 40}, ${210 + Math.random() * 40}, ${base.opacity * 0.7})`;
+                base.size = Math.random() * 4 + 1.5;
+                base.speedY = -Math.random() * 0.9 - 0.3;
+                base.speedX = Math.random() * 0.5 - 0.25;
             }
             return base;
         }
@@ -867,6 +1045,17 @@
                     this.ctx.fillStyle = p.color;
                     this.ctx.beginPath();
                     this.ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                } else if (this.type === 'bubbles') {
+                    // Bubble: circle + highlight
+                    this.ctx.strokeStyle = p.color;
+                    this.ctx.lineWidth = 1;
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+                    this.ctx.stroke();
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(-p.size * 0.3, -p.size * 0.3, p.size * 0.25, 0, Math.PI * 2);
                     this.ctx.fill();
                 }
 
@@ -931,7 +1120,7 @@
         $('#text-effect').addEventListener('change', e => { state.settings.textEffect = e.target.value; saveSettings(); });
         $('#stream-output').addEventListener('change', e => { state.settings.streamOutput = e.target.checked; saveSettings(); });
 
-        ['zhipu-api-key', 'modelscope-api-key', 'nvidia-api-key', 'agnes-api-key', 'custom-api-key'].forEach(id => {
+        ['zhipu-api-key', 'modelscope-api-key', 'nvidia-api-key', 'agnes-api-key', 'sense-api-key', 'custom-api-key'].forEach(id => {
             const el = $(`#${id}`);
             if (el) el.addEventListener('change', () => { const p = id.replace('-api-key', ''); state.settings.apiKeys[p] = el.value.trim(); saveSettings(); updateApiIndicator(); });
         });
@@ -949,6 +1138,14 @@
         $('#max-response-length').addEventListener('change', e => { state.settings.maxResponseLength = Math.max(50, parseInt(e.target.value) || 350); saveSettings(); });
         
         $('#enable-thinking').addEventListener('change', e => { state.settings.enableThinking = e.target.checked; saveSettings(); });
+        const thinkingEffortEl = $('#thinking-effort');
+        if (thinkingEffortEl) thinkingEffortEl.addEventListener('change', e => { state.settings.thinkingEffort = e.target.value; saveSettings(); });
+        const advancedModeEl = $('#advanced-mode');
+        if (advancedModeEl) advancedModeEl.addEventListener('change', e => { state.settings.advancedMode = e.target.checked; saveSettings(); syncAdvancedUI(); });
+        const dialogFontEl = $('#dialog-font');
+        if (dialogFontEl) dialogFontEl.addEventListener('change', e => { state.settings.dialogFont = e.target.value; applyFontSettings(); saveSettings(); });
+        const uiFontEl = $('#ui-font');
+        if (uiFontEl) uiFontEl.addEventListener('change', e => { state.settings.uiFont = e.target.value; applyFontSettings(); saveSettings(); });
         $('#auto-default-bg').addEventListener('change', e => { state.settings.autoDefaultBg = e.target.checked; saveSettings(); if (e.target.checked) startDefaultBgRotation(); else stopDefaultBgRotation(); });
         $('#default-bg-interval').addEventListener('change', e => { state.settings.defaultBgInterval = Math.max(10, parseInt(e.target.value) || 60); saveSettings(); if (state.settings.autoDefaultBg) { stopDefaultBgRotation(); startDefaultBgRotation(); } });
         $('#chat-show-bg').addEventListener('change', e => {
@@ -1013,9 +1210,30 @@
                 saveSettings();
             });
         }
-        $('#text-model').addEventListener('change', e => { state.settings.textModel = e.target.value; updateModelTags(); saveSettings(); });
-        $('#image-model').addEventListener('change', e => { state.settings.imageModel = e.target.value; saveSettings(); });
         $('#system-prompt').addEventListener('change', e => { state.settings.systemPrompt = e.target.value || DEFAULT_SYSTEM_PROMPT; saveSettings(); });
+
+        // 初始化模型选择器（可搜索 + 动态列表）
+        initModelPicker('text');
+        initModelPicker('image');
+
+        // 存档命名框：回车确认
+        const saveNameInput = $('#save-name-input');
+        if (saveNameInput) {
+            saveNameInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); confirmSaveName(); }
+            });
+        }
+
+        // 聊天输入历史召回（上/下键按钮 + 键盘）
+        const chatInputEl = $('#chat-input');
+        if (chatInputEl) {
+            chatInputEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); handleChatSend(); return; }
+                if (e.key === 'ArrowUp' && !chatInputEl.value) { e.preventDefault(); recallChatHistory(-1); }
+                else if (e.key === 'ArrowUp' && e.altKey) { e.preventDefault(); recallChatHistory(-1); }
+                else if (e.key === 'ArrowDown' && (e.altKey || browseState.offset > 0)) { e.preventDefault(); recallChatHistory(1); }
+            });
+        }
 
 
         // Click heart effect on title menu buttons
@@ -1035,7 +1253,6 @@
         $('#custom-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') { e.preventDefault(); sendCustomInput(); }
         });
-        $('#chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); handleChatSend(); } });
 
         const dialogTextArea = $('#dialog-text-area');
         if (dialogTextArea) {
@@ -1044,19 +1261,9 @@
                 const isBrowsingHistory = dialogSegmentState.historyOffset > 0;
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    // 正在浏览历史时，Enter 回到当前对话
+                    // 浏览历史时，Enter = 跳到下一条消息；到底部后由后续 Enter 继续/发送
                     if (isBrowsingHistory) {
-                        dialogSegmentState.historyOffset = 0;
-                        const { name, emotion } = dialogSegmentState;
-                        const dn = $('#dialog-name');
-                        if (dn) dn.textContent = name;
-                        const lastEntry = dialogSegmentState.dialogHistory[dialogSegmentState.dialogHistory.length - 1];
-                        dialogTextArea.value = lastEntry ? lastEntry.text : '';
-                        if (emotion) {
-                            const emotionEl = $('#emotion-indicator');
-                            if (emotionEl) { emotionEl.className = `emotion-${normalizeEmotion(emotion)}`; emotionEl.textContent = emotion; }
-                        }
-                        dialogTextArea.placeholder = dialogSegmentState.isWaitingForContinue ? '按 Enter 输入回复...' : '';
+                        showNextDialog();
                         return;
                     }
                     if (dialogSegmentState.isWaitingForContinue || dialogSegmentState.isTyping) {
@@ -1066,7 +1273,7 @@
                     } else if (!isInputMode) {
                         handleDialogClick();
                     }
-                } else if (e.key === 'ArrowUp' && !isInputMode) {
+                } else if (e.key === 'ArrowUp' && (!isInputMode || e.ctrlKey || e.altKey)) {
                     e.preventDefault();
                     showPreviousDialog();
                 } else if (e.key === 'ArrowDown' && !isInputMode) {
@@ -1131,7 +1338,14 @@
             case 'close-api-status': hideModal('api-status-modal'); break;
             case 'continue-conversation': continueConversation(); break;
             case 'restart-conversation': restartConversation(); break;
-            case 'back-title': backToTitle(); break;
+            case 'back-title': requestBackToTitle(); break;
+            case 'confirm-exit': hideModal('confirm-exit-modal'); backToTitle(); break;
+            case 'cancel-exit': hideModal('confirm-exit-modal'); break;
+            case 'toggle-advanced': toggleAdvancedMode(); break;
+            case 'chat-history-up': recallChatHistory(-1); break;
+            case 'chat-history-down': recallChatHistory(1); break;
+            case 'confirm-save-name': confirmSaveName(); break;
+            case 'close-save-name': hideModal('save-name-modal'); _saveNameCallback = null; break;
             case 'save': state._saveModalMode = 'save'; openSaveModal('save'); break;
             case 'auto': toggleAutoPlay(); break;
             case 'history': openHistory(); break;
@@ -1164,14 +1378,96 @@
             case 'open-settings': showModal('settings-modal'); break;
             case 'open-gallery': openGallery(); break;
             case 'open-history': openHistory(); break;
-            case 'nav-up': showPreviousDialog(); highlightNavBtn('nav-up'); break;
-            case 'nav-down': showNextDialog(); highlightNavBtn('nav-down'); break;
+            case 'nav-up': showPreviousDialog(); highlightNavBtn('dialog-nav-up'); break;
+            case 'nav-down': showNextDialog(); highlightNavBtn('dialog-nav-down'); break;
             case 'nav-enter':
                 if (state.uiMode === 'chat') { handleChatSend(); }
                 else { handleDialogClick(); }
-                highlightNavBtn('nav-enter');
+                highlightNavBtn('dialog-nav-enter');
                 break;
         }
+    }
+
+    /* ==================== 进度保护 / 进阶模式 / 输入历史 / 字体 ==================== */
+
+    function markDirty() { state._dirty = true; }
+    function markClean() { state._dirty = false; }
+
+    // 返回标题：未存档时先确认
+    function requestBackToTitle() {
+        const hasProgress = state.currentScreen === 'game' && (state.game.dialogHistory.length > 0 || (state.game.aiContext && state.game.aiContext.length > 0));
+        if (hasProgress && state._dirty) {
+            showModal('confirm-exit-modal');
+            const desc = $('#confirm-exit-desc');
+            if (desc) {
+                const charName = state.game.characterName || '角色';
+                desc.textContent = `与${charName}的当前进度尚未存档，退出后不会保存。要继续退出吗？`;
+            }
+            return;
+        }
+        backToTitle();
+    }
+
+    function toggleAdvancedMode() {
+        state.settings.advancedMode = !state.settings.advancedMode;
+        saveSettings();
+        syncAdvancedUI();
+        showToast(state.settings.advancedMode ? '已切换到进阶模式（更成熟的浪漫描写）' : '已切换回正常模式', 'info');
+    }
+
+    function syncAdvancedUI() {
+        // 聊天快捷栏按钮状态
+        $$('.advanced-toggle').forEach(btn => {
+            btn.classList.toggle('active', !!state.settings.advancedMode);
+            const label = btn.querySelector('.adv-label');
+            if (label) label.textContent = state.settings.advancedMode ? '进阶模式' : '正常模式';
+        });
+        const settingEl = $('#advanced-mode');
+        if (settingEl) settingEl.checked = !!state.settings.advancedMode;
+        document.documentElement.classList.toggle('advanced-on', !!state.settings.advancedMode);
+    }
+
+    // 聊天输入历史召回（终端式 ↑↓）
+    const browseState = { history: [], offset: 0, draft: '' };
+
+    function pushChatHistory(text) {
+        if (!text) return;
+        browseState.history.push(text);
+        if (browseState.history.length > 100) browseState.history = browseState.history.slice(-100);
+        browseState.offset = 0;
+    }
+
+    function recallChatHistory(dir) {
+        const input = $('#chat-input');
+        if (!input || browseState.history.length === 0) {
+            if (dir < 0) showToast('没有更早的消息了', 'info');
+            return;
+        }
+        if (browseState.offset === 0 && dir > 0) {
+            // 回到草稿
+            input.value = browseState.draft;
+            browseState.offset = 0;
+            return;
+        }
+        if (dir < 0 && browseState.offset === 0) browseState.draft = input.value;
+        browseState.offset += dir;
+        if (browseState.offset < 0) browseState.offset = 0;
+        if (browseState.offset > browseState.history.length) browseState.offset = browseState.history.length;
+        if (browseState.offset === 0) {
+            input.value = browseState.draft;
+        } else {
+            input.value = browseState.history[browseState.history.length - browseState.offset] || '';
+        }
+        input.focus();
+    }
+
+    // 字体应用
+    function applyFontSettings() {
+        const dialogFont = state.settings.dialogFont || '';
+        const uiFont = state.settings.uiFont || '';
+        const root = document.documentElement;
+        root.style.setProperty('--font-dialog', dialogFont ? `'${dialogFont}', 'Noto Serif SC', serif` : `'Noto Serif SC', 'Georgia', 'Microsoft YaHei', serif`);
+        root.style.setProperty('--font-menu', uiFont ? `'${uiFont}', 'Noto Sans SC', 'Microsoft YaHei', sans-serif` : `'Noto Sans SC', 'Noto Serif SC', 'Microsoft YaHei', sans-serif`);
     }
 
     function handleKeyDown(e) {
@@ -1198,23 +1494,15 @@
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             if (dialogSegmentState.historyOffset > 0) {
-                dialogSegmentState.historyOffset = 0;
-                const { name, emotion } = dialogSegmentState;
-                const dn = $('#dialog-name'); if (dn) dn.textContent = name;
-                const dta = $('#dialog-text-area');
-                if (dta) {
-                    const lastEntry = dialogSegmentState.dialogHistory[dialogSegmentState.dialogHistory.length - 1];
-                    dta.value = lastEntry ? lastEntry.text : '';
-                    dta.placeholder = dialogSegmentState.isWaitingForContinue ? '按 Enter 输入回复...' : '';
-                }
-                if (emotion) { const ei = $('#emotion-indicator'); if (ei) { ei.className = `emotion-${normalizeEmotion(emotion)}`; ei.textContent = emotion; } }
+                // 浏览历史时 Enter = 跳到下一条消息，到底部后再 Enter 才继续/发送
+                showNextDialog();
             } else {
                 handleDialogClick();
             }
-            highlightNavBtn('nav-enter');
+            highlightNavBtn('dialog-nav-enter');
         }
-        if (e.key === 'ArrowDown') { e.preventDefault(); if (dialogSegmentState.historyOffset > 0) { showNextDialog(); highlightNavBtn('nav-down'); } else { handleDialogClick(); highlightNavBtn('nav-down'); } }
-        if (e.key === 'ArrowUp') { e.preventDefault(); showPreviousDialog(); highlightNavBtn('nav-up'); }
+        if (e.key === 'ArrowDown') { e.preventDefault(); showNextDialog(); highlightNavBtn('dialog-nav-down'); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); showPreviousDialog(); highlightNavBtn('dialog-nav-up'); }
         if (e.key === 'Escape') {
             const modals = ['settings-modal', 'gallery-modal', 'outline-modal', 'outline-preview-modal', 'save-modal', 'history-modal', 'api-status-modal', 'continue-dialog-modal'];
             for (const id of modals) {
@@ -1242,12 +1530,17 @@
     function collectSettingsForm() {
         state.settings.textApiProvider = $('#text-api-provider').value;
         const isCustomText = state.settings.textApiProvider === 'custom';
-        state.settings.textModel = isCustomText ? ($('#custom-text-model')?.value?.trim() || '') : $('#text-model').value;
-        if (isCustomText) state.settings.customTextModel = state.settings.textModel;
+        if (isCustomText) {
+            state.settings.textModel = ($('#custom-text-model')?.value?.trim() || '');
+            state.settings.customTextModel = state.settings.textModel;
+        }
+        // 非自定义时 textModel 由模型选择器组件维护，此处不覆盖
         state.settings.imageApiProvider = $('#image-api-provider').value;
         const isCustomImage = state.settings.imageApiProvider === 'custom';
-        state.settings.imageModel = isCustomImage ? ($('#custom-image-model')?.value?.trim() || '') : $('#image-model').value;
-        if (isCustomImage) state.settings.customImageModel = state.settings.imageModel;
+        if (isCustomImage) {
+            state.settings.imageModel = ($('#custom-image-model')?.value?.trim() || '');
+            state.settings.customImageModel = state.settings.imageModel;
+        }
         state.settings.customBaseUrl = $('#custom-base-url')?.value?.trim() || '';
         state.settings.systemPrompt = $('#system-prompt').value || DEFAULT_SYSTEM_PROMPT;
         state.settings.maxResponseLength = parseInt($('#max-response-length').value) || 350;
@@ -1259,6 +1552,14 @@
         state.settings.corsProxy = $('#cors-proxy-toggle').checked;
         state.settings.useProxyKeys = $('#use-proxy-keys').checked;
         state.settings.enableThinking = $('#enable-thinking').checked;
+        const thinkingEffortEl = $('#thinking-effort');
+        if (thinkingEffortEl) state.settings.thinkingEffort = thinkingEffortEl.value;
+        const advancedModeEl = $('#advanced-mode');
+        if (advancedModeEl) state.settings.advancedMode = advancedModeEl.checked;
+        const dialogFontEl = $('#dialog-font');
+        if (dialogFontEl) state.settings.dialogFont = dialogFontEl.value;
+        const uiFontEl = $('#ui-font');
+        if (uiFontEl) state.settings.uiFont = uiFontEl.value;
         state.settings.autoDefaultBg = $('#auto-default-bg').checked;
         state.settings.defaultBgInterval = parseInt($('#default-bg-interval').value) || 60;
         state.settings.chatShowBg = $('#chat-show-bg').checked;
@@ -1279,10 +1580,12 @@
         state.settings = {
             textSpeed: 40,
             textEffect: 'typewriter-fade',
-            streamOutput: false,
+            streamOutput: true,
             saveConversation: true,
             maxContext: 5,
-            enableThinking: false,
+            enableThinking: true,
+            thinkingEffort: 'low',
+            advancedMode: false,
             autoDefaultBg: true,
             defaultBgInterval: 60,
             autoGenScene: true,
@@ -1303,6 +1606,8 @@
             textModel: 'moonshotai/Kimi-K2.5',
             imageApiProvider: 'zhipu',
             imageModel: 'cogview-3-flash',
+            dialogFont: '',
+            uiFont: '',
             bgmVolume: 30,
             bgmEnabled: false,
             ttsEnabled: false,
@@ -1320,33 +1625,18 @@
         if (s.apiKeys.modelscope) $('#modelscope-api-key').value = s.apiKeys.modelscope;
         if (s.apiKeys.nvidia) $('#nvidia-api-key').value = s.apiKeys.nvidia;
         if (s.apiKeys.agnes) $('#agnes-api-key').value = s.apiKeys.agnes;
+        if (s.apiKeys.sense) $('#sense-api-key').value = s.apiKeys.sense;
         if (s.apiKeys.custom) $('#custom-api-key').value = s.apiKeys.custom;
         if (s.customBaseUrl) $('#custom-base-url').value = s.customBaseUrl;
         if (s.customTextModel) $('#custom-text-model').value = s.customTextModel;
         $('#text-api-provider').value = s.textApiProvider;
         updateModelOptions();
-        // 模型选择已由 updateModelOptions 处理，这里做二次确认
-        if (s.textModel && $('#text-model').options.length > 0) {
-            const opts = $('#text-model').options;
-            let found = false;
-            for (let i = 0; i < opts.length; i++) {
-                if (opts[i].value === s.textModel) { $('#text-model').selectedIndex = i; found = true; break; }
-            }
-            if (!found) $('#text-model').selectedIndex = 0;
-        }
+        updateModelPickerValue('text');
         updateModelTags();
         if (s.imageApiProvider) {
             $('#image-api-provider').value = s.imageApiProvider;
             updateImageModelOptions();
-            $('#image-model').value = s.imageModel;
-            if (!$('#image-model').value) {
-                const opts = $('#image-model').options;
-                for (let i = 0; i < opts.length; i++) {
-                    if (opts[i].value === s.imageModel) { $('#image-model').selectedIndex = i; break; }
-                }
-            }
-        } else {
-            $('#image-model').value = s.imageModel;
+            updateModelPickerValue('image');
         }
         $('#system-prompt').value = s.systemPrompt;
         $('#text-speed').value = s.textSpeed;
@@ -1360,6 +1650,14 @@
         if (s.corsProxyUrl) $('#cors-proxy-url').value = s.corsProxyUrl;
         if (s.useProxyKeys !== undefined) $('#use-proxy-keys').checked = s.useProxyKeys;
         if (s.enableThinking !== undefined) $('#enable-thinking').checked = s.enableThinking;
+        const thinkingEffortEl = $('#thinking-effort');
+        if (thinkingEffortEl) thinkingEffortEl.value = s.thinkingEffort || 'low';
+        const advancedModeEl = $('#advanced-mode');
+        if (advancedModeEl) advancedModeEl.checked = !!s.advancedMode;
+        const dialogFontEl = $('#dialog-font');
+        if (dialogFontEl && s.dialogFont) dialogFontEl.value = s.dialogFont;
+        const uiFontEl = $('#ui-font');
+        if (uiFontEl && s.uiFont) uiFontEl.value = s.uiFont;
         if (s.autoDefaultBg !== undefined) $('#auto-default-bg').checked = s.autoDefaultBg;
         if (s.defaultBgInterval !== undefined) $('#default-bg-interval').value = s.defaultBgInterval;
         if (s.chatShowBg !== undefined) {
@@ -1394,110 +1692,280 @@
             ttsState.voice = s.ttsVoice;
         }
         $$('.theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === state.theme));
+        applyFontSettings();
+        syncAdvancedUI();
     }
+
+    /* ==================== 模型选择器组件（可搜索 + 动态列表） ==================== */
+
+    function getProviderModels(provider, kind) {
+        const config = API_CONFIGS[provider];
+        if (!config) return [];
+        const preset = (config.models[kind] || []).map(m => ({ ...m }));
+        const cache = getModelCache(provider);
+        if (cache && cache.models) {
+            const dynIds = cache.models.map(m => m.id);
+            return mergeModelList(preset, dynIds, kind === 'image');
+        }
+        return preset;
+    }
+
+    function findModelMeta(provider, kind, modelId) {
+        const models = getProviderModels(provider, kind);
+        return models.find(m => m.id === modelId) || null;
+    }
+
+    function initModelPicker(type) {
+        const container = $(`#${type}-model-picker`);
+        if (!container) return;
+        container.innerHTML = `
+            <button type="button" class="model-picker-trigger" id="${type}-model-trigger">
+                <span class="model-picker-value" id="${type}-model-value">点击选择模型</span>
+                <span class="model-picker-arrow">▾</span>
+            </button>
+            <div class="model-picker-panel hidden" id="${type}-model-panel">
+                <div class="model-picker-toolbar">
+                    <input type="text" class="model-picker-search" id="${type}-model-search" placeholder="🔍 搜索模型名称 / ID" autocomplete="off">
+                    <button type="button" class="model-picker-refresh" id="${type}-model-refresh" title="从服务商获取最新模型列表">🔄 获取列表</button>
+                </div>
+                <div class="model-picker-list" id="${type}-model-list"></div>
+                <div class="model-picker-foot" id="${type}-model-foot"></div>
+            </div>`;
+        $(`#${type}-model-trigger`).addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleModelPanel(type);
+        });
+        const searchEl = $(`#${type}-model-search`);
+        if (searchEl) searchEl.addEventListener('input', () => renderModelList(type));
+        const refreshEl = $(`#${type}-model-refresh`);
+        if (refreshEl) refreshEl.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await refreshModelList(type);
+        });
+        const panel = $(`#${type}-model-panel`);
+        if (panel) panel.addEventListener('click', e => e.stopPropagation());
+    }
+
+    function toggleModelPanel(type) {
+        const panel = $(`#${type}-model-panel`);
+        if (!panel) return;
+        const willOpen = panel.classList.contains('hidden');
+        // 关闭另一个面板
+        ['text', 'image'].forEach(t => {
+            if (t !== type) { const p = $(`#${t}-model-panel`); if (p) p.classList.add('hidden'); }
+        });
+        panel.classList.toggle('hidden', !willOpen);
+        if (willOpen) {
+            renderModelList(type);
+            const searchEl = $(`#${type}-model-search`);
+            if (searchEl) searchEl.focus();
+        }
+    }
+
+    function closeModelPanels() {
+        ['text', 'image'].forEach(t => {
+            const p = $(`#${t}-model-panel`); if (p) p.classList.add('hidden');
+        });
+    }
+
+    function modelTagHtml(model) {
+        let html = '';
+        if (model.recommended) html += '<span class="tag tag-rec">推荐</span>';
+        if (model.free) html += '<span class="tag tag-free">免费</span>';
+        if (model.thinking) html += '<span class="tag tag-thinking">思考</span>';
+        if (model.vision) html += '<span class="tag tag-vision">视觉</span>';
+        if (model.imageGen) html += '<span class="tag tag-image">生图</span>';
+        if (model.dynamic) html += '<span class="tag tag-new">新</span>';
+        return html;
+    }
+
+    function renderModelList(type) {
+        const listEl = $(`#${type}-model-list`);
+        const footEl = $(`#${type}-model-foot`);
+        if (!listEl) return;
+        const kind = type === 'text' ? 'text' : 'image';
+        const provider = type === 'text' ? (state.settings.textApiProvider || 'modelscope') : (state.settings.imageApiProvider || 'zhipu');
+        const config = API_CONFIGS[provider];
+        if (!config) { listEl.innerHTML = ''; return; }
+
+        const searchVal = ($(`#${type}-model-search`)?.value || '').trim().toLowerCase();
+        let models = getProviderModels(provider, kind);
+
+        // 当前选中的模型若不在列表中，置顶显示
+        const currentId = type === 'text' ? state.settings.textModel : state.settings.imageModel;
+        if (currentId && !models.some(m => m.id === currentId)) {
+            models = [{ id: currentId, name: currentId, current: true }, ...models];
+        }
+
+        if (searchVal) {
+            models = models.filter(m => m.id.toLowerCase().includes(searchVal) || (m.name || '').toLowerCase().includes(searchVal));
+        }
+
+        if (models.length === 0) {
+            listEl.innerHTML = `<div class="model-picker-empty">${searchVal ? '没有匹配的模型，试试其他关键词' : '暂无模型，点击右上角"获取列表"'}</div>`;
+        } else {
+            const frag = document.createDocumentFragment();
+            const maxShow = searchVal ? 200 : 80;
+            models.slice(0, maxShow).forEach(model => {
+                const item = document.createElement('div');
+                const selected = model.id === currentId;
+                item.className = 'model-item' + (selected ? ' selected' : '');
+                item.innerHTML = `<span class="model-name">${esc(model.name || model.id)}</span><span class="model-tags">${modelTagHtml(model)}${model.current ? '<span class="tag tag-cur">当前</span>' : ''}</span>`;
+                item.addEventListener('click', () => {
+                    selectModel(type, model.id);
+                });
+                frag.appendChild(item);
+            });
+            listEl.innerHTML = '';
+            listEl.appendChild(frag);
+            if (models.length > maxShow) {
+                const more = document.createElement('div');
+                more.className = 'model-picker-empty';
+                more.textContent = `还有 ${models.length - maxShow} 个模型未显示，用搜索框过滤`;
+                listEl.appendChild(more);
+            }
+        }
+
+        if (footEl) {
+            const cache = getModelCache(provider);
+            const supports = config.supportsModelList;
+            if (cache) {
+                footEl.textContent = `已缓存 ${cache.models.length} 个模型 · ${new Date(cache.fetchedAt).toLocaleTimeString('zh-CN')} 获取`;
+            } else if (supports) {
+                footEl.textContent = '显示内置推荐列表 · 点击"获取列表"拉取最新';
+            } else {
+                footEl.textContent = '该服务暂不支持自动获取列表';
+            }
+        }
+    }
+
+    async function refreshModelList(type) {
+        const footEl = $(`#${type}-model-foot`);
+        const provider = type === 'text' ? (state.settings.textApiProvider || 'modelscope') : (state.settings.imageApiProvider || 'zhipu');
+        const config = API_CONFIGS[provider];
+        if (!config || !config.supportsModelList) {
+            showToast('该服务不支持自动获取模型列表', 'info');
+            return;
+        }
+        if (footEl) { footEl.textContent = '⏳ 正在从服务商获取模型列表...'; footEl.classList.add('loading'); }
+        const refreshBtn = $(`#${type}-model-refresh`);
+        if (refreshBtn) refreshBtn.disabled = true;
+        try {
+            const ids = await fetchModelsForProvider(provider);
+            renderModelList(type);
+            const newFoot = $(`#${type}-model-foot`);
+            if (newFoot) newFoot.textContent = `✅ 已获取 ${ids.length} 个模型（${new Date().toLocaleTimeString('zh-CN')}）`;
+            showToast(`已获取 ${ids.length} 个模型`, 'success');
+        } catch (e) {
+            let msg = e.message || '未知错误';
+            if (e.name === 'AbortError') msg = '获取超时（15s）';
+            renderModelList(type);
+            const newFoot = $(`#${type}-model-foot`);
+            if (newFoot) newFoot.textContent = `❌ 获取失败: ${msg}`;
+            showToast('模型列表获取失败: ' + msg, 'error');
+        } finally {
+            if (refreshBtn) refreshBtn.disabled = false;
+            const f = $(`#${type}-model-foot`);
+            if (f) f.classList.remove('loading');
+        }
+    }
+
+    function selectModel(type, modelId) {
+        if (type === 'text') {
+            state.settings.textModel = modelId;
+            if (state.settings.textApiProvider === 'custom') state.settings.customTextModel = modelId;
+        } else {
+            state.settings.imageModel = modelId;
+            if (state.settings.imageApiProvider === 'custom') state.settings.customImageModel = modelId;
+        }
+        saveSettings();
+        updateModelPickerValue(type);
+        updateModelTags();
+        renderModelList(type);
+        closeModelPanels();
+        updateInfoBadge();
+        const nameEl = findModelMeta(
+            type === 'text' ? state.settings.textApiProvider : state.settings.imageApiProvider,
+            type, modelId
+        );
+        showToast(`已选择: ${nameEl?.name || modelId}`, 'success');
+    }
+
+    function updateModelPickerValue(type) {
+        const valueEl = $(`#${type}-model-value`);
+        if (!valueEl) return;
+        const provider = type === 'text' ? state.settings.textApiProvider : state.settings.imageApiProvider;
+        const modelId = type === 'text' ? state.settings.textModel : state.settings.imageModel;
+        if (provider === 'custom') {
+            valueEl.textContent = modelId ? modelId : '在上方填写模型 ID';
+            return;
+        }
+        if (!modelId) { valueEl.textContent = '点击选择模型'; return; }
+        const meta = findModelMeta(provider, type, modelId);
+        valueEl.textContent = meta ? (meta.name || meta.id) : modelId;
+    }
+
+    // 点击面板外关闭
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.model-picker')) closeModelPanels();
+    });
 
     function updateModelOptions() {
         const providerSelect = $('#text-api-provider');
         let provider = providerSelect ? providerSelect.value : '';
-        // Fallback: if provider not in API_CONFIGS, default to modelscope
         if (!provider || !API_CONFIGS[provider]) {
             provider = 'modelscope';
             if (providerSelect) providerSelect.value = provider;
             state.settings.textApiProvider = provider;
-            saveSettings();
         }
-        const select = $('#text-model');
-        const config = API_CONFIGS[provider];
-        if (!config || !select) return;
-
-        // Custom provider: hide dropdown and image API group
+        const pickerEl = $('#text-model-picker');
         if (provider === 'custom') {
-            select.style.display = 'none';
+            if (pickerEl) pickerEl.style.display = 'none';
             state.settings.textModel = state.settings.customTextModel || '';
             updateModelTags();
             const imageApiGroup = $('#image-api-group');
             if (imageApiGroup) imageApiGroup.style.display = 'none';
             return;
-        } else {
-            select.style.display = '';
-            const imageApiGroup = $('#image-api-group');
-            if (imageApiGroup) imageApiGroup.style.display = '';
         }
-
-        if (!config.models.text) return;
-        const previousValue = state.settings.textModel;
-        select.innerHTML = '';
-        config.models.text.forEach(m => {
-            const opt = document.createElement('option');
-            opt.value = m.id;
-            opt.textContent = m.name;
-            select.appendChild(opt);
-        });
-        // Try to restore previous model; if not in current provider's list, use first model
-        if (previousValue && config.models.text.some(m => m.id === previousValue)) {
-            select.value = previousValue;
-        } else {
-            select.selectedIndex = 0;
-        }
-        state.settings.textModel = select.value;
-        saveSettings();
+        if (pickerEl) pickerEl.style.display = '';
+        const imageApiGroup = $('#image-api-group');
+        if (imageApiGroup) imageApiGroup.style.display = '';
+        updateModelPickerValue('text');
         updateModelTags();
+        saveSettings();
     }
 
     function updateModelTags() {
-        const provider = $('#text-api-provider').value;
-        const modelId = $('#text-model').value;
-        const config = API_CONFIGS[provider];
+        const provider = state.settings.textApiProvider;
+        const modelId = state.settings.textModel;
         const tagsEl = $('#model-tags');
-        if (!config || !tagsEl) return;
-        const model = config.models.text.find(m => m.id === modelId);
+        if (!tagsEl) return;
+        const model = findModelMeta(provider, 'text', modelId);
         if (!model) { tagsEl.innerHTML = ''; return; }
-        let html = '';
-        if (model.free) html += '<span class="tag tag-free">免费</span>';
-        if (model.thinking) html += '<span class="tag tag-thinking">深度思考</span>';
-        if (model.vision) html += '<span class="tag tag-vision">多模态</span>';
-        if (model.imageGen) html += '<span class="tag tag-image">生图</span>';
-        tagsEl.innerHTML = html;
+        tagsEl.innerHTML = modelTagHtml(model);
     }
 
     function updateImageModelOptions() {
-        const provider = $('#image-api-provider').value;
-        const select = $('#image-model');
+        const provider = $('#image-api-provider')?.value || state.settings.imageApiProvider;
         const config = API_CONFIGS[provider];
         if (!config) return;
 
-        // Custom provider: hide dropdown, show custom image model input
+        const pickerEl = $('#image-model-picker');
         const customGroup = $('#custom-image-model-group');
         if (provider === 'custom') {
-            select.style.display = 'none';
+            if (pickerEl) pickerEl.style.display = 'none';
             if (customGroup) customGroup.style.display = '';
             const customInput = $('#custom-image-model');
             if (customInput) customInput.value = state.settings.customImageModel || '';
             state.settings.imageModel = state.settings.customImageModel || '';
             saveSettings();
             return;
-        } else {
-            select.style.display = '';
-            if (customGroup) customGroup.style.display = 'none';
         }
-
-        if (!config.models.image) return;
-        const previousValue = state.settings.imageModel;
-        select.innerHTML = '';
-        config.models.image.forEach(m => {
-            const opt = document.createElement('option');
-            opt.value = m.id;
-            opt.textContent = m.name;
-            select.appendChild(opt);
-        });
-        if (previousValue && config.models.image.some(m => m.id === previousValue)) {
-            select.value = previousValue;
-        }
-        if (!select.value && select.options.length > 0) {
-            select.selectedIndex = 0;
-        }
+        if (pickerEl) pickerEl.style.display = '';
+        if (customGroup) customGroup.style.display = 'none';
         state.settings.imageApiProvider = provider;
-        state.settings.imageModel = select.value;
+        // 若当前模型不属于该 provider 的预设，保留用户选择（动态模型），picker 会置顶显示
+        updateModelPickerValue('image');
         saveSettings();
     }
 
@@ -1674,7 +2142,19 @@
         } catch (e) {
             let msg = e.message || '未知错误';
             if (e.name === 'TimeoutError' || e.name === 'AbortError') msg = '连接超时 (15s)';
-            else if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) msg = '网络错误，请检查URL格式或CORS设置（可尝试开启API代理）';
+            else if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+                // 直连 CORS 失败 → 自动走代理再试一次
+                if (!useCorsProxy) {
+                    resultEl.textContent = '直连失败(CORS)，自动尝试代理...';
+                    resultEl.style.color = '#f39c12';
+                    const savedCors = state.settings.corsProxy;
+                    state.settings.corsProxy = true;
+                    try {
+                        return await testApiConnection();
+                    } finally { state.settings.corsProxy = savedCors; }
+                }
+                msg = '网络错误，请检查URL格式或CORS设置（可尝试开启API代理）';
+            }
             resultEl.textContent = `失败: ${msg}`;
             resultEl.style.color = '#e74c3c';
         }
@@ -1752,16 +2232,35 @@
         doStartGame(mode);
     }
 
-    async function startAiStory() {
-        if (apiCallInProgress) return;
-        apiCallInProgress = true;
-        const isStreamMode = state.settings.streamOutput;
-        let streamDialogTextArea = null;
-        let streamChatMsgTextEl = null;
+    /* ==================== 流式输出 UI（思考气泡 + 正文） ==================== */
 
-        if (isStreamMode) {
-            if (state.uiMode === 'chat') {
-                const container = $('#chat-messages');
+    function createChatThinkingBubble() {
+        const container = $('#chat-messages');
+        if (!container) return null;
+        const wrap = document.createElement('div');
+        wrap.className = 'chat-msg ai chat-thinking-wrap';
+        wrap.innerHTML = `
+            <div class="thinking-collapse">
+                <div class="thinking-header">
+                    <span class="thinking-icon">💭</span>
+                    <span class="thinking-title">思考中...</span>
+                    <span class="thinking-toggle">▾</span>
+                </div>
+                <div class="thinking-body"></div>
+            </div>`;
+        wrap.querySelector('.thinking-header').addEventListener('click', () => {
+            wrap.classList.toggle('expanded');
+        });
+        container.appendChild(wrap);
+        container.scrollTop = container.scrollHeight;
+        return wrap;
+    }
+
+    function prepareStreamUI() {
+        const ui = { chatTextEl: null, dialogTextArea: null, chatThinkingBubble: null, thinkingStart: null };
+        if (state.uiMode === 'chat') {
+            const container = $('#chat-messages');
+            if (container) {
                 const msg = document.createElement('div');
                 msg.className = 'chat-msg ai';
                 const nameEl = document.createElement('div');
@@ -1774,51 +2273,109 @@
                 msg.appendChild(textEl);
                 container.appendChild(msg);
                 container.scrollTop = container.scrollHeight;
-                streamChatMsgTextEl = textEl;
-            } else {
-                const dialogBox = $('#dialog-box');
-                if (dialogBox) dialogBox.classList.remove('hidden');
-                const dialogName = $('#dialog-name');
-                if (dialogName) dialogName.textContent = state.game.characterName || '星酱';
-                streamDialogTextArea = $('#dialog-text-area');
-                if (streamDialogTextArea) {
-                    streamDialogTextArea.readOnly = true;
-                    streamDialogTextArea.dataset.mode = 'display';
-                    streamDialogTextArea.value = '';
-                    streamDialogTextArea.placeholder = '';
-                    streamDialogTextArea.classList.add('streaming');
-                }
-                $('#dialog-send-btn')?.classList.add('hidden');
+                ui.chatTextEl = textEl;
             }
+        } else {
+            const dialogBox = $('#dialog-box');
+            if (dialogBox) dialogBox.classList.remove('hidden');
+            const dialogName = $('#dialog-name');
+            if (dialogName) dialogName.textContent = state.game.characterName || '星酱';
+            const dialogMeta = $('#dialog-meta');
+            if (dialogMeta) dialogMeta.textContent = '💭 思考中...';
+            ui.dialogTextArea = $('#dialog-text-area');
+            if (ui.dialogTextArea) {
+                ui.dialogTextArea.readOnly = true;
+                ui.dialogTextArea.dataset.mode = 'display';
+                ui.dialogTextArea.value = '';
+                ui.dialogTextArea.placeholder = '';
+                ui.dialogTextArea.classList.add('streaming');
+            }
+            $('#dialog-send-btn')?.classList.add('hidden');
+        }
+        return ui;
+    }
+
+    function makeStreamCallbacks(ui) {
+        return {
+            onText: (newText, fullText) => {
+                if (state.uiMode === 'chat' && ui.chatTextEl) {
+                    ui.chatTextEl.textContent = fullText;
+                    const container = $('#chat-messages');
+                    if (container) container.scrollTop = container.scrollHeight;
+                } else if (ui.dialogTextArea) {
+                    ui.dialogTextArea.classList.remove('thinking');
+                    ui.dialogTextArea.value = fullText;
+                    ui.dialogTextArea.scrollTop = ui.dialogTextArea.scrollHeight;
+                }
+            },
+            onThinking: (full) => {
+                if (!ui.thinkingStart) ui.thinkingStart = Date.now();
+                if (state.uiMode === 'chat') {
+                    if (!ui.chatThinkingBubble) ui.chatThinkingBubble = createChatThinkingBubble();
+                    if (ui.chatThinkingBubble) {
+                        const body = ui.chatThinkingBubble.querySelector('.thinking-body');
+                        if (body) body.textContent = full;
+                        ui.chatThinkingBubble.classList.add('expanded');
+                        const container = $('#chat-messages');
+                        if (container) container.scrollTop = container.scrollHeight;
+                    }
+                } else if (ui.dialogTextArea) {
+                    ui.dialogTextArea.classList.add('thinking');
+                    ui.dialogTextArea.value = full;
+                    const meta = $('#dialog-meta');
+                    if (meta) meta.textContent = '💭 深度思考中...';
+                }
+            },
+            onThinkingDone: (dur) => {
+                if (state.uiMode === 'chat') {
+                    if (ui.chatThinkingBubble) {
+                        const title = ui.chatThinkingBubble.querySelector('.thinking-title');
+                        if (title) title.textContent = `已思考 ${dur}s`;
+                        ui.chatThinkingBubble.classList.remove('expanded'); // 完成后折叠
+                    }
+                } else if (ui.dialogTextArea) {
+                    ui.dialogTextArea.classList.remove('thinking');
+                    ui.dialogTextArea.value = '';
+                    const meta = $('#dialog-meta');
+                    if (meta) meta.textContent = `已思考 ${dur}s`;
+                }
+                state._thinkingDuration = dur;
+            },
+        };
+    }
+
+    function finishStreamUI(ui) {
+        if (!ui) return;
+        if (ui.dialogTextArea) ui.dialogTextArea.classList.remove('streaming', 'thinking');
+        if (ui.chatTextEl) ui.chatTextEl.classList.remove('streaming');
+    }
+
+    async function startAiStory() {
+        if (apiCallInProgress) return;
+        apiCallInProgress = true;
+        const isStreamMode = state.settings.streamOutput;
+        let ui = null;
+        let streamCallbacks = null;
+
+        if (isStreamMode) {
+            ui = prepareStreamUI();
+            streamCallbacks = makeStreamCallbacks(ui);
         } else {
             showAiGenerating(true);
         }
 
-        const onStreamChunk = isStreamMode ? (newText, fullText) => {
-            if (state.uiMode === 'chat' && streamChatMsgTextEl) {
-                streamChatMsgTextEl.textContent = fullText;
-                const container = $('#chat-messages');
-                if (container) container.scrollTop = container.scrollHeight;
-            } else if (streamDialogTextArea) {
-                streamDialogTextArea.value = fullText;
-                streamDialogTextArea.scrollTop = streamDialogTextArea.scrollHeight;
-            }
-        } : null;
-
         const startTime = Date.now();
         try {
             const prompt = '游戏开始！请以一个有趣的开场白开始故事，设定一个引人入胜的场景。记住必须用JSON格式回复。';
-            const result = await callAiApi(prompt, 0, onStreamChunk);
+            const result = await callAiApi(prompt, 0, streamCallbacks);
             if (!isStreamMode) showAiGenerating(false);
-            if (streamDialogTextArea) streamDialogTextArea.classList.remove('streaming');
-            if (streamChatMsgTextEl) streamChatMsgTextEl.classList.remove('streaming');
+            finishStreamUI(ui);
             const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
             if (result) processAiResponse(result, elapsed, isStreamMode);
             if (state.settings.autoSwitchBg) startBgAutoSwitch();
         } catch (e) {
             if (!isStreamMode) showAiGenerating(false);
-            if (streamDialogTextArea) streamDialogTextArea.classList.remove('streaming');
-            if (streamChatMsgTextEl) streamChatMsgTextEl.classList.remove('streaming');
+            finishStreamUI(ui);
             if (e.message === 'REQUEST_ABORTED') return;
             showToast('AI 调用失败: ' + e.message, 'error');
             showDialog('系统', 'AI连接失败，请检查API设置或CORS代理配置。错误: ' + e.message);
@@ -1880,7 +2437,13 @@
         }
     }
 
-    async function processApiResponse(response, body, provider, onStreamChunk = null) {
+    async function processApiResponse(response, body, provider, streamCallbacks = null) {
+        // 兼容旧式函数回调
+        if (typeof streamCallbacks === 'function') streamCallbacks = { onText: streamCallbacks };
+        const onText = streamCallbacks?.onText || null;
+        const onThinking = streamCallbacks?.onThinking || null;
+        const onThinkingDone = streamCallbacks?.onThinkingDone || null;
+
         if (provider === 'modelscope') {
             const h = (n) => response.headers.get(n);
             const ur = h('modelscope-ratelimit-requests-remaining');
@@ -1892,7 +2455,10 @@
         }
 
         let content = '';
-        const isStreamOutput = state.settings.streamOutput && onStreamChunk;
+        let reasoning = '';
+        let thinkingStart = 0;
+        let thinkingNotified = false;
+        const isStreamOutput = !!onText;
         if (body.stream) {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
@@ -1911,7 +2477,20 @@
                         try {
                             const chunk = JSON.parse(line.slice(6));
                             const delta = chunk.choices?.[0]?.delta;
+                            // 思考内容（DeepSeek R1 风格 reasoning_content / 部分网关 reasoning 字段）
+                            const reasoningDelta = delta?.reasoning_content ?? delta?.reasoning ?? null;
+                            if (typeof reasoningDelta === 'string' && reasoningDelta) {
+                                if (!thinkingStart) thinkingStart = Date.now();
+                                reasoning += reasoningDelta;
+                                if (onThinking) onThinking(reasoning);
+                            }
                             if (delta?.content) {
+                                // 正文开始：结束思考阶段
+                                if (!thinkingNotified && reasoning) {
+                                    thinkingNotified = true;
+                                    const dur = ((Date.now() - (thinkingStart || Date.now())) / 1000).toFixed(1);
+                                    if (onThinkingDone) onThinkingDone(parseFloat(dur), reasoning);
+                                }
                                 content += delta.content;
                                 // 流式输出模式：实时提取并显示dialog+action内容
                                 if (isStreamOutput) {
@@ -1923,7 +2502,7 @@
                                         if (fullDisplayText.length > displayedLen || extracted.action !== lastAction) {
                                             lastAction = extracted.action;
                                             displayedLen = fullDisplayText.length;
-                                            onStreamChunk('', fullDisplayText);
+                                            onText('', fullDisplayText);
                                         }
                                     }
                                 }
@@ -1932,9 +2511,23 @@
                     }
                 }
             }
+            // 流结束时若只有思考没有正文，也要通知思考完成
+            if (!thinkingNotified && reasoning) {
+                thinkingNotified = true;
+                const dur = ((Date.now() - (thinkingStart || Date.now())) / 1000).toFixed(1);
+                if (onThinkingDone) onThinkingDone(parseFloat(dur), reasoning);
+            }
         } else {
             const data = await response.json();
-            if (data.choices?.length > 0) content = data.choices[0].message?.content || '';
+            if (data.choices?.length > 0) {
+                content = data.choices[0].message?.content || '';
+                const msgReasoning = data.choices[0].message?.reasoning_content ?? data.choices[0].message?.reasoning ?? '';
+                if (typeof msgReasoning === 'string' && msgReasoning) {
+                    reasoning = msgReasoning;
+                    if (onThinking) onThinking(reasoning);
+                    if (onThinkingDone) onThinkingDone(0, reasoning);
+                }
+            }
         }
 
         if (content) {
@@ -1955,6 +2548,9 @@
                 state.game.aiContext = state.game.aiContext.slice(-state.settings.maxContext * 2);
             }
         }
+        // 存储思考时长供 UI 展示
+        state._lastThinkingSec = thinkingNotified && thinkingStart ? ((Date.now() - thinkingStart) / 1000).toFixed(1) : (reasoning ? null : 0);
+        state._lastReasoning = reasoning || '';
         return content;
     }
 
@@ -2020,7 +2616,7 @@
     }
 
     function tryFallbackProvider(currentProvider) {
-        const order = ['zhipu', 'modelscope', 'nvidia'];
+        const order = ['modelscope', 'sense', 'zhipu', 'nvidia', 'agnes'];
         for (const p of order) {
             if (p === currentProvider) continue;
             const hasKey = state.settings.useProxyKeys || !!state.settings.apiKeys[p];
@@ -2041,12 +2637,14 @@
         }
     }
 
-    async function callAiApi(userMessage, retryCount = 0, onStreamChunk = null) {
+    async function callAiApi(userMessage, retryCount = 0, streamCallbacks = null, _forceProxy = false) {
+        // 兼容旧式函数回调
+        if (typeof streamCallbacks === 'function') streamCallbacks = { onText: streamCallbacks };
         const provider = state.settings.textApiProvider;
         const config = API_CONFIGS[provider];
         if (!config) throw new Error('未知的API提供商');
 
-        const useProxy = state.settings.useProxyKeys;
+        const useProxy = state.settings.useProxyKeys || _forceProxy;
         const apiKey = state.settings.apiKeys[provider];
         const isCustom = provider === 'custom';
         // 自定义API始终需要自己的Key；其他provider有Key可直连
@@ -2054,19 +2652,24 @@
         if (isCustom && !state.settings.customBaseUrl) throw new Error('请先配置自定义 API 的 Base URL');
         if (isCustom && !apiKey) throw new Error('请先配置自定义 API 的 API Key');
         if (!useProxy && !canDirectConnect) throw new Error(`请先配置 ${config.name} 的 API Key，或开启"使用默认密钥"`);
+        if (_forceProxy && !state.settings.corsProxyUrl && isCustom === false && !state.settings.useProxyKeys && !state.settings.apiKeys[provider] && provider !== 'modelscope') {
+            // 无任何可用密钥又需要强制代理的极端情况
+        }
 
         let url;
         let headers = { 'Content-Type': 'application/json' };
-        let useCustomProxy = false;
+        let usedCustomProxy = false;
+        let usedProxyUrl = false;
         if (isCustom) {
             const baseUrl = state.settings.customBaseUrl.replace(/\/+$/, '');
             const targetUrl = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`;
+            // 自定义 API 默认强制走代理（多数服务无 CORS 头，直连必然报错）
             if (state.settings.corsProxy) {
                 const proxyBase = state.settings.corsProxyUrl || window.location.origin;
                 url = `${proxyBase}/api/custom/chat/completions`;
                 headers['X-Custom-Target-URL'] = targetUrl;
                 headers['X-Custom-API-Key'] = apiKey;
-                useCustomProxy = true;
+                usedCustomProxy = true;
             } else {
                 url = targetUrl;
                 headers['Authorization'] = `Bearer ${apiKey}`;
@@ -2075,16 +2678,17 @@
             // 魔搭社区：填了自己的Key就直连（无CORS限制，速度快）
             url = `${config.baseUrl}/chat/completions`;
             headers['Authorization'] = `Bearer ${apiKey}`;
-        } else if (provider === 'agnes') {
-            // Agnes：按代理开关决定，关代理+有Key→直连，开代理→走代理
-            if (!state.settings.corsProxy && apiKey) {
+        } else if (provider === 'agnes' || provider === 'sense') {
+            // Agnes / 商汤：关代理+有Key→直连，开代理→走代理
+            if (!state.settings.corsProxy && !useProxy && apiKey) {
                 url = `${config.baseUrl}/chat/completions`;
                 headers['Authorization'] = `Bearer ${apiKey}`;
-            } else if (!state.settings.corsProxy && !apiKey) {
-                throw new Error('请先配置 Agnes AI 的 API Key，或开启代理模式');
+            } else if (!state.settings.corsProxy && !useProxy && !apiKey) {
+                throw new Error(`请先配置 ${config.name} 的 API Key，或开启代理模式`);
             } else {
                 const proxyBase = state.settings.corsProxyUrl || window.location.origin;
                 url = `${proxyBase}/api/${provider}/chat/completions`;
+                usedProxyUrl = true;
             }
         } else if (canDirectConnect && !useProxy) {
             // 其他provider：有Key且未开代理 → 直连
@@ -2093,11 +2697,16 @@
         } else {
             const proxyBase = state.settings.corsProxyUrl || window.location.origin;
             url = `${proxyBase}/api/${provider}/chat/completions`;
+            usedProxyUrl = true;
         }
-        
+
         const MAX_RETRIES = 3;
         const BASE_DELAY = 2000;
         const messages = [{ role: 'system', content: state.settings.systemPrompt }];
+        // 进阶模式提示注入
+        if (state.settings.advancedMode) {
+            messages.push({ role: 'system', content: ADVANCED_MODE_PROMPT });
+        }
         if (state.game.characterName) {
             const currentChar = SPRITE_CONFIG.characters.find(c => c.id === state.game.character);
             const charName = currentChar?.name || state.game.characterName;
@@ -2132,6 +2741,11 @@
         const useStream = state.settings.streamOutput || (currentModel?.thinking && state.settings.enableThinking);
         const body = { model: state.settings.textModel, messages, stream: useStream, max_tokens: state.settings.maxResponseLength || 350 };
         if (provider === 'nvidia') { body.temperature = 1; body.top_p = 0.9; }
+        // 思考模式参数（按模型家族适配，未知模型不传避免400）
+        if (state.settings.enableThinking) {
+            const thinkingParams = buildThinkingBody(provider, state.settings.textModel);
+            if (thinkingParams) Object.assign(body, thinkingParams);
+        }
 
         const dot = $('.api-dot');
         if (dot) dot.className = 'api-dot loading';
@@ -2158,17 +2772,17 @@
                     state.settings.textModel = API_CONFIGS[fallback].models.text[0]?.id || state.settings.textModel;
                     updateModelOptions();
                     restoreSettingsUI();
-                    return await callAiApi(userMessage, 0, onStreamChunk);
+                    return await callAiApi(userMessage, 0, streamCallbacks);
                 }
-                
+
                 if (retryCount < MAX_RETRIES) {
                     const retryAfter = parseInt(response.headers.get('Retry-After') || '5', 10);
                     const delay = Math.max(retryAfter * 1000, BASE_DELAY * Math.pow(2, retryCount));
                     showToast(`API请求限流，${Math.ceil(delay/1000)}秒后重试(${retryCount + 1}/${MAX_RETRIES})...`, 'info');
                     await new Promise(r => setTimeout(r, delay));
-                    return await callAiApi(userMessage, retryCount + 1, onStreamChunk);
+                    return await callAiApi(userMessage, retryCount + 1, streamCallbacks, _forceProxy);
                 }
-                
+
                 throw new Error('API请求频繁，请稍后再试');
             }
 
@@ -2181,18 +2795,18 @@
                     else if (errJson.message) errMsg = errJson.message;
                     else if (errJson.msg) errMsg = errJson.msg;
                 } catch {}
-                
+
                 if (response.status >= 500 && retryCount < MAX_RETRIES) {
                     const delay = BASE_DELAY * Math.pow(2, retryCount);
                     showToast(`服务器错误，${Math.ceil(delay/1000)}秒后重试...`, 'warning');
                     await new Promise(r => setTimeout(r, delay));
-                    return await callAiApi(userMessage, retryCount + 1, onStreamChunk);
+                    return await callAiApi(userMessage, retryCount + 1, streamCallbacks, _forceProxy);
                 }
-                
+
                 throw new Error(errMsg);
             }
 
-            const result = await processApiResponse(response, body, provider, onStreamChunk);
+            const result = await processApiResponse(response, body, provider, streamCallbacks);
             
             if (!result || result.trim().length === 0) {
                 if (retryCount < MAX_RETRIES) {
@@ -2210,17 +2824,31 @@
                 // 不重试 — 用户取消或页面切换时直接中止
                 throw new Error('REQUEST_ABORTED');
             }
-            
+
             if (e.message && e.message.includes('fetch')) {
+                // 直连失败（典型为 CORS 被拦截），自动切换代理重试一次
+                const wasDirectCustom = isCustom && !usedCustomProxy;
+                const wasDirectOther = !isCustom && !usedProxyUrl;
+                if ((wasDirectCustom || wasDirectOther) && !_forceProxy && retryCount === 0) {
+                    showToast('直连失败（可能是CORS限制），自动通过代理重试...', 'info');
+                    if (wasDirectCustom) {
+                        const savedCors = state.settings.corsProxy;
+                        state.settings.corsProxy = true;
+                        try {
+                            return await callAiApi(userMessage, retryCount, streamCallbacks, true);
+                        } finally { state.settings.corsProxy = savedCors; }
+                    }
+                    return await callAiApi(userMessage, retryCount, streamCallbacks, true);
+                }
                 if (retryCount < MAX_RETRIES) {
                     const delay = BASE_DELAY * Math.pow(2, retryCount);
                     showToast(`网络错误，${Math.ceil(delay/1000)}秒后重试...`, 'warning');
                     await new Promise(r => setTimeout(r, delay));
-                    return await callAiApi(userMessage, retryCount + 1, onStreamChunk);
+                    return await callAiApi(userMessage, retryCount + 1, streamCallbacks, _forceProxy);
                 }
                 throw new Error('网络连接失败，请检查网络或代理设置');
             }
-            
+
             throw e;
         } finally {
             updateApiIndicator();
@@ -2228,26 +2856,26 @@
         }
     }
 
-    async function callImageApi(prompt) {
+    async function callImageApi(prompt, _forceProxy = false) {
         const provider = state.settings.imageApiProvider;
         const config = API_CONFIGS[provider];
-        const useProxy = state.settings.useProxyKeys;
+        const useProxy = state.settings.useProxyKeys || _forceProxy;
         const apiKey = state.settings.apiKeys[provider];
         const isCustom = provider === 'custom';
         const canDirectConnect = isCustom || !!apiKey;
         if (isCustom && !state.settings.customBaseUrl) throw new Error('请先配置自定义 API 的 Base URL');
         if (isCustom && !apiKey) throw new Error('请先配置自定义 API 的 API Key');
-        // 智谱生图始终走代理，不需要用户Key；Agnes按代理开关；其他需要key或useProxyKeys
-        if (provider === 'agnes' && !state.settings.corsProxy && !apiKey) throw new Error('请先配置 Agnes AI 的 API Key，或开启代理模式');
-        if (!['zhipu', 'agnes', 'custom'].includes(provider) && !useProxy && !canDirectConnect) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
+        // 智谱生图始终走代理，不需要用户Key；Agnes/商汤按代理开关；其他需要key或useProxyKeys
+        if ((provider === 'agnes' || provider === 'sense') && !state.settings.corsProxy && !apiKey) throw new Error(`请先配置 ${config.name} 的 API Key，或开启代理模式`);
+        if (!['zhipu', 'agnes', 'sense', 'custom'].includes(provider) && !useProxy && !canDirectConnect) throw new Error('请先配置图像生成API Key，或开启"使用默认密钥"');
 
         const proxyBase = state.settings.corsProxyUrl || window.location.origin;
-        // 智谱生图始终走代理；Agnes按代理开关；其他按useProxyKeys
+        // 智谱生图始终走代理；Agnes/商汤按代理开关；其他按useProxyKeys
         let useProxyUrl;
         if (provider === 'zhipu') {
             useProxyUrl = true;
-        } else if (provider === 'agnes') {
-            useProxyUrl = state.settings.corsProxy || !apiKey;
+        } else if (provider === 'agnes' || provider === 'sense') {
+            useProxyUrl = state.settings.corsProxy || !apiKey || _forceProxy;
         } else {
             useProxyUrl = !(canDirectConnect && !useProxy);
         }
@@ -2277,10 +2905,32 @@
         const cogviewSize = isMobile ? '720x1440' : '1344x768';
         const msImageSize = isMobile ? '576*1024' : '1024*576';
         const body = { model: state.settings.imageModel, prompt, size: cogviewSize };
+        if (provider === 'sense') {
+            // 商汤 U1 系列使用常规比例
+            body.size = isMobile ? '768x1024' : '1024x768';
+        }
+
+        // 统一 fetch + CORS 回退
+        async function doFetch() {
+            try {
+                return await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+            } catch (e) {
+                // 直连失败（CORS/网络），自动切换代理重试一次
+                if (!useProxyUrl && !_forceProxy && retryProxyAvailable()) {
+                    showToast('直连失败（可能是CORS限制），自动通过代理重试...', 'info');
+                    return await callImageApi(prompt, true);
+                }
+                throw e;
+            }
+        }
+        function retryProxyAvailable() {
+            if (provider === 'zhipu') return false; // 智谱本来就代理
+            return true;
+        }
 
         if (isCustom) {
             // Custom provider: standard OpenAI-compatible image generation
-            const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+            const response = await doFetch();
             if (!response.ok) {
                 const errText = await response.text();
                 let errMsg = `图像生成失败 (${response.status})`;
@@ -2301,7 +2951,7 @@
             body.parameters = { n: 1 };
             headers['X-ModelScope-Async-Mode'] = 'true';
             console.log(`[生图] 魔搭请求: url=${url}, model=${body.model}, useProxyUrl=${useProxyUrl}`);
-            const submitResponse = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+            const submitResponse = await doFetch();
             if (!submitResponse.ok) {
                 const errText = await submitResponse.text();
                 let errMsg = `图像生成提交失败 (${submitResponse.status})`;
@@ -2338,11 +2988,7 @@
             throw new Error('图像生成超时');
         }
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(body),
-        });
+        const response = await doFetch();
 
         if (response.status === 429) {
             const retryAfter = parseInt(response.headers.get('Retry-After') || '10', 10);
@@ -3004,8 +3650,11 @@
         // Show meta info (thinking time + output tokens)
         const dialogMeta = $('#dialog-meta');
         const tokenCount = rawContent.length;
-        if (dialogMeta && elapsedSec) {
-            dialogMeta.textContent = `${elapsedSec}s · ${tokenCount}字`;
+        const thinkingSec = state._lastThinkingSec;
+        if (dialogMeta) {
+            let metaText = elapsedSec ? `${elapsedSec}s · ${tokenCount}字` : '';
+            if (thinkingSec && parseFloat(thinkingSec) > 0) metaText += (metaText ? ' · ' : '') + `已思考 ${thinkingSec}s`;
+            if (metaText) dialogMeta.textContent = metaText;
         }
 
         if (parsed && parsed.dialog) {
@@ -3050,6 +3699,10 @@
             }
             if (scene) state.game.currentScene = scene;
             if (scene) { state.game.currentScene = scene; resetImageGenTimer(scene); }
+            // 建议选项：点击即作为玩家输入继续剧情
+            if (Array.isArray(parsed.choices) && parsed.choices.length > 0) {
+                showSuggestedChoices(parsed.choices.slice(0, 3));
+            }
         } else if (parsed && (parsed['开场白'] || parsed['对话'] || parsed['场景'])) {
             // Fallback: 模型返回了中文key的JSON
             const rawName2 = parsed['角色'] || parsed['name'] || '???';
@@ -3303,6 +3956,13 @@
         if (dialogSegmentState.dialogHistory.length === 0) return;
         if (dialogSegmentState.historyOffset >= dialogSegmentState.dialogHistory.length - 1) return;
 
+        // 首次从当前状态进入历史浏览：记录是否处于输入模式，保存草稿
+        if (dialogSegmentState.historyOffset === 0) {
+            const ta = $('#dialog-text-area');
+            dialogSegmentState._wasInput = !!(ta && ta.dataset.mode === 'input');
+            if (dialogSegmentState._wasInput && ta) dialogSegmentState.inputDraft = ta.value;
+        }
+
         dialogSegmentState.historyOffset++;
         const idx = dialogSegmentState.dialogHistory.length - 1 - dialogSegmentState.historyOffset;
         const entry = dialogSegmentState.dialogHistory[idx];
@@ -3310,7 +3970,11 @@
         const dialogName = $('#dialog-name');
         const dialogTextArea = $('#dialog-text-area');
         if (dialogName) dialogName.textContent = entry.name;
-        if (dialogTextArea) dialogTextArea.value = entry.text;
+        if (dialogTextArea) {
+            dialogTextArea.value = entry.text;
+            dialogTextArea.readOnly = true;
+            dialogTextArea.dataset.mode = 'display';
+        }
 
         const emotionEl = $('#emotion-indicator');
         if (entry.type === 'player') {
@@ -3319,10 +3983,12 @@
             if (emotionEl) { emotionEl.className = `emotion-${normalizeEmotion(entry.emotion)}`; emotionEl.textContent = entry.emotion; }
         }
 
-        // 切换立绘：玩家消息时隐藏，AI消息时按情绪切换
-        if (entry.type === 'player') {
-            // 不隐藏立绘，但更新名字标签
-        } else if (entry.name && entry.name !== '旁白' && entry.name !== '系统') {
+        // 浏览玩家消息时加名字牌标识区分
+        const nameEl = $('#dialog-name');
+        if (nameEl) nameEl.classList.toggle('player-name', entry.type === 'player');
+
+        // 切换立绘：AI消息时按情绪切换
+        if (entry.type !== 'player' && entry.name && entry.name !== '旁白' && entry.name !== '系统') {
             const char = SPRITE_CONFIG.characters.find(c => c.name === entry.name);
             if (char) {
                 const expr = SPRITE_CONFIG.emotionMap[entry.emotion] || char.defaultExpr;
@@ -3330,11 +3996,10 @@
             }
         }
 
-        if (dialogTextArea) dialogTextArea.placeholder = '↑↓查看历史 / 按 Enter 返回当前';
+        if (dialogTextArea) dialogTextArea.placeholder = '历史消息 · ↑上一条 / ↓或Enter 下一条';
 
-        // 浏览历史时隐藏页码指示器
         const dialogMeta = $('#dialog-meta');
-        if (dialogMeta) dialogMeta.textContent = '';
+        if (dialogMeta) dialogMeta.textContent = `${dialogSegmentState.dialogHistory.length - dialogSegmentState.historyOffset + 1}/${dialogSegmentState.dialogHistory.length}`;
     }
 
     function showNextDialog() {
@@ -3342,10 +4007,31 @@
 
         dialogSegmentState.historyOffset--;
 
+        // 回到最底部：恢复输入状态或当前对话
         if (dialogSegmentState.historyOffset === 0) {
-            const { name, emotion } = dialogSegmentState;
             const dialogName = $('#dialog-name');
             const dialogTextArea = $('#dialog-text-area');
+            const nameEl = $('#dialog-name');
+            if (nameEl) nameEl.classList.remove('player-name');
+
+            // 浏览前处于输入模式 → 恢复草稿和输入状态
+            if (dialogSegmentState._wasInput) {
+                dialogSegmentState._wasInput = false;
+                if (dialogTextArea) {
+                    dialogTextArea.readOnly = false;
+                    dialogTextArea.dataset.mode = 'input';
+                    dialogTextArea.value = dialogSegmentState.inputDraft || '';
+                    dialogTextArea.placeholder = '输入消息，按 Enter 发送...';
+                    dialogTextArea.focus();
+                }
+                if (dialogName) dialogName.textContent = '你';
+                $('#dialog-send-btn')?.classList.remove('hidden');
+                const emotionEl = $('#emotion-indicator');
+                if (emotionEl) { emotionEl.className = 'emotion-neutral'; emotionEl.textContent = '😐'; }
+                return;
+            }
+
+            const { name, emotion } = dialogSegmentState;
             if (dialogName) dialogName.textContent = name;
             // 恢复当前对话文本
             const lastEntry = dialogSegmentState.dialogHistory[dialogSegmentState.dialogHistory.length - 1];
@@ -3365,7 +4051,9 @@
                 }
             }
 
-            if (dialogTextArea) dialogTextArea.placeholder = '按 Enter 输入回复...';
+            if (dialogTextArea) dialogTextArea.placeholder = '按 Enter 继续...';
+            const dialogMeta = $('#dialog-meta');
+            if (dialogMeta) dialogMeta.textContent = '';
             return;
         }
 
@@ -3374,7 +4062,10 @@
 
         const dialogName = $('#dialog-name');
         const dialogTextArea = $('#dialog-text-area');
-        if (dialogName) dialogName.textContent = entry.name;
+        if (dialogName) {
+            dialogName.textContent = entry.name;
+            dialogName.classList.toggle('player-name', entry.type === 'player');
+        }
         if (dialogTextArea) dialogTextArea.value = entry.text;
 
         const emotionEl = $('#emotion-indicator');
@@ -3392,6 +4083,9 @@
                 showSprite(char.id, expr);
             }
         }
+
+        const dialogMeta = $('#dialog-meta');
+        if (dialogMeta) dialogMeta.textContent = `${idx + 1}/${dialogSegmentState.dialogHistory.length}`;
     }
 
     function sendDialogInput() {
@@ -3465,6 +4159,7 @@
         }
         apiCallInProgress = true;
         hideChoices();
+        markDirty();
         addDialogHistory('玩家', choiceText);
         // 统一添加到对话段历史，方便上下键浏览
         dialogSegmentState.dialogHistory.push({ name: '玩家', text: choiceText, emotion: '', type: 'player' });
@@ -3475,55 +4170,14 @@
         const isStreamMode = state.settings.streamOutput;
 
         // 流式输出：准备对话框和聊天消息元素
-        let streamChatMsgTextEl = null;
-        let streamDialogTextArea = null;
+        let ui = null;
+        let streamCallbacks = null;
 
         if (isStreamMode) {
             showAiGenerating(false);
-            if (state.uiMode === 'chat') {
-                // 聊天模式：创建AI消息占位
-                const container = $('#chat-messages');
-                const msg = document.createElement('div');
-                msg.className = 'chat-msg ai';
-                const nameEl = document.createElement('div');
-                nameEl.className = 'msg-name';
-                nameEl.textContent = state.game.characterName || '星酱';
-                const textEl = document.createElement('div');
-                textEl.className = 'msg-text streaming';
-                textEl.textContent = '';
-                msg.appendChild(nameEl);
-                msg.appendChild(textEl);
-                container.appendChild(msg);
-                container.scrollTop = container.scrollHeight;
-                streamChatMsgTextEl = textEl;
-            } else {
-                // 游戏模式：准备对话框
-                const dialogBox = $('#dialog-box');
-                if (dialogBox) dialogBox.classList.remove('hidden');
-                const dialogName = $('#dialog-name');
-                if (dialogName) dialogName.textContent = state.game.characterName || '星酱';
-                streamDialogTextArea = $('#dialog-text-area');
-                if (streamDialogTextArea) {
-                    streamDialogTextArea.readOnly = true;
-                    streamDialogTextArea.dataset.mode = 'display';
-                    streamDialogTextArea.value = '';
-                    streamDialogTextArea.placeholder = '';
-                    streamDialogTextArea.classList.add('streaming');
-                }
-                $('#dialog-send-btn')?.classList.add('hidden');
-            }
+            ui = prepareStreamUI();
+            streamCallbacks = makeStreamCallbacks(ui);
         }
-
-        const onStreamChunk = isStreamMode ? (newText, fullText) => {
-            if (state.uiMode === 'chat' && streamChatMsgTextEl) {
-                streamChatMsgTextEl.textContent = fullText;
-                const container = $('#chat-messages');
-                if (container) container.scrollTop = container.scrollHeight;
-            } else if (streamDialogTextArea) {
-                streamDialogTextArea.value = fullText;
-                streamDialogTextArea.scrollTop = streamDialogTextArea.scrollHeight;
-            }
-        } : null;
 
         try {
             let contextHint = choiceText;
@@ -3540,7 +4194,7 @@
             }
 
             const result = await Promise.race([
-                callAiApi(contextHint, 0, onStreamChunk),
+                callAiApi(contextHint, 0, streamCallbacks),
                 new Promise((_, reject) =>
                     setTimeout(() => {
                         if (currentAbortController) currentAbortController.abort();
@@ -3550,9 +4204,7 @@
             ]);
 
             showAiGenerating(false);
-            // 流式模式：移除streaming样式
-            if (streamDialogTextArea) streamDialogTextArea.classList.remove('streaming');
-            if (streamChatMsgTextEl) streamChatMsgTextEl.classList.remove('streaming');
+            finishStreamUI(ui);
 
             if (result) {
                 const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -3562,8 +4214,7 @@
             }
         } catch (e) {
             showAiGenerating(false);
-            if (streamDialogTextArea) streamDialogTextArea.classList.remove('streaming');
-            if (streamChatMsgTextEl) streamChatMsgTextEl.classList.remove('streaming');
+            finishStreamUI(ui);
             const elapsed = Date.now() - startTime;
             console.error('AI调用失败:', e, '耗时:', elapsed + 'ms');
 
@@ -3890,6 +4541,37 @@
 
     function hideChoices() { $('#choices-box').classList.add('hidden'); }
 
+    // AI 回复附带的建议选项（提升可玩性）：游戏模式用 choices-box，聊天模式内联选项条
+    function showSuggestedChoices(choices) {
+        if (!choices || choices.length === 0) return;
+        if (state.uiMode === 'chat') {
+            const container = $('#chat-messages');
+            if (!container) return;
+            const wrap = document.createElement('div');
+            wrap.className = 'chat-suggested-choices';
+            choices.forEach((c, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'suggested-choice-btn';
+                btn.textContent = c;
+                btn.style.animationDelay = (i * 0.08 + 0.05) + 's';
+                btn.addEventListener('click', () => {
+                    wrap.remove();
+                    markDirty();
+                    addChatMessage('玩家', c, 'user');
+                    handleAiChoice(c);
+                });
+                wrap.appendChild(btn);
+            });
+            container.appendChild(wrap);
+            container.scrollTop = container.scrollHeight;
+        } else {
+            showChoices(choices.map(c => ({
+                text: c,
+                action: () => { markDirty(); handleAiChoice(c); }
+            })));
+        }
+    }
+
     function showCustomInput() {
         const choicesContainer = $('#choices-box');
         if (choicesContainer && choicesContainer.children.length > 0) {
@@ -3999,49 +4681,35 @@
         const grid = $('#gallery-grid');
         const empty = $('#gallery-empty');
         grid.innerHTML = '';
-        if (state.gallery.length === 0) { empty.classList.remove('hidden'); }
-        else {
+        if (state.gallery.length === 0) {
+            empty.classList.remove('hidden');
+        } else {
             empty.classList.add('hidden');
-            for (let i = 0; i < state.gallery.length; i++) {
-                const item = state.gallery[i];
-                let imgSrc = item.url || null;
-                if (item.persisted && item.id) {
-                    try {
-                        const cached = await IDB.getImage(item.id);
-                        if (cached?.base64) imgSrc = cached.base64;
-                    } catch {}
-                }
-                if (!imgSrc) continue;
+            // 先同步渲染骨架（url 类型的直接显示），IDB 图异步并行填充 —— 避免串行 await 卡顿
+            const frag = document.createDocumentFragment();
+            const persistedItems = [];
+            state.gallery.forEach((item, i) => {
                 const div = document.createElement('div');
                 div.className = 'gallery-item';
+                div.dataset.idx = i;
                 const img = document.createElement('img');
-                img.src = imgSrc;
                 img.alt = item.prompt || '';
                 img.loading = 'lazy';
-                const overlay = document.createElement('div');
-                overlay.className = 'gallery-overlay';
-                const dlBtn = document.createElement('button');
-                dlBtn.textContent = '💾 下载';
-                dlBtn.addEventListener('click', (e) => { e.stopPropagation(); downloadImage(imgSrc, `scene_${i}.png`); });
-                const delBtn = document.createElement('button');
-                delBtn.textContent = '🗑️ 删除';
-                delBtn.className = 'gallery-delete-btn';
-                delBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (item.persisted && item.id) {
-                        try { IDB.deleteImage(item.id); } catch {}
-                    }
-                    state.gallery.splice(i, 1);
-                    saveGallery();
-                    openGallery();
-                    showToast('图片已删除', 'info');
-                });
-                overlay.appendChild(dlBtn);
-                overlay.appendChild(delBtn);
-                div.appendChild(img);
-                div.appendChild(overlay);
-                grid.appendChild(div);
-            }
+                if (item.url) {
+                    img.src = item.url;
+                } else if (item.persisted && item.id) {
+                    div.classList.add('loading');
+                    persistedItems.push({ item, img, div });
+                } else {
+                    div.classList.add('loading');
+                    return; // 无法显示
+                }
+                buildGalleryControls(div, img, item, i);
+                frag.appendChild(div);
+            });
+            grid.appendChild(frag);
+
+            // 清空按钮
             const clearAllDiv = document.createElement('div');
             clearAllDiv.style.cssText = 'text-align:center;margin-top:1rem;';
             const clearAllBtn = document.createElement('button');
@@ -4061,8 +4729,55 @@
             });
             clearAllDiv.appendChild(clearAllBtn);
             grid.appendChild(clearAllDiv);
+
+            // 并行批量读取 IDB（每批 8 张），读完即填充
+            const BATCH = 8;
+            for (let i = 0; i < persistedItems.length; i += BATCH) {
+                const batch = persistedItems.slice(i, i + BATCH);
+                const results = await Promise.all(batch.map(({ item }) =>
+                    IDB.getImage(item.id).catch(() => null)
+                ));
+                results.forEach((cached, j) => {
+                    const { item, img, div } = batch[j];
+                    div.classList.remove('loading');
+                    if (cached?.base64) {
+                        img.src = cached.base64;
+                        buildGalleryControls(div, img, item, state.gallery.indexOf(item));
+                    } else {
+                        div.classList.add('broken');
+                    }
+                });
+            }
         }
         showModal('gallery-modal');
+    }
+
+    function buildGalleryControls(div, img, item, idx) {
+        // 防止重复添加按钮
+        if (div.querySelector('.gallery-overlay')) return;
+        const overlay = document.createElement('div');
+        overlay.className = 'gallery-overlay';
+        const dlBtn = document.createElement('button');
+        dlBtn.textContent = '💾 下载';
+        dlBtn.addEventListener('click', (e) => { e.stopPropagation(); downloadImage(img.src, `scene_${idx}.png`); });
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '🗑️ 删除';
+        delBtn.className = 'gallery-delete-btn';
+        delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const realIdx = state.gallery.indexOf(item);
+            if (item.persisted && item.id) {
+                try { IDB.deleteImage(item.id); } catch {}
+            }
+            if (realIdx > -1) state.gallery.splice(realIdx, 1);
+            saveGallery();
+            div.remove();
+            if (state.gallery.length === 0) openGallery();
+            showToast('图片已删除', 'info');
+        });
+        overlay.appendChild(dlBtn);
+        overlay.appendChild(delBtn);
+        div.appendChild(overlay);
     }
 
     function downloadImage(url, filename) {
@@ -4195,16 +4910,17 @@
             renameBtn.textContent = '重命名';
             renameBtn.addEventListener('click', e => {
                 e.stopPropagation();
-                const newName = prompt('输入新的存档名称：', save.title || '存档');
-                if (newName !== null && newName.trim()) {
-                    const saves = Storage.get(STORAGE_KEYS.saves) || {};
-                    if (saves[slotNum]) {
-                        saves[slotNum].title = newName.trim();
-                        Storage.set(STORAGE_KEYS.saves, saves);
-                        titleDiv.textContent = newName.trim();
-                        showToast('存档已重命名', 'success');
+                showNameModal(save.title || '存档', (newName) => {
+                    if (newName) {
+                        const saves = Storage.get(STORAGE_KEYS.saves) || {};
+                        if (saves[slotNum]) {
+                            saves[slotNum].title = newName;
+                            Storage.set(STORAGE_KEYS.saves, saves);
+                            titleDiv.textContent = newName;
+                            showToast('存档已重命名', 'success');
+                        }
                     }
-                }
+                });
             });
             actionsDiv.appendChild(renameBtn);
             slot.appendChild(actionsDiv);
@@ -4224,24 +4940,48 @@
         showModal('save-modal');
     }
 
+    /* ==================== 通用命名 Modal ==================== */
+    let _saveNameCallback = null;
+
+    function showNameModal(defaultValue, onConfirm) {
+        _saveNameCallback = onConfirm;
+        const input = $('#save-name-input');
+        if (input) input.value = defaultValue || '';
+        showModal('save-name-modal');
+        setTimeout(() => { input?.focus(); input?.select(); }, 80);
+    }
+
+    function confirmSaveName() {
+        const input = $('#save-name-input');
+        const val = input?.value?.trim() || '';
+        hideModal('save-name-modal');
+        if (_saveNameCallback) {
+            const cb = _saveNameCallback;
+            _saveNameCallback = null;
+            cb(val);
+        }
+    }
+
     function saveToSlot(slotNum) {
-        try {
-            const saves = Storage.get(STORAGE_KEYS.saves) || {};
-            const defaultTitle = state.game.characterName ? `与${state.game.characterName}的对话` : '新建存档';
-            const customTitle = prompt('输入存档名称：', defaultTitle);
-            if (customTitle === null) return; // 用户取消
-            saves[slotNum] = {
-                title: customTitle.trim() || defaultTitle,
-                timestamp: Date.now(),
-                mode: state.mode,
-                uiMode: state.uiMode || 'game',
-                game: JSON.parse(JSON.stringify(state.game)),
-                theme: state.theme,
-            };
-            Storage.set(STORAGE_KEYS.saves, saves);
-            showToast(`已保存到存档 ${slotNum}`, 'success');
-        } catch (e) { showToast('存档失败: 存储空间不足', 'error'); }
-        hideModal('save-modal');
+        const defaultTitle = state.game.characterName ? `与${state.game.characterName}的对话` : '新建存档';
+        showNameModal(defaultTitle, (customTitle) => {
+            try {
+                const saves = Storage.get(STORAGE_KEYS.saves) || {};
+                saves[slotNum] = {
+                    title: customTitle || defaultTitle,
+                    timestamp: Date.now(),
+                    mode: state.mode,
+                    uiMode: state.uiMode || 'game',
+                    game: JSON.parse(JSON.stringify(state.game)),
+                    theme: state.theme,
+                };
+                Storage.set(STORAGE_KEYS.saves, saves);
+                showToast(`已保存到存档 ${slotNum}`, 'success');
+                markClean(); // 已存档，退出不再警告
+            } catch (e) { showToast('存档失败: 存储空间不足', 'error'); }
+            hideModal('save-modal');
+            if (state.currentScreen !== 'title') openSaveModal('load');
+        });
     }
 
     function loadFromSlot(slotNum) {
@@ -4251,8 +4991,7 @@
         state.mode = save.mode;
         state.game = JSON.parse(JSON.stringify(save.game));
         if (save.theme) {
-            const validThemes = ['dark-star', 'ink-wash', 'light'];
-            applyTheme(validThemes.includes(save.theme) ? save.theme : 'light');
+            applyTheme(VALID_THEMES.includes(save.theme) ? save.theme : 'light');
         }
         if (save.uiMode) switchUiMode(save.uiMode);
         if (state.game.activeOutline) {
@@ -4364,7 +5103,7 @@
     async function showApiStatusPanel() {
         const content = $('#api-status-content');
         content.innerHTML = '';
-        ['zhipu', 'modelscope', 'nvidia'].forEach(p => {
+        ['modelscope', 'sense', 'zhipu', 'nvidia', 'agnes'].forEach(p => {
             const config = API_CONFIGS[p];
             const hasKey = state.settings.useProxyKeys || !!state.settings.apiKeys[p];
             const card = document.createElement('div');
@@ -4444,12 +5183,12 @@
                 defaultExpr: '高兴',
                 extMap: { '高兴': 'jpeg', '害羞': 'jpg', '生气': 'jpg', '疑惑': 'jpg' },
                 profile: {
-                    age: '17',
+                    age: '19',
                     height: '158cm',
                     personality: '温柔体贴、善解人意、偶尔害羞',
-                    likes: '甜食、星空、和你一起放学、被你夸奖',
+                    likes: '甜食、星空、和你一起泡图书馆、被你夸奖',
                     dislikes: '被忽视、看到你和其他女生走太近、苦味食物',
-                    secret: '其实从同桌时期就暗恋你了，日记本里写满了关于你的事',
+                    secret: '其实从很久之前就暗恋你了，日记本里写满了关于你的事',
                     lewd: '被摸头时会安心地闭上眼睛，偶尔会主动靠在你肩膀上'
                 }
             },
@@ -4460,7 +5199,7 @@
                 defaultExpr: '高兴',
                 extMap: { '高兴': 'jpg', '害羞': 'jpg', '生气': 'jpg', '疑惑': 'jpg' },
                 profile: {
-                    age: '16',
+                    age: '18',
                     height: '155cm',
                     personality: '活泼机灵、古灵精怪、爱恶作剧',
                     likes: '辣条、游戏、捉弄人、冒险、短视频',
@@ -4476,7 +5215,7 @@
                 defaultExpr: '高兴',
                 extMap: { '高兴': 'jpg', '害羞': 'jpg', '生气': 'jpg', '疑惑': 'jpg' },
                 profile: {
-                    age: '15',
+                    age: '19',
                     height: '148cm',
                     personality: '天真无邪、纯真可爱、容易相信人',
                     likes: '小动物、绘本、棉花糖、星星、抱抱',
@@ -4492,7 +5231,7 @@
                 defaultExpr: '高兴',
                 extMap: { '高兴': 'jpg', '害羞': 'jpg', '生气': 'jpg', '疑惑': 'jpg' },
                 profile: {
-                    age: '17',
+                    age: '20',
                     height: '165cm',
                     personality: '傲娇毒舌、不服输、嘴硬心软',
                     likes: '独处、推理小说、黑咖啡、赢',

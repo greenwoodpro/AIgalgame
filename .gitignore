@@ -7,3 +7,5 @@ node_modules/
 test-api.html
 LingChat/
 PROJECT_CONTEXT.md
+.trae/
+_test_*.html

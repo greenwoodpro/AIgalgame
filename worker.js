@@ -3,6 +3,7 @@ const API_BASES = {
     modelscope: 'https://api-inference.modelscope.cn/v1',
     nvidia: 'https://integrate.api.nvidia.com/v1',
     agnes: 'https://apihub.agnes-ai.com/v1',
+    sense: 'https://token.sensenova.cn/v1',
 };
 
 function getApiKey(env, provider) {
@@ -11,11 +12,12 @@ function getApiKey(env, provider) {
         modelscope: env.MODELSCOPE_API_KEY,
         nvidia: env.NVIDIA_API_KEY,
         agnes: env.AGNES_API_KEY,
+        sense: env.SENSE_API_KEY,
     };
     return map[provider] || null;
 }
 
-const ALLOWED_ORIGINS = ['https://galai.dpdns.org', 'https://aigalgame.pages.dev', 'http://localhost:3000', 'http://localhost:5500', 'http://localhost:8788', 'http://127.0.0.1:8788', 'null'];
+const ALLOWED_ORIGINS = ['https://galai.dpdns.org', 'https://aigalgame.pages.dev', 'http://localhost:3000', 'http://localhost:5500', 'http://localhost:8080', 'http://localhost:8788', 'http://127.0.0.1:8788', 'http://127.0.0.1:5500', 'null'];
 
 function getCorsHeaders(origin) {
     const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? (origin === 'null' ? '*' : origin) : ALLOWED_ORIGINS[0];

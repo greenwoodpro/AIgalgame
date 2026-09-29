@@ -10,9 +10,10 @@
     <link rel="shortcut icon" href="galgame.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;600;700&family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.7.0/style.css">
     <title>次元邂逅 · AI Galgame</title>
-    <link rel="stylesheet" href="style.css?v=20250526">
+    <link rel="stylesheet" href="style.css?v=20260929">
 </head>
 <body>
     <div id="app">
@@ -122,17 +123,7 @@
                     <div class="info-row"><span class="info-label">对话轮数</span><span id="info-turns" class="info-value">--</span></div>
                 </div>
             </div>
-            <div id="nav-buttons">
-                <button class="nav-btn" id="nav-up" data-action="nav-up" title="上一条">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg>
-                </button>
-                <button class="nav-btn" id="nav-enter" data-action="nav-enter" title="继续/发送">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </button>
-                <button class="nav-btn" id="nav-down" data-action="nav-down" title="下一条">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
-                </button>
-            </div>
+            <div id="nav-buttons" class="hidden"></div>
             <div id="choices-box" class="hidden"></div>
             <div id="custom-input-box" class="hidden">
                 <input type="text" id="custom-input" placeholder="输入你想说的话..." maxlength="200">
@@ -141,15 +132,28 @@
             </div>
             <div id="dialog-box" class="hidden">
                 <div id="dialog-inner">
-                    <div id="dialog-nameplate">
-                        <span id="dialog-name"></span>
-                        <span id="dialog-subtitle"></span>
-                        <span id="emotion-indicator"></span>
-                        <span id="emotion-label"></span>
-                        <span id="dialog-meta"></span>
+                    <div id="dialog-main">
+                        <div id="dialog-nameplate">
+                            <span id="dialog-name"></span>
+                            <span id="dialog-subtitle"></span>
+                            <span id="emotion-indicator"></span>
+                            <span id="emotion-label"></span>
+                            <span id="dialog-meta"></span>
+                        </div>
+                        <div id="dialog-divider"></div>
+                        <textarea id="dialog-text-area" readonly data-mode="display" placeholder="按 Enter 继续..."></textarea>
                     </div>
-                    <div id="dialog-divider"></div>
-                    <textarea id="dialog-text-area" readonly data-mode="display" placeholder="按 Enter 继续..."></textarea>
+                    <div id="dialog-nav">
+                        <button class="dialog-nav-btn" id="dialog-nav-up" data-action="nav-up" title="上一条消息 (↑)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg>
+                        </button>
+                        <button class="dialog-nav-btn" id="dialog-nav-enter" data-action="nav-enter" title="继续 / 发送 (Enter)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </button>
+                        <button class="dialog-nav-btn" id="dialog-nav-down" data-action="nav-down" title="下一条消息 (↓)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                        </button>
+                    </div>
                     <button id="dialog-send-btn" class="hidden" aria-label="发送">发送</button>
                 </div>
             </div>
@@ -168,14 +172,19 @@
         <div id="chat-screen" class="screen">
             <div id="chat-screen-bg"></div>
             <div id="chat-header">
-                <button class="toolbar-btn" data-action="back-title" title="返回标题">🏠</button>
+                <button class="chat-icon-btn" data-action="back-title" title="返回标题">🏠</button>
                 <div id="chat-header-info">
                     <span id="chat-char-name">星酱</span>
                     <span id="chat-char-status">在线</span>
                 </div>
-                <button class="toolbar-btn" data-action="toggle-ui-mode" title="切换到游戏模式">🎮</button>
-                <button class="toolbar-btn" data-action="save" title="存档">💾</button>
-                <button class="toolbar-btn" data-action="settings" title="设置">⚙️</button>
+                <div class="chat-header-actions">
+                    <button class="chat-icon-btn advanced-toggle" data-action="toggle-advanced" title="切换正常/进阶模式">
+                        <span class="adv-icon">🌙</span><span class="adv-label">正常模式</span>
+                    </button>
+                    <button class="chat-icon-btn" data-action="save" title="存档">💾</button>
+                    <button class="chat-icon-btn" data-action="settings" title="设置">⚙️</button>
+                    <button class="chat-icon-btn" data-action="toggle-ui-mode" title="切换到游戏模式">🎮</button>
+                </div>
             </div>
             <div id="chat-messages"></div>
             <div id="chat-input-area">
@@ -185,7 +194,11 @@
                     <button class="quick-action-btn" data-action="chat-interact">情感互动</button>
                 </div>
                 <div id="chat-input-row">
-                    <input type="text" id="chat-input" placeholder="输入你想说的话..." maxlength="200">
+                    <input type="text" id="chat-input" placeholder="输入你想说的话... (↑召回上次输入)" maxlength="200">
+                    <div class="chat-input-nav">
+                        <button class="input-nav-btn" data-action="chat-history-up" title="上一条输入 (↑)">↑</button>
+                        <button class="input-nav-btn" data-action="chat-history-down" title="下一条输入 (↓)">↓</button>
+                    </div>
                     <button id="chat-send-btn" data-action="chat-send">发送</button>
                 </div>
             </div>
@@ -308,7 +321,15 @@
                             <div class="form-group">
                                 <label for="agnes-api-key">API Key</label>
                                 <input type="password" id="agnes-api-key" placeholder="输入 Agnes AI API Key">
-                                <small>免费模型: Agnes-2.0-Flash (文本), Agnes-Image-2.1-Flash (生图)，填Key直连更快</small>
+                                <small>免费模型: Agnes-2.0-Flash (文本), Agnes-Image-2.1-Flash (生图)，填Key直连更快。模型可能更新，请在"模型选择"页获取最新列表</small>
+                            </div>
+                        </div>
+                        <div class="api-provider">
+                            <h3>🟡 商汤 SenseNova <small class="direct-tag">免费公测</small></h3>
+                            <div class="form-group">
+                                <label for="sense-api-key">API Key</label>
+                                <input type="password" id="sense-api-key" placeholder="输入商汤 API Key (sk-开头)">
+                                <small>免费公测: sensenova-6.8-flash-lite (文本) / sensenova-u1-fast (生图)，每模型 1500次/5小时。服务端密钥: SENSE_API_KEY</small>
                             </div>
                         </div>
                         <div class="api-provider">
@@ -316,7 +337,7 @@
                             <div class="form-group">
                                 <label for="custom-base-url">Base URL</label>
                                 <input type="text" id="custom-base-url" placeholder="例如: https://api.openai.com/v1">
-                                <small>兼容 OpenAI API 格式的服务地址，可填完整端点（含 /chat/completions）或基础路径</small>
+                                <small>兼容 OpenAI API 格式的服务地址。默认通过代理转发（避免CORS报错），直连失败也会自动切代理重试</small>
                             </div>
                             <div class="form-group">
                                 <label for="custom-api-key">API Key</label>
@@ -352,6 +373,7 @@
                             <label for="text-api-provider">文本生成 API</label>
                             <select id="text-api-provider">
                                 <option value="modelscope">魔搭社区</option>
+                                <option value="sense">商汤 SenseNova</option>
                                 <option value="agnes">Agnes AI</option>
                                 <option value="zhipu">智谱AI</option>
                                 <option value="nvidia">NVIDIA</option>
@@ -359,24 +381,24 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="text-model">文本模型 <span id="model-tags" class="model-tags"></span></label>
-                            <select id="text-model"></select>
+                            <label>文本模型 <span id="model-tags" class="model-tags"></span></label>
+                            <div id="text-model-picker"></div>
+                            <small>内置推荐 + 可搜索 + 点"🔄 获取列表"拉取服务商最新模型（缓存12小时）</small>
                         </div>
                         <div id="image-api-group">
                             <div class="form-group">
                                 <label for="image-api-provider">图像生成 API</label>
                                 <select id="image-api-provider">
                                     <option value="zhipu">智谱AI (CogView)</option>
-                                    <option value="modelscope">魔搭社区 (Z-Image/FLUX)</option>
+                                    <option value="modelscope">魔搭社区 (Z-Image/Qwen-Image/Krea/FLUX)</option>
+                                    <option value="sense">商汤 SenseNova (U1系列)</option>
                                     <option value="agnes">Agnes AI (Agnes-Image)</option>
                                     <option value="custom">自定义 (Custom)</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="image-model">图像模型</label>
-                                <select id="image-model">
-                                    <option value="cogview-3-flash">CogView-3-Flash (免费生图)</option>
-                                </select>
+                                <label>图像模型</label>
+                                <div id="image-model-picker"></div>
                             </div>
                             <div class="form-group" id="custom-image-model-group" style="display:none;">
                                 <label for="custom-image-model">图像模型 ID</label>
@@ -392,6 +414,7 @@
                             <span class="legend-item"><span class="tag tag-thinking">思考</span> 深度思考</span>
                             <span class="legend-item"><span class="tag tag-vision">视觉</span> 多模态</span>
                             <span class="legend-item"><span class="tag tag-image">生图</span> 图像生成</span>
+                            <span class="legend-item"><span class="tag tag-rec">推荐</span> 推荐模型</span>
                         </div>
                     </div>
                     <div class="tab-content" id="tab-theme">
@@ -408,6 +431,39 @@
                                 <div class="theme-preview ink-wash-preview"></div>
                                 <span>浅墨</span>
                             </div>
+                            <div class="theme-card" data-theme="sakura">
+                                <div class="theme-preview sakura-preview"></div>
+                                <span>樱色物语</span>
+                            </div>
+                            <div class="theme-card" data-theme="cyber">
+                                <div class="theme-preview cyber-preview"></div>
+                                <span>赛博霓虹</span>
+                            </div>
+                            <div class="theme-card" data-theme="ocean">
+                                <div class="theme-preview ocean-preview"></div>
+                                <span>碧海晴空</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="dialog-font">对话字体（AI 回复与对话框）</label>
+                            <select id="dialog-font">
+                                <option value="">默认（思源宋体）</option>
+                                <option value="LXGW WenKai Screen">霞鹜文楷 · 清新手写</option>
+                                <option value="Ma Shan Zheng">马善政毛笔楷书</option>
+                                <option value="ZCOOL XiaoWei">站酷小薇 · 优雅宋黑</option>
+                                <option value="ZCOOL KuaiLe">站酷快乐体 · 活泼</option>
+                                <option value="Noto Sans SC">思源黑体 · 现代</option>
+                            </select>
+                            <small>每种字体风格差异明显，对话框与聊天气泡同步变化</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="ui-font">界面字体（菜单与按钮）</label>
+                            <select id="ui-font">
+                                <option value="">默认（思源黑体）</option>
+                                <option value="Noto Serif SC">思源宋体 · 典雅</option>
+                                <option value="LXGW WenKai Screen">霞鹜文楷 · 温润</option>
+                                <option value="ZCOOL XiaoWei">站酷小薇 · 文艺</option>
+                            </select>
                         </div>
                     </div>
                     <div class="tab-content" id="tab-game">
@@ -460,10 +516,26 @@
                         </div>
                         <div class="form-group">
                             <label>
-                                <input type="checkbox" id="enable-thinking">
-                                启用深度思考模式（更慢但更智能）
+                                <input type="checkbox" id="enable-thinking" checked>
+                                启用深度思考模式（更智能，响应稍慢）
                             </label>
-                            <small>开启后使用thinking模型进行深度推理，响应时间更长</small>
+                            <small>开启后思考过程会以淡化折叠气泡显示，完成后自动折叠并显示思考用时</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="thinking-effort">思考强度</label>
+                            <select id="thinking-effort">
+                                <option value="low">低（推荐 · 响应快）</option>
+                                <option value="medium">中（平衡）</option>
+                                <option value="high">高（更深入 · 最慢）</option>
+                            </select>
+                            <small>按模型家族自动转换为对应参数（enable_thinking / reasoning_effort / thinking）</small>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="advanced-mode">
+                                进阶模式（更成熟的浪漫互动描写）
+                            </label>
+                            <small>所有角色均为成年人。开启后允许更亲密自然的情感升温描写，保持文学性与分寸感。也可在聊天界面快捷切换</small>
                         </div>
                         <div class="form-group">
                             <label>
@@ -593,9 +665,43 @@
             </div>
         </div>
 
+        <div id="confirm-exit-modal" class="modal hidden">
+            <div class="modal-backdrop"></div>
+            <div class="modal-content confirm-exit-panel">
+                <div class="modal-header">
+                    <h2>⚠️ 返回标题</h2>
+                </div>
+                <div class="modal-body">
+                    <p id="confirm-exit-desc" class="confirm-exit-desc">当前进度尚未存档，退出后不会保存。要继续退出吗？</p>
+                    <div class="confirm-exit-actions">
+                        <button class="menu-btn" data-action="cancel-exit" style="flex:1;">继续游戏</button>
+                        <button class="menu-btn primary" data-action="confirm-exit" style="flex:1;">退出并放弃进度</button>
+                    </div>
+                    <small class="confirm-exit-tip">提示：随时可以按 💾 存档保存进度</small>
+                </div>
+            </div>
+        </div>
+
+        <div id="save-name-modal" class="modal hidden">
+            <div class="modal-backdrop" data-action="close-save-name"></div>
+            <div class="modal-content save-name-panel">
+                <div class="modal-header">
+                    <h2>✏️ 存档名称</h2>
+                    <button class="modal-close" data-action="close-save-name" aria-label="关闭">✕</button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="save-name-input" maxlength="30" placeholder="输入存档名称...">
+                    <div class="btn-row" style="margin-top:1rem;">
+                        <button class="action-btn" data-action="confirm-save-name" style="flex:1;">确定</button>
+                        <button class="action-btn secondary" data-action="close-save-name" style="flex:1;">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="toast-container"></div>
     </div>
 
-    <script src="app.js?v=20250526" defer></script>
+    <script src="app.js?v=20260929" defer></script>
 </body>
 </html>

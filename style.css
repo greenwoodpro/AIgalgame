@@ -1235,7 +1235,9 @@ html, body {
 #dialog-inner {
     width: var(--dialog-width);
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 10px;
     background: linear-gradient(to bottom, var(--dialog-bg-light), var(--dialog-bg));
     backdrop-filter: var(--dialog-blur);
     -webkit-backdrop-filter: var(--dialog-blur);
@@ -1244,6 +1246,59 @@ html, body {
     padding: 15px 20px;
     box-shadow: var(--shadow);
     position: relative;
+}
+
+#dialog-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+#dialog-nav {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    padding-left: 6px;
+    border-left: 1px solid var(--dialog-border);
+}
+
+.dialog-nav-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--dialog-border);
+    background: var(--glass-bg);
+    color: var(--accent-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s var(--ease-smooth);
+    backdrop-filter: blur(6px);
+}
+
+.dialog-nav-btn:hover {
+    background: var(--accent-color);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.dialog-nav-btn.highlight {
+    animation: navHighlight 0.3s var(--ease-bounce);
+    background: var(--accent-color);
+    color: #fff;
+}
+
+@keyframes navHighlight {
+    0% { transform: scale(0.85); }
+    60% { transform: scale(1.12); }
+    100% { transform: scale(1); }
+}
+
+#dialog-name.player-name {
+    color: var(--primary);
 }
 
 #dialog-inner::after {
@@ -1348,9 +1403,18 @@ html, body {
     line-height: 1.6;
     color: var(--dialog-text-color);
     letter-spacing: 0.02em;
-    font-family: var(--font-main);
+    font-family: var(--font-dialog, var(--font-main));
     -webkit-overflow-scrolling: touch;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    transition: opacity 0.3s ease, font-style 0.3s ease;
+}
+
+/* 思考中：淡化斜体显示思考内容 */
+#dialog-text-area.thinking {
+    opacity: 0.45;
+    font-style: italic;
+    font-weight: normal;
+    color: var(--text-muted);
 }
 
 #dialog-send-btn {
@@ -2921,18 +2985,67 @@ html, body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.6rem 1rem;
+    padding: 0.5rem 0.8rem;
     background: var(--bg-card);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    min-width: 0;
 }
 
 #chat-header-info {
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+}
+
+.chat-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.chat-icon-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: all 0.2s var(--ease-smooth);
+    flex-shrink: 0;
+}
+
+.chat-icon-btn:hover {
+    background: var(--accent-color);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.chat-icon-btn.advanced-toggle {
+    width: auto;
+    padding: 0 10px;
+    gap: 4px;
+    font-size: 12px;
+}
+
+.chat-icon-btn.advanced-toggle .adv-label {
+    white-space: nowrap;
+}
+
+.chat-icon-btn.advanced-toggle.active {
+    background: linear-gradient(135deg, #b85c8a, #8a4a6b);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 0 12px rgba(184, 92, 138, 0.4);
 }
 
 #chat-char-name {
@@ -3266,4 +3379,677 @@ html, body {
     #scene-vignette {
         opacity: 0.3;
     }
+}
+
+/* ================================================================
+   V2 扩展样式 — 2026-09 大版本更新
+   新主题（樱色物语/赛博霓虹/碧海晴空）+ 模型选择器 + 思考气泡
+   + 聊天头部重构 + 对话导航 + 建议选项 + 画廊骨架 + 新 Modal
+   ================================================================ */
+
+/* ==================== Sakura Theme — 樱色物语 ==================== */
+[data-theme="sakura"] {
+    --bg: #fdf3f5;
+    --bg-secondary: #f9e4ea;
+    --bg-card: rgba(255, 255, 255, 0.45);
+    --text: #4a3540;
+    --text-secondary: rgba(74, 53, 64, 0.7);
+    --text-muted: rgba(74, 53, 64, 0.4);
+    --primary: #e57f96;
+    --accent: #c96b82;
+    --gradient: linear-gradient(135deg, #f19bb0, #e57f96);
+    --border: rgba(201, 107, 130, 0.18);
+    --shadow: 0 8px 32px rgba(201, 107, 130, 0.12);
+
+    --dialog-bg: rgba(255, 240, 245, 0.55);
+    --dialog-bg-light: rgba(255, 240, 245, 0.35);
+    --dialog-border: rgba(201, 107, 130, 0.15);
+    --dialog-blur: blur(14px) saturate(130%);
+    --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(255, 240, 245, 0.2) 40%, rgba(255, 240, 245, 0.5) 100%);
+    --dialog-text-color: #4a3540;
+    --nameplate-bg: linear-gradient(135deg, rgba(229, 127, 150, 0.55), rgba(201, 107, 130, 0.55));
+
+    --accent-color: #e57f96;
+    --name-color: #c96b82;
+    --emotion-color: #d4506e;
+    --send-color: #e57f96;
+    --send-hover-color: rgba(229, 127, 150, 0.75);
+
+    --sprite-shadow: drop-shadow(0 0 18px rgba(229, 127, 150, 0.3));
+    --text-shadow: none;
+
+    --title-panel-bg: rgba(253, 243, 245, 0.72);
+    --title-panel-border: 1px solid rgba(201, 107, 130, 0.18);
+    --title-panel-shadow: 0 8px 32px rgba(201, 107, 130, 0.12);
+    --title-panel-hover-shadow: 0 12px 40px rgba(201, 107, 130, 0.18);
+    --title-text-color: #fff;
+    --title-subtitle-color: rgba(255, 255, 255, 0.88);
+    --title-tag-color: rgba(255, 255, 255, 0.78);
+    --title-btn-primary-bg: #d4708a;
+    --title-btn-primary-hover-bg: #c25f79;
+    --title-btn-primary-shadow: 0 4px 12px rgba(212, 112, 138, 0.3);
+    --title-btn-bg: rgba(229, 127, 150, 0.18);
+    --title-btn-color: #b95570;
+    --title-btn-hover-bg: rgba(229, 127, 150, 0.32);
+
+    --menu-btn-bg: rgba(229, 127, 150, 0.15);
+    --menu-btn-color: #b95570;
+    --menu-header-bg: #c96b82;
+
+    --big-button-bg: #c96b82;
+    --slider-track: linear-gradient(to left, #e57f96, #f0b2c0);
+    --slider-thumb-border: 2px solid #e57f96;
+    --slider-thumb-bg: #fff;
+
+    --settings-panel-bg: #fdf4f6;
+    --settings-panel-shadow: 0 5px 30px rgba(201, 107, 130, 0.12);
+    --settings-tab-color: #d48a9c;
+    --settings-tab-active-color: #c96b82;
+    --settings-tab-indicator: #c96b82;
+    --settings-input-bg: rgba(255, 255, 255, 0.75);
+    --settings-input-border: rgba(201, 107, 130, 0.15);
+    --settings-input-focus-border: #e57f96;
+    --settings-input-focus-shadow: 0 0 5px rgba(229, 127, 150, 0.3);
+    --settings-input-color: #4a3540;
+    --settings-label-color: #b95570;
+    --settings-divider: #f7dfe5;
+    --settings-item-bg: rgba(229, 127, 150, 0.06);
+    --settings-item-border: rgba(229, 127, 150, 0.1);
+
+    --input-bg: rgba(229, 127, 150, 0.08);
+    --input-border: rgba(229, 127, 150, 0.2);
+    --title-panel-blur: blur(10px);
+
+    --glass-bg: rgba(255, 255, 255, 0.2);
+    --glass-blur: blur(16px) saturate(150%);
+    --glass-border: 1px solid rgba(201, 107, 130, 0.14);
+    --glass-shadow: 0 8px 32px rgba(201, 107, 130, 0.08);
+
+    --scene-transition-bg: var(--bg);
+}
+
+/* ==================== Cyber Theme — 赛博霓虹 ==================== */
+[data-theme="cyber"] {
+    --bg: #0b0714;
+    --bg-secondary: #150d26;
+    --bg-card: rgba(192, 132, 252, 0.07);
+    --text: #ece4fb;
+    --text-secondary: rgba(236, 228, 251, 0.72);
+    --text-muted: rgba(236, 228, 251, 0.42);
+    --primary: #c084fc;
+    --accent: #22d3ee;
+    --gradient: linear-gradient(135deg, #c084fc, #22d3ee);
+    --border: rgba(192, 132, 252, 0.22);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+    --dialog-bg: rgba(21, 13, 38, 0.6);
+    --dialog-bg-light: rgba(21, 13, 38, 0.4);
+    --dialog-border: rgba(192, 132, 252, 0.25);
+    --dialog-blur: blur(18px) saturate(160%);
+    --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(21, 13, 38, 0.25) 40%, rgba(21, 13, 38, 0.6) 100%);
+    --dialog-text-color: #ece4fb;
+    --nameplate-bg: linear-gradient(135deg, rgba(192, 132, 252, 0.4), rgba(34, 211, 238, 0.35));
+
+    --accent-color: #c084fc;
+    --name-color: #22d3ee;
+    --emotion-color: #f472b6;
+    --send-color: #a855f7;
+    --send-hover-color: rgba(168, 85, 247, 0.8);
+
+    --sprite-shadow: drop-shadow(0 0 22px rgba(192, 132, 252, 0.45));
+    --text-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+
+    --title-panel-bg: rgba(21, 13, 38, 0.72);
+    --title-panel-border: 1px solid rgba(192, 132, 252, 0.25);
+    --title-panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --title-panel-hover-shadow: 0 0 24px rgba(192, 132, 252, 0.25);
+    --title-text-color: #fff;
+    --title-subtitle-color: rgba(34, 211, 238, 0.9);
+    --title-tag-color: rgba(192, 132, 252, 0.8);
+    --title-btn-primary-bg: #7c3aed;
+    --title-btn-primary-hover-bg: #6d28d9;
+    --title-btn-primary-shadow: 0 0 16px rgba(124, 58, 237, 0.5);
+    --title-btn-bg: rgba(192, 132, 252, 0.12);
+    --title-btn-color: #c084fc;
+    --title-btn-hover-bg: rgba(192, 132, 252, 0.25);
+
+    --menu-btn-bg: rgba(192, 132, 252, 0.1);
+    --menu-btn-color: #c084fc;
+    --menu-header-bg: #1e1233;
+
+    --big-button-bg: #7c3aed;
+    --slider-track: linear-gradient(to left, #c084fc, #22d3ee);
+    --slider-thumb-border: 2px solid #c084fc;
+    --slider-thumb-bg: #1e1233;
+
+    --settings-panel-bg: #171029;
+    --settings-panel-shadow: 0 5px 30px rgba(0, 0, 0, 0.6);
+    --settings-tab-color: #9d7bd8;
+    --settings-tab-active-color: #c084fc;
+    --settings-tab-indicator: #22d3ee;
+    --settings-input-bg: rgba(30, 18, 51, 0.85);
+    --settings-input-border: rgba(192, 132, 252, 0.2);
+    --settings-input-focus-border: #c084fc;
+    --settings-input-focus-shadow: 0 0 8px rgba(192, 132, 252, 0.4);
+    --settings-input-color: #ece4fb;
+    --settings-label-color: #d8c9f5;
+    --settings-divider: #2a1d45;
+    --settings-item-bg: rgba(192, 132, 252, 0.06);
+    --settings-item-border: rgba(192, 132, 252, 0.12);
+
+    --input-bg: rgba(192, 132, 252, 0.08);
+    --input-border: rgba(192, 132, 252, 0.22);
+    --title-panel-blur: blur(12px);
+
+    --glass-bg: rgba(255, 255, 255, 0.06);
+    --glass-blur: blur(20px) saturate(180%);
+    --glass-border: 1px solid rgba(192, 132, 252, 0.18);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+    --scene-transition-bg: var(--bg);
+}
+
+/* ==================== Ocean Theme — 碧海晴空 ==================== */
+[data-theme="ocean"] {
+    --bg: #ecf6f5;
+    --bg-secondary: #d9edeb;
+    --bg-card: rgba(255, 255, 255, 0.5);
+    --text: #27424a;
+    --text-secondary: rgba(39, 66, 74, 0.7);
+    --text-muted: rgba(39, 66, 74, 0.4);
+    --primary: #2a9d8f;
+    --accent: #1f7a8c;
+    --gradient: linear-gradient(135deg, #38b2a3, #2a9d8f);
+    --border: rgba(31, 122, 140, 0.18);
+    --shadow: 0 8px 32px rgba(31, 122, 140, 0.1);
+
+    --dialog-bg: rgba(236, 246, 245, 0.55);
+    --dialog-bg-light: rgba(236, 246, 245, 0.35);
+    --dialog-border: rgba(31, 122, 140, 0.14);
+    --dialog-blur: blur(14px) saturate(125%);
+    --dialog-gradient-mask: linear-gradient(to bottom, transparent 0%, rgba(236, 246, 245, 0.18) 40%, rgba(236, 246, 245, 0.45) 100%);
+    --dialog-text-color: #27424a;
+    --nameplate-bg: linear-gradient(135deg, rgba(42, 157, 143, 0.55), rgba(31, 122, 140, 0.55));
+
+    --accent-color: #2a9d8f;
+    --name-color: #1f7a8c;
+    --emotion-color: #e76f51;
+    --send-color: #2a9d8f;
+    --send-hover-color: rgba(42, 157, 143, 0.75);
+
+    --sprite-shadow: drop-shadow(0 0 18px rgba(42, 157, 143, 0.3));
+    --text-shadow: none;
+
+    --title-panel-bg: rgba(236, 246, 245, 0.7);
+    --title-panel-border: 1px solid rgba(31, 122, 140, 0.15);
+    --title-panel-shadow: 0 8px 32px rgba(31, 122, 140, 0.1);
+    --title-panel-hover-shadow: 0 12px 40px rgba(31, 122, 140, 0.16);
+    --title-text-color: #fff;
+    --title-subtitle-color: rgba(255, 255, 255, 0.88);
+    --title-tag-color: rgba(255, 255, 255, 0.78);
+    --title-btn-primary-bg: #1f7a8c;
+    --title-btn-primary-hover-bg: #186677;
+    --title-btn-primary-shadow: 0 4px 12px rgba(31, 122, 140, 0.3);
+    --title-btn-bg: rgba(42, 157, 143, 0.16);
+    --title-btn-color: #1f7a8c;
+    --title-btn-hover-bg: rgba(42, 157, 143, 0.3);
+
+    --menu-btn-bg: rgba(42, 157, 143, 0.14);
+    --menu-btn-color: #1f7a8c;
+    --menu-header-bg: #1f7a8c;
+
+    --big-button-bg: #1f7a8c;
+    --slider-track: linear-gradient(to left, #2a9d8f, #7fc9c0);
+    --slider-thumb-border: 2px solid #2a9d8f;
+    --slider-thumb-bg: #fff;
+
+    --settings-panel-bg: #f0f9f8;
+    --settings-panel-shadow: 0 5px 30px rgba(31, 122, 140, 0.1);
+    --settings-tab-color: #5fa8a0;
+    --settings-tab-active-color: #1f7a8c;
+    --settings-tab-indicator: #1f7a8c;
+    --settings-input-bg: rgba(255, 255, 255, 0.8);
+    --settings-input-border: rgba(31, 122, 140, 0.14);
+    --settings-input-focus-border: #2a9d8f;
+    --settings-input-focus-shadow: 0 0 5px rgba(42, 157, 143, 0.3);
+    --settings-input-color: #27424a;
+    --settings-label-color: #1f7a8c;
+    --settings-divider: #d5eae7;
+    --settings-item-bg: rgba(42, 157, 143, 0.05);
+    --settings-item-border: rgba(42, 157, 143, 0.1);
+
+    --input-bg: rgba(42, 157, 143, 0.07);
+    --input-border: rgba(42, 157, 143, 0.2);
+    --title-panel-blur: blur(10px);
+
+    --glass-bg: rgba(255, 255, 255, 0.18);
+    --glass-blur: blur(16px) saturate(145%);
+    --glass-border: 1px solid rgba(31, 122, 140, 0.12);
+    --glass-shadow: 0 8px 32px rgba(31, 122, 140, 0.06);
+
+    --scene-transition-bg: var(--bg);
+}
+
+/* ==================== 主题预览色卡 ==================== */
+.theme-preview.sakura-preview { background: linear-gradient(135deg, #f19bb0, #fdf3f5); }
+.theme-preview.cyber-preview { background: linear-gradient(135deg, #c084fc, #22d3ee 55%, #150d26); }
+.theme-preview.ocean-preview { background: linear-gradient(135deg, #38b2a3, #d9edeb); }
+
+/* ==================== 模型选择器组件 ==================== */
+.model-picker {
+    position: relative;
+    width: 100%;
+}
+
+.model-picker-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--settings-input-border);
+    background: var(--settings-input-bg);
+    color: var(--settings-input-color);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s var(--ease-smooth);
+    text-align: left;
+}
+
+.model-picker-trigger:hover {
+    border-color: var(--settings-input-focus-border);
+}
+
+.model-picker-value {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.model-picker-arrow {
+    color: var(--text-muted);
+    font-size: 12px;
+    transition: transform 0.2s ease;
+}
+
+.model-picker-panel:not(.hidden) ~ .model-picker-arrow,
+.model-picker-trigger:hover .model-picker-arrow { transform: rotate(180deg); }
+
+.model-picker-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 100%;
+    min-width: 300px;
+    max-height: 320px;
+    background: var(--settings-panel-bg);
+    border: 1px solid var(--settings-input-border);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: pickerIn 0.18s var(--ease-smooth);
+}
+
+@keyframes pickerIn {
+    from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.model-picker-toolbar {
+    display: flex;
+    gap: 6px;
+    padding: 10px;
+    border-bottom: 1px solid var(--settings-divider);
+    flex-shrink: 0;
+}
+
+.model-picker-search {
+    flex: 1;
+    min-width: 0;
+    padding: 7px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--settings-input-border);
+    background: var(--settings-input-bg);
+    color: var(--settings-input-color);
+    font-size: 13px;
+    outline: none;
+}
+
+.model-picker-search:focus {
+    border-color: var(--settings-input-focus-border);
+    box-shadow: var(--settings-input-focus-shadow);
+}
+
+.model-picker-refresh {
+    padding: 7px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--settings-input-border);
+    background: var(--gradient);
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.model-picker-refresh:hover:not(:disabled) { transform: translateY(-1px); }
+.model-picker-refresh:disabled { opacity: 0.55; cursor: wait; }
+
+.model-picker-list {
+    overflow-y: auto;
+    flex: 1;
+    padding: 4px;
+}
+
+.model-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.model-item:hover { background: var(--settings-item-bg); }
+
+.model-item.selected {
+    background: var(--settings-item-bg);
+    border-left: 2px solid var(--primary);
+}
+
+.model-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    color: var(--settings-input-color);
+}
+
+.model-item .model-tags { display: inline-flex; gap: 4px; flex-shrink: 0; }
+
+.model-picker-empty {
+    padding: 14px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.model-picker-foot {
+    padding: 7px 12px;
+    font-size: 11px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--settings-divider);
+    flex-shrink: 0;
+    min-height: 30px;
+}
+
+.model-picker-foot.loading { animation: footPulse 1.2s ease-in-out infinite; }
+
+@keyframes footPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+}
+
+/* 标签补充 */
+.tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 99px;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.tag-rec { background: rgba(255, 180, 60, 0.16); color: #d97706; border: 1px solid rgba(217, 119, 6, 0.3); }
+.tag-new { background: rgba(34, 197, 94, 0.14); color: #16a34a; border: 1px solid rgba(22, 163, 74, 0.3); }
+.tag-cur { background: rgba(99, 102, 241, 0.14); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); }
+
+/* ==================== 聊天思考气泡 ==================== */
+.chat-thinking-wrap {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.thinking-collapse {
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    max-width: 340px;
+}
+
+.thinking-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    transition: background 0.2s ease;
+}
+
+.thinking-header:hover { background: var(--settings-item-bg); }
+
+.thinking-icon { font-size: 13px; }
+
+.thinking-title { flex: 1; font-style: italic; }
+
+.thinking-toggle { transition: transform 0.25s ease; font-size: 10px; }
+
+.chat-thinking-wrap.expanded .thinking-toggle { transform: rotate(180deg); }
+
+.thinking-body {
+    display: none;
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 4px 12px 10px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text-muted);
+    font-style: italic;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.chat-thinking-wrap.expanded .thinking-body { display: block; }
+
+.chat-thinking-wrap:not(.expanded) .thinking-body { display: none; }
+
+/* 思考中的呼吸点 */
+.chat-thinking-wrap.generating .thinking-title::after {
+    content: '...';
+    animation: footPulse 1s ease-in-out infinite;
+}
+
+/* ==================== 聊天输入导航（↑↓召回） ==================== */
+.chat-input-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.input-nav-btn {
+    width: 24px;
+    height: 18px;
+    border: none;
+    border-radius: 5px;
+    background: var(--glass-bg);
+    color: var(--text-secondary);
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.input-nav-btn:hover {
+    background: var(--accent-color);
+    color: #fff;
+}
+
+/* ==================== 聊天建议选项 ==================== */
+.chat-suggested-choices {
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 80%;
+    padding-left: 4px;
+}
+
+.suggested-choice-btn {
+    text-align: left;
+    padding: 8px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    backdrop-filter: blur(8px);
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s var(--ease-smooth);
+    animation: chatMsgIn 0.3s var(--ease-smooth) backwards;
+}
+
+.suggested-choice-btn::before { content: '➤ '; color: var(--accent-color); font-size: 11px; }
+
+.suggested-choice-btn:hover {
+    border-color: var(--accent-color);
+    background: var(--settings-item-bg);
+    transform: translateX(3px);
+}
+
+/* ==================== 画廊骨架屏 ==================== */
+.gallery-item.loading {
+    position: relative;
+    min-height: 120px;
+    background: linear-gradient(100deg, var(--settings-item-bg) 30%, var(--settings-item-border) 50%, var(--settings-item-bg) 70%);
+    background-size: 200% 100%;
+    animation: galleryShimmer 1.4s linear infinite;
+    border-radius: var(--radius-sm);
+}
+
+.gallery-item.broken {
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    background: var(--settings-item-bg);
+    border-radius: var(--radius-sm);
+}
+
+.gallery-item.broken::after { content: '图片加载失败'; }
+
+@keyframes galleryShimmer {
+    to { background-position: -200% 0; }
+}
+
+/* ==================== 存档命名 Modal ==================== */
+.save-name-panel { max-width: 380px; }
+
+#save-name-input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--settings-input-border);
+    background: var(--settings-input-bg);
+    color: var(--settings-input-color);
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+#save-name-input:focus {
+    border-color: var(--settings-input-focus-border);
+    box-shadow: var(--settings-input-focus-shadow);
+}
+
+/* ==================== 退出确认 Modal ==================== */
+.confirm-exit-panel { max-width: 400px; }
+
+.confirm-exit-desc {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+    margin-bottom: 1.2rem;
+}
+
+.confirm-exit-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.confirm-exit-tip {
+    display: block;
+    margin-top: 0.8rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+/* ==================== 动态细节增强 ==================== */
+
+/* 主题切换过渡 */
+body, #app, .screen {
+    transition-property: opacity, background-color, color;
+}
+
+/* 设置面板弹入动画增强 */
+.settings-panel { animation: settingsIn 0.35s var(--ease-bounce); }
+
+@keyframes settingsIn {
+    from { opacity: 0; transform: translateY(24px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 进阶模式全局标记：角标呼吸 */
+html.advanced-on #chat-header-info::after {
+    content: '18+';
+    display: inline-block;
+    margin-left: 6px;
+    padding: 0 5px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #b85c8a, #8a4a6b);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    vertical-align: middle;
+    animation: badgeGlow 2.4s ease-in-out infinite;
+}
+
+@keyframes badgeGlow {
+    0%, 100% { opacity: 0.75; }
+    50% { opacity: 1; box-shadow: 0 0 8px rgba(184, 92, 138, 0.5); }
+}
+
+/* 移动端适配补充 */
+@media (max-width: 768px) {
+    .chat-icon-btn.advanced-toggle .adv-label { display: none; }
+    .chat-icon-btn.advanced-toggle { width: 34px; padding: 0; }
+    .chat-icon-btn.advanced-toggle.active { width: auto; padding: 0 10px; }
+    .chat-icon-btn.advanced-toggle.active .adv-label { display: inline; }
+    #dialog-nav { padding-left: 2px; }
+    .dialog-nav-btn { width: 30px; height: 30px; }
+    .model-picker-panel { max-height: 260px; }
+    .chat-suggested-choices { max-width: 92%; }
 }
