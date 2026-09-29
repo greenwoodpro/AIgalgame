@@ -2652,9 +2652,6 @@
         if (isCustom && !state.settings.customBaseUrl) throw new Error('请先配置自定义 API 的 Base URL');
         if (isCustom && !apiKey) throw new Error('请先配置自定义 API 的 API Key');
         if (!useProxy && !canDirectConnect) throw new Error(`请先配置 ${config.name} 的 API Key，或开启"使用默认密钥"`);
-        if (_forceProxy && !state.settings.corsProxyUrl && isCustom === false && !state.settings.useProxyKeys && !state.settings.apiKeys[provider] && provider !== 'modelscope') {
-            // 无任何可用密钥又需要强制代理的极端情况
-        }
 
         let url;
         let headers = { 'Content-Type': 'application/json' };
@@ -2813,7 +2810,7 @@
                     const delay = BASE_DELAY * Math.pow(2, retryCount);
                     showToast(`响应为空，${Math.ceil(delay/1000)}秒后重试...`, 'warning');
                     await new Promise(r => setTimeout(r, delay));
-                    return await callAiApi(userMessage, retryCount + 1, onStreamChunk);
+                    return await callAiApi(userMessage, retryCount + 1, streamCallbacks, _forceProxy);
                 }
                 throw new Error('API返回空响应，请重试');
             }
