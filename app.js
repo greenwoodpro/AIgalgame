@@ -116,25 +116,19 @@
 3. 多用细节描写：眼神、小动作、环境氛围
 4. 每次回复150-350字，内容丰富有画面感
 5. 推动剧情发展，不要原地踏步
-6. choices选项要具体、有画面感、有戏剧张力，避免"继续聊天"这种空泛选项
 
 ## 输出格式（纯JSON，无markdown）
-{"name":"角色名","dialog":"对话内容（纯文字，不要加括号动作）","emotion":"happy/sad/angry/surprised/shy/neutral/scared/excited/worried/tsundere","action":"动作和表情描写（如：微微低头，脸颊泛红）","scene":"English scene description","choices":["选项1","选项2","选项3"]}
+{"name":"角色名","dialog":"对话内容（纯文字，不要加括号动作）","emotion":"happy/sad/angry/surprised/shy/neutral/scared/excited/worried/tsundere","action":"动作和表情描写（如：微微低头，脸颊泛红）","scene":"English scene description"}
 
 ## 重要规则
 - action字段：写角色的动作、表情、小动作，不要写在dialog里
 - dialog字段：只写角色说的话，不要加括号或动作描写，绝对不要加角色名前缀（如"星酱："、"豆包："等）
-- emotion字段：根据对话内容选择合适的情绪
+- emotion字段：根据对话内容选择合适的情绪，尽量多样化，不要每次都用happy/neutral
 - scene字段：用英文描述当前场景，用于AI生图
-- choices字段：3个下一步行动建议，分别对应：推动主线剧情 / 探索支线或环境 / 情感互动
 - 绝不说自己是AI，不用"作为..."、"我可以..."等助手用语`;
 
     const ADVANCED_MODE_PROMPT = `[进阶模式已开启]
-本模式下所有角色均为成年人。允许更成熟、更亲密的浪漫互动描写：拥抱、依偎、亲吻、暧昧升温、含蓄的感官与氛围描写都可以自然发生。要求：
-1. 情感升温要有铺垫和节奏，不是每回合都强行推进亲密
-2. 描写保持文学性和分寸感，用氛围、留白和暗示代替直白
-3. 角色依然保持自己的性格边界（傲娇就是傲娇，不会突然变得毫无防线）
-4. 若玩家的请求超出尺度，角色可以用符合人设的方式婉拒`;
+本模式下所有角色均为成年人。请以更成熟、真实的方式呈现角色关系与亲密互动：情感与身体语言随剧情自然升温，描写尺度跟随剧情节奏和玩家的引导自然推进，由角色性格决定回应方式。不要生硬回避、不要说教式拒绝、不要无视玩家明确表达的情感意图。保持叙事质感与角色一致性，用氛围和细节让互动自然发生`;
 
     const API_CONFIGS = {
         zhipu: {
@@ -286,18 +280,32 @@
         const config = API_CONFIGS[provider];
         if (!config || !config.baseUrl) throw new Error('该提供商不支持获取列表');
 
-        let url;
-        const headers = {};
         const userKey = state.settings.apiKeys[provider];
-        const canDirect = (provider === 'modelscope') && !!userKey; // 魔搭支持CORS直连
-        if (canDirect) {
-            url = `${config.baseUrl}/models`;
-            headers['Authorization'] = `Bearer ${userKey}`;
-        } else {
-            const proxyBase = state.settings.corsProxyUrl || window.location.origin;
-            url = `${proxyBase}/api/${provider}/models`;
+        // 魔搭支持CORS直连
+        if (provider === 'modelscope' && userKey) {
+            const ids = await fetchModelsFromUrl(`${config.baseUrl}/models`, { 'Authorization': `Bearer ${userKey}` });
+            setModelCache(provider, ids.map(m => ({ id: m })));
+            return ids;
         }
 
+        // 走代理：自定义代理地址失败时自动回退同域代理
+        const attempts = [];
+        if (state.settings.corsProxyUrl) attempts.push(state.settings.corsProxyUrl);
+        attempts.push(window.location.origin);
+        let lastErr = null;
+        for (const base of attempts) {
+            try {
+                const ids = await fetchModelsFromUrl(`${base}/api/${provider}/models`, {});
+                setModelCache(provider, ids.map(m => ({ id: m })));
+                return ids;
+            } catch (e) {
+                lastErr = e;
+            }
+        }
+        throw lastErr || new Error('获取失败');
+    }
+
+    async function fetchModelsFromUrl(url, headers) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 15000);
         try {
@@ -310,7 +318,6 @@
             const json = await resp.json();
             const models = normalizeModelList(json);
             if (models.length === 0) throw new Error('返回的列表为空');
-            setModelCache(provider, models.map(m => ({ id: m.id })));
             return models.map(m => m.id);
         } finally {
             clearTimeout(timeout);
@@ -504,19 +511,31 @@
             });
         },
         async urlToBase64(url) {
+            const readAsDataUrl = (blob) => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+            // 优先直连；失败（CORS/403）走服务端图片代理再试
+            const attempts = [url];
             try {
-                const resp = await fetch(url, { mode: 'cors' });
-                if (!resp.ok) return null;
-                const blob = await resp.blob();
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(blob);
-                });
-            } catch {
-                return null;
+                const proxyBase = state.settings.corsProxyUrl || window.location.origin;
+                if (state.settings.corsProxy && !url.startsWith('data:')) {
+                    attempts.push(`${proxyBase}/api/proxy-image?url=${encodeURIComponent(url)}`);
+                }
+            } catch {}
+            for (const attempt of attempts) {
+                try {
+                    const resp = await fetch(attempt, { mode: 'cors' });
+                    if (!resp.ok) continue;
+                    const blob = await resp.blob();
+                    if (!blob || blob.size === 0) continue;
+                    const dataUrl = await readAsDataUrl(blob);
+                    if (dataUrl && dataUrl.length > 100) return dataUrl;
+                } catch {}
             }
+            return null;
         }
     };
 
@@ -733,19 +752,8 @@
                     statusBadge.classList.add('hidden');
                 }
             }
-            if (!skipHistoryUpdate) {
-                try {
-                    const hashMap = { title: '', game: 'game', settings: 'settings' };
-                    const hash = hashMap[state.currentScreen] || state.currentScreen;
-                    const targetPath = hash ? '#' + hash : location.pathname;
-                    const currentPath = location.hash ? '#' + location.hash.slice(1) : location.pathname;
-                    if (currentPath !== targetPath) {
-                        // 用 pushState 新增历史条目，保留前一页（如标题页），
-                        // 这样从游戏页按浏览器返回能回到标题页
-                        history.pushState(null, '', targetPath);
-                    }
-                } catch (e) { /* file:// 等受限环境下忽略 */ }
-            }
+            // 历史管理统一由 gotoGameScreen() / backToTitle() / handleHashChange() 负责，
+            // 这里只负责 UI 切换，避免 pushState 与 popstate 互相干扰
         }
     }
 
@@ -784,17 +792,18 @@
         }
     }
 
-    let _hashChangeTimer = null;
-    function handleHashChangeDebounced() {
-        if (_hashChangeTimer) clearTimeout(_hashChangeTimer);
-        _hashChangeTimer = setTimeout(() => {
-            _hashChangeTimer = null;
-            handleHashChange();
-        }, 50);
-    }
+    // popstate/hashchange 直接同步处理（handleHashChange 幂等）；
+    // 之前用 50ms 防抖会在返回键导航时引入竞态窗口，导致 UI 与 URL 不同步
+    window.addEventListener('popstate', handleHashChange);
+    window.addEventListener('hashchange', handleHashChange);
 
-    window.addEventListener('popstate', handleHashChangeDebounced);
-    window.addEventListener('hashchange', handleHashChangeDebounced);
+    // 游戏屏入口统一走这里：先切 UI，再同步历史（pushState 保留标题页条目）
+    function gotoGameScreen() {
+        switchScreen('game-screen');
+        try {
+            if (location.hash !== '#game') history.pushState(null, '', '#game');
+        } catch (e) { /* file:// 等受限环境下忽略 */ }
+    }
 
     function showToast(message, type = 'info') {
         const container = $('#toast-container');
@@ -1372,6 +1381,7 @@
             case 'toggle-bgm': toggleBgm(); break;
             case 'toggle-tts': toggleTts(); break;
             case 'toggle-sprite-selector': toggleSpriteSelector(); break;
+            case 'hide-sprite': hideSprite(); showToast('立绘已隐藏，点 🎭 按钮恢复', 'info'); break;
             case 'close-sprite-selector': closeSpriteSelector(); break;
             case 'chat-send': handleChatSend(); break;
             case 'chat-continue': case 'chat-explore': case 'chat-interact': handleChatQuickAction(act); break;
@@ -2173,7 +2183,7 @@
     async function doStartGame(mode) {
         state.mode = mode;
         stopTitleParticles();
-        switchScreen('game-screen');
+        gotoGameScreen();
         startDefaultBgRotation();
         startAmbientParticles();
         if (mode === 'ai') {
@@ -2208,7 +2218,7 @@
         const mode = state._pendingGameMode || state.mode || 'ai';
         state.mode = mode;
         stopTitleParticles();
-        switchScreen('game-screen');
+        gotoGameScreen();
         startDefaultBgRotation();
         startAmbientParticles();
         const lastDialog = state.game.dialogHistory[state.game.dialogHistory.length - 1];
@@ -2625,6 +2635,17 @@
         return null;
     }
 
+    // 生图限流时的备用提供商链（智谱 CogView 免费，放最前）
+    function tryFallbackImageProvider(currentProvider) {
+        const order = ['zhipu', 'modelscope', 'sense', 'agnes'];
+        for (const p of order) {
+            if (p === currentProvider) continue;
+            const hasKey = state.settings.useProxyKeys || !!state.settings.apiKeys[p];
+            if (hasKey && API_CONFIGS[p]?.models.image?.length) return p;
+        }
+        return null;
+    }
+
     function restoreFallbackProvider() {
         if (state.settings._fallbackFrom) {
             const original = state.settings._fallbackFrom;
@@ -2736,7 +2757,10 @@
 
         const currentModel = [...(config.models.text || []), ...(config.models.vision || [])].find(m => m.id === state.settings.textModel);
         const useStream = state.settings.streamOutput || (currentModel?.thinking && state.settings.enableThinking);
-        const body = { model: state.settings.textModel, messages, stream: useStream, max_tokens: state.settings.maxResponseLength || 350 };
+        // 思考与正文共享输出预算：开启思考时自动放大，避免思考耗尽额度导致正文截断/为空
+        const baseMaxTokens = state.settings.maxResponseLength || 350;
+        const effMaxTokens = state.settings.enableThinking ? Math.max(2560, baseMaxTokens + 2048) : baseMaxTokens;
+        const body = { model: state.settings.textModel, messages, stream: useStream, max_tokens: effMaxTokens };
         if (provider === 'nvidia') { body.temperature = 1; body.top_p = 0.9; }
         // 思考模式参数（按模型家族适配，未知模型不传避免400）
         if (state.settings.enableThinking) {
@@ -2806,6 +2830,15 @@
             const result = await processApiResponse(response, body, provider, streamCallbacks);
             
             if (!result || result.trim().length === 0) {
+                // 思考模式下空响应（思考耗尽输出预算）→ 临时关闭思考重试
+                if (state.settings.enableThinking && retryCount < MAX_RETRIES) {
+                    showToast('思考占用过多输出，自动以无思考模式重试...', 'info');
+                    const savedThinking = state.settings.enableThinking;
+                    state.settings.enableThinking = false;
+                    try {
+                        return await callAiApi(userMessage, retryCount + 1, streamCallbacks, _forceProxy);
+                    } finally { state.settings.enableThinking = savedThinking; }
+                }
                 if (retryCount < MAX_RETRIES) {
                     const delay = BASE_DELAY * Math.pow(2, retryCount);
                     showToast(`响应为空，${Math.ceil(delay/1000)}秒后重试...`, 'warning');
@@ -2853,7 +2886,7 @@
         }
     }
 
-    async function callImageApi(prompt, _forceProxy = false) {
+    async function callImageApi(prompt, _forceProxy = false, _fallbackDepth = 0) {
         const provider = state.settings.imageApiProvider;
         const config = API_CONFIGS[provider];
         const useProxy = state.settings.useProxyKeys || _forceProxy;
@@ -2988,6 +3021,17 @@
         const response = await doFetch();
 
         if (response.status === 429) {
+            // 生图限流：自动切换到其他可用提供商（魔搭文生图全模型共享每日约50次额度）
+            const fallback = _fallbackDepth < 2 ? tryFallbackImageProvider(provider) : null;
+            if (fallback) {
+                showToast(`${config.name}生图限流，自动切换到${API_CONFIGS[fallback].name}`, 'info');
+                state.settings.imageApiProvider = fallback;
+                state.settings.imageModel = API_CONFIGS[fallback].models.image[0]?.id || state.settings.imageModel;
+                saveSettings();
+                updateImageModelOptions();
+                updateModelPickerValue('image');
+                return await callImageApi(prompt, _forceProxy, _fallbackDepth + 1);
+            }
             const retryAfter = parseInt(response.headers.get('Retry-After') || '10', 10);
             showToast(`生图请求限流，${retryAfter}秒后重试...`, 'info');
             await new Promise(r => setTimeout(r, retryAfter * 1000));
@@ -3541,7 +3585,7 @@
         hideModal('save-modal');
         const previewModal = $('#outline-preview-modal');
         if (previewModal) previewModal.classList.add('hidden');
-        switchScreen('game-screen');
+        gotoGameScreen();
         if (state.uiMode === 'chat') switchUiMode('game');
         const firstChapter = outline.chapters[0];
         const outlinePrompt = buildOutlinePrompt(outline, 0);
@@ -3615,6 +3659,29 @@
         return period;
     }
 
+    // 截断 JSON 的部分提取：不要求字段闭合，能救多少救多少
+    function extractPartialJson(cleaned) {
+        const grabStr = (key) => {
+            const m = cleaned.match(new RegExp('"' + key + '"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)', 's'));
+            if (!m) return undefined;
+            // 去掉末尾悬挂的不完整转义序列（如 \u4e2、\" 中的孤立反斜杠）
+            return m[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\u[0-9a-fA-F]{0,3}$/g, '').replace(/\\$/g, '').replace(/\\t/g, ' ');
+        };
+        const dialog = grabStr('dialog');
+        if (!dialog) return null;
+        const nameM = cleaned.match(/"name"\s*:\s*"((?:[^"\\]|\\.)*)/);
+        const emotionM = cleaned.match(/"emotion"\s*:\s*"([a-zA-Z]+)"/);
+        const action = grabStr('action');
+        const scene = grabStr('scene');
+        return {
+            name: nameM ? nameM[1] : undefined,
+            dialog,
+            emotion: emotionM ? emotionM[1] : undefined,
+            action,
+            scene,
+        };
+    }
+
     function processAiResponse(rawContent, elapsedSec, isStreamMode = false) {
         restoreFallbackProvider();
         let parsed = null;
@@ -3629,19 +3696,28 @@
                 parsed = JSON.parse(jsonStr);
             }
         } catch {
-            // JSON 解析失败，尝试用正则提取关键字段作为兜底
+            // JSON 解析失败 → 优先尝试截断容错提取（处理 max_tokens 截断的输出）
             try {
-                const nameMatch = rawContent.match(/"name"\s*:\s*"([^"]+)"/);
-                const dialogMatch = rawContent.match(/"dialog"\s*:\s*"((?:[^"\\]|\\.)*)"/s);
-                const emotionMatch = rawContent.match(/"emotion"\s*:\s*"([^"]+)"/);
-                if (dialogMatch) {
-                    parsed = {
-                        name: nameMatch ? nameMatch[1] : '',
-                        dialog: dialogMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"'),
-                        emotion: emotionMatch ? emotionMatch[1] : ''
-                    };
+                const partial = extractPartialJson(cleaned || rawContent);
+                if (partial) {
+                    parsed = partial;
                 }
             } catch {}
+            if (!parsed) {
+                // 再尝试完整正则提取作为兜底
+                try {
+                    const nameMatch = rawContent.match(/"name"\s*:\s*"([^"]+)"/);
+                    const dialogMatch = rawContent.match(/"dialog"\s*:\s*"((?:[^"\\]|\\.)*)"/s);
+                    const emotionMatch = rawContent.match(/"emotion"\s*:\s*"([^"]+)"/);
+                    if (dialogMatch) {
+                        parsed = {
+                            name: nameMatch ? nameMatch[1] : '',
+                            dialog: dialogMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"'),
+                            emotion: emotionMatch ? emotionMatch[1] : ''
+                        };
+                    }
+                } catch {}
+            }
         }
 
         // Show meta info (thinking time + output tokens)
@@ -3696,10 +3772,6 @@
             }
             if (scene) state.game.currentScene = scene;
             if (scene) { state.game.currentScene = scene; resetImageGenTimer(scene); }
-            // 建议选项：点击即作为玩家输入继续剧情
-            if (Array.isArray(parsed.choices) && parsed.choices.length > 0) {
-                showSuggestedChoices(parsed.choices.slice(0, 3));
-            }
         } else if (parsed && (parsed['开场白'] || parsed['对话'] || parsed['场景'])) {
             // Fallback: 模型返回了中文key的JSON
             const rawName2 = parsed['角色'] || parsed['name'] || '???';
@@ -3939,7 +4011,9 @@
         if (dialogTextArea) {
             dialogTextArea.readOnly = false;
             dialogTextArea.dataset.mode = 'input';
-            dialogTextArea.value = '';
+            // 恢复浏览历史前输入了一半的草稿
+            dialogTextArea.value = dialogSegmentState.inputDraft || '';
+            dialogSegmentState.inputDraft = '';
             dialogTextArea.placeholder = '输入消息，按 Enter 发送...';
             dialogTextArea.focus();
         }
@@ -3972,7 +4046,6 @@
             dialogTextArea.readOnly = true;
             dialogTextArea.dataset.mode = 'display';
         }
-
         const emotionEl = $('#emotion-indicator');
         if (entry.type === 'player') {
             if (emotionEl) { emotionEl.className = 'emotion-neutral'; emotionEl.textContent = '😐'; }
@@ -4004,53 +4077,28 @@
 
         dialogSegmentState.historyOffset--;
 
-        // 回到最底部：恢复输入状态或当前对话
+        // 回到最底部：显示最新一条消息（不直接跳进输入框，再按 Enter 才继续/发送）
         if (dialogSegmentState.historyOffset === 0) {
             const dialogName = $('#dialog-name');
             const dialogTextArea = $('#dialog-text-area');
             const nameEl = $('#dialog-name');
             if (nameEl) nameEl.classList.remove('player-name');
 
-            // 浏览前处于输入模式 → 恢复草稿和输入状态
-            if (dialogSegmentState._wasInput) {
-                dialogSegmentState._wasInput = false;
-                if (dialogTextArea) {
-                    dialogTextArea.readOnly = false;
-                    dialogTextArea.dataset.mode = 'input';
-                    dialogTextArea.value = dialogSegmentState.inputDraft || '';
-                    dialogTextArea.placeholder = '输入消息，按 Enter 发送...';
-                    dialogTextArea.focus();
-                }
-                if (dialogName) dialogName.textContent = '你';
-                $('#dialog-send-btn')?.classList.remove('hidden');
-                const emotionEl = $('#emotion-indicator');
-                if (emotionEl) { emotionEl.className = 'emotion-neutral'; emotionEl.textContent = '😐'; }
-                return;
-            }
-
-            const { name, emotion } = dialogSegmentState;
-            if (dialogName) dialogName.textContent = name;
-            // 恢复当前对话文本
             const lastEntry = dialogSegmentState.dialogHistory[dialogSegmentState.dialogHistory.length - 1];
-            if (dialogTextArea && lastEntry) dialogTextArea.value = lastEntry.text;
-
-            if (emotion) {
+            if (lastEntry) {
+                if (dialogName) {
+                    dialogName.textContent = lastEntry.name;
+                    dialogName.classList.toggle('player-name', lastEntry.type === 'player');
+                }
+                if (dialogTextArea) dialogTextArea.value = lastEntry.text;
                 const emotionEl = $('#emotion-indicator');
-                if (emotionEl) { emotionEl.className = `emotion-${normalizeEmotion(emotion)}`; emotionEl.textContent = emotion; }
-            }
-
-            // 恢复当前角色的立绘
-            if (name && name !== '旁白' && name !== '系统') {
-                const char = SPRITE_CONFIG.characters.find(c => c.name === name);
-                if (char) {
-                    const expr = SPRITE_CONFIG.emotionMap[emotion] || char.defaultExpr;
-                    showSprite(char.id, expr);
+                if (lastEntry.emotion && emotionEl) {
+                    emotionEl.className = `emotion-${normalizeEmotion(lastEntry.emotion)}`;
+                    emotionEl.textContent = lastEntry.emotion;
                 }
             }
 
-            if (dialogTextArea) dialogTextArea.placeholder = '按 Enter 继续...';
-            const dialogMeta = $('#dialog-meta');
-            if (dialogMeta) dialogMeta.textContent = '';
+            if (dialogTextArea) dialogTextArea.placeholder = '按 Enter 继续 / 发送消息...';
             return;
         }
 
@@ -4360,6 +4408,7 @@
     let gameBgInterval = null;
     let lastImageGenTime = 0;
     let pendingSceneDescription = null;
+    let pendingImageTimer = null;
     let lastChoices = null;
     let imageGenTimer = null;  // 生图间隔计时器
 
@@ -4694,6 +4743,26 @@
                 img.loading = 'lazy';
                 if (item.url) {
                     img.src = item.url;
+                    // URL 可能已过期（OSS 签名时效）：失败时经服务端代理重取并转存
+                    if (!item.persisted) {
+                        img.addEventListener('error', async () => {
+                            if (img.dataset.rescued) return;
+                            img.dataset.rescued = '1';
+                            const b64 = await IDB.urlToBase64(item.url);
+                            if (b64) {
+                                img.src = b64;
+                                try {
+                                    const imgId = `scene_${item.timestamp || Date.now()}`;
+                                    await IDB.saveImage(imgId, { base64: b64, prompt: item.prompt });
+                                    item.id = imgId;
+                                    item.persisted = true;
+                                    saveGallery();
+                                } catch {}
+                            } else {
+                                div.classList.add('broken');
+                            }
+                        });
+                    }
                 } else if (item.persisted && item.id) {
                     div.classList.add('loading');
                     persistedItems.push({ item, img, div });
@@ -5001,7 +5070,7 @@
         } else {
             setSceneBackground(DEFAULT_BG);
         }
-        switchScreen('game-screen');
+        gotoGameScreen();
         hideModal('save-modal');
         if (state.game.dialogHistory && state.game.dialogHistory.length > 0) {
             const last = state.game.dialogHistory[state.game.dialogHistory.length - 1];
@@ -5304,7 +5373,7 @@
             }, 500);
         }
         const toggleBtn = $('#sprite-toggle-btn');
-        if (toggleBtn) toggleBtn.classList.remove('hidden');
+        if (toggleBtn) { toggleBtn.classList.remove('hidden'); toggleBtn.classList.remove('sprite-off'); toggleBtn.title = '切换立绘'; }
         const selector = $('#sprite-selector');
         if (selector && !selector.classList.contains('hidden')) {
             const charList = $('#sprite-char-list');
@@ -5329,8 +5398,9 @@
             if (currentLayer) { currentLayer.style.backgroundImage = ''; currentLayer.style.opacity = '1'; }
             if (nextLayer) { nextLayer.style.backgroundImage = ''; nextLayer.style.opacity = '0'; }
         }, 400);
+        // 🎭按钮保留，作为"恢复显示立绘"入口
         const toggleBtn = $('#sprite-toggle-btn');
-        if (toggleBtn) toggleBtn.classList.add('hidden');
+        if (toggleBtn) { toggleBtn.classList.add('sprite-off'); toggleBtn.title = '显示立绘'; }
         closeSpriteSelector();
     }
 
@@ -5344,7 +5414,8 @@
     function switchSpriteExpression(emotion) {
         if (!spriteState.visible || !spriteState.currentChar) return;
         const expr = SPRITE_CONFIG.emotionMap[emotion] || '高兴';
-        if (expr !== spriteState.currentExpr) {
+        const exprChanged = expr !== spriteState.currentExpr;
+        if (exprChanged) {
             spriteState.currentExpr = expr;
             const char = SPRITE_CONFIG.characters.find(c => c.id === spriteState.currentChar);
             if (!char) return;
@@ -5380,11 +5451,16 @@
                 img.onload = doFade;
                 img.onerror = doFade; // proceed even on error
             }
+        }
 
-            // Emotion animation on sprite
+        // 情绪动画：表情变化时播放；表情相同但情绪不同时也播放（增强立绘反应感）
+        const spriteEl = $('#character-sprite');
+        if (spriteEl && emotion) {
             spriteEl.classList.remove('idle');
             const animClass = SPRITE_EMOTION_ANIM_MAP[emotion];
             if (animClass) {
+                spriteEl.classList.remove('sprite-happy', 'sprite-angry', 'sprite-heartbeat', 'sprite-serious', 'sprite-embarrassed', 'sprite-naughty');
+                void spriteEl.offsetWidth; // reflow，允许重复触发
                 spriteEl.classList.add(animClass);
                 const animDuration = animClass === 'sprite-angry' ? 800 :
                     animClass === 'sprite-happy' ? 600 :
@@ -5392,14 +5468,19 @@
                     animClass === 'sprite-serious' ? 600 :
                     animClass === 'sprite-embarrassed' ? 300 :
                     animClass === 'sprite-naughty' ? 300 : 600;
-                setTimeout(() => {
+                clearTimeout(spriteEl._emoAnimTimer);
+                spriteEl._emoAnimTimer = setTimeout(() => {
                     spriteEl.classList.remove(animClass);
                     spriteEl.classList.add('idle');
                 }, animDuration);
+            } else if (exprChanged) {
+                spriteEl.classList.add('idle');
             } else {
                 spriteEl.classList.add('idle');
             }
+        }
 
+        if (exprChanged) {
             const exprList = $('#sprite-expr-list');
             if (exprList) {
                 exprList.querySelectorAll('.sprite-expr-btn').forEach(b => {
@@ -5451,6 +5532,14 @@
     }
 
     function toggleSpriteSelector() {
+        // 立绘被隐藏时，🎭按钮用于恢复显示
+        if (!spriteState.visible) {
+            showSprite(state.game.character || 'char_1', spriteState.currentExpr || '高兴');
+            const btn = $('#sprite-toggle-btn');
+            if (btn) { btn.classList.remove('sprite-off'); btn.title = '切换立绘'; }
+            showToast('立绘已恢复显示', 'info');
+            return;
+        }
         const sel = $('#sprite-selector');
         if (!sel) return;
         if (sel.classList.contains('hidden')) {

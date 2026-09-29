@@ -205,6 +205,31 @@ export default {
             });
         }
 
+        // 通用图片转发：/api/proxy-image?url=...（用于拉取无 CORS 头的生图结果并转存）
+        if (url.pathname === '/api/proxy-image' && request.method === 'GET') {
+            const origin = request.headers.get('Origin') || '';
+            const target = url.searchParams.get('url');
+            if (!target) return errorResponse('缺少 url 参数', 400, origin);
+            try {
+                const parsed = new URL(target);
+                if (!['https:', 'http:'].includes(parsed.protocol)) {
+                    return errorResponse('不支持的协议', 400, origin);
+                }
+                const upstream = await fetch(parsed.toString(), {
+                    headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'image/*' },
+                });
+                if (!upstream.ok) return errorResponse(`上游返回 ${upstream.status}`, upstream.status, origin);
+                const headers = new Headers({
+                    'Content-Type': upstream.headers.get('Content-Type') || 'image/png',
+                    'Cache-Control': 'no-store',
+                    ...getCorsHeaders(origin),
+                });
+                return new Response(upstream.body, { status: upstream.status, headers });
+            } catch (e) {
+                return errorResponse('图片转发失败: ' + e.message, 502, origin);
+            }
+        }
+
         if (url.pathname.startsWith('/api/')) {
             const pathPart = url.pathname.replace(/^\/api\/?/, '');
             const parts = pathPart.split('/');

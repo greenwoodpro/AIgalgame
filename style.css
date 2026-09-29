@@ -4053,3 +4053,30 @@ html.advanced-on #chat-header-info::after {
     .model-picker-panel { max-height: 260px; }
     .chat-suggested-choices { max-width: 92%; }
 }
+
+/* ==================== 立绘隐藏按钮态 ==================== */
+#sprite-toggle-btn.sprite-off {
+    opacity: 0.45;
+    filter: grayscale(0.8);
+}
+
+#sprite-toggle-btn.sprite-off::after {
+    content: '🚫';
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    font-size: 11px;
+}
+
+#sprite-hide-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background 0.15s ease;
+}
+
+#sprite-hide-btn:hover { background: var(--settings-item-bg); }
